@@ -36,5 +36,22 @@ func InitApp() *gin.Engine {
 	controllers.Subscriptions(router)
 	controllers.Statuses(router)
 	controllers.AboutUs(router)
+	controllers.Content(router)
+
+	// // Initialize the repositories, services, and controllers
+	// contentRepo := repositories.NewContentRepository(DB)
+	// contentService := services.NewContentService(contentRepo)
+	// contentController := controllers.NewContentController(contentService)
+	// // Routes for content
+	// router.GET("/content", contentController.GetAll)
+	// router.GET("/content/:id", contentController.GetByID)
+	// router.GET("/content/title", contentController.GetByTitle)
+	// router.GET("/content/uuid/:uuid", contentController.GetByUUID)
+	// router.GET("/content/type/:content_type_id", contentController.GetByContentTypeID)
+
+	// router.POST("/content", contentController.Create)
+	// router.PATCH("/content/:id", contentController.Update)
+	// router.DELETE("/content/:id", contentController.Delete) // Add delete route
+
 	return router
 }
