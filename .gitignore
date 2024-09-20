@@ -1,3 +1,12 @@
 **/build/**
 **.idea/
 .env
+
+config.json
+*.config.json
+.vscode/
+vendor/
+daemon.log
+daemon.*.log
+build/daemon_linux.gz
+build/daemon_bsd.gz

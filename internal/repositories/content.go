@@ -1,0 +1,63 @@
+package repositories
+
+import (
+	"context"
+	"github.com/georgysavva/scany/v2/pgxscan"
+	db "texApi/database"
+	"texApi/internal/dto"
+	"texApi/internal/queries"
+)
+
+func GetContents() ([]dto.ContentResponse, error) {
+	var contents []dto.ContentResponse
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&contents, queries.GetContents,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return contents, nil
+}
+
+func GetContent(id int) dto.ContentResponse {
+	var content dto.ContentResponse
+
+	db.DB.QueryRow(
+		context.Background(), queries.GetContent, id,
+	).Scan(
+		&content.ID,
+		&content.UUID,
+		&content.LangID,
+		&content.ContentTypeID,
+		&content.Title,
+		&content.Subtitle,
+		&content.Description,
+		&content.ImageURL,
+		&content.VideoURL,
+		&content.Step,
+		&content.CreatedAt,
+		&content.UpdatedAt,
+		&content.Deleted,
+	)
+
+	return content
+}
+
+func CreateContent(content dto.CreateContent) int {
+	var id int
+
+	db.DB.QueryRow(
+		context.Background(), queries.CreateContent,
+		content.LangID,
+		content.ContentTypeID,
+		content.Title,
+		content.Subtitle,
+		content.Description,
+		content.ImageURL,
+		content.VideoURL,
+		content.Step,
+	).Scan(&id)
+	
+	return id
+}

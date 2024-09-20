@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"texApi/config"
 	"texApi/database"
-	app "texApi/pkg"
+	app "texApi/internal"
 )
 
 func main() {
