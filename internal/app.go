@@ -36,6 +36,7 @@ func InitApp() *gin.Engine {
 	// controllers.Statuses(router)
 	// controllers.AboutUs(router)
 	controllers.Content(router)
+	controllers.ContentType(router)
 
 	return router
 }
