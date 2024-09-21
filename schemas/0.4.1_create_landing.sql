@@ -1,3 +1,4 @@
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE
@@ -12,7 +13,7 @@ CREATE TABLE
     tbl_content_type (
         id SERIAL PRIMARY KEY,
         uuid UUID DEFAULT gen_random_uuid (),
-        type_name VARCHAR(50) DEFAULT '',
+        name VARCHAR(50) DEFAULT '',
         title TEXT DEFAULT '',
         description TEXT DEFAULT ''
     );

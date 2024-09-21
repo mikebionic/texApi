@@ -7,7 +7,7 @@ VALUES
 
 -- Insert content types
 INSERT INTO
-    tbl_content_type (type_name, title, description)
+    tbl_content_type (name, title, description)
 VALUES
     ('about', 'About Us', 'Information about our company and who we are.'),
     ('partner', 'Our Partners', 'Details about our trusted business partners.'),
