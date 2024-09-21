@@ -48,3 +48,7 @@ var CreateContent = `
 	step)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
     `
+
+var DeleteContent = `
+	UPDATE tbl_content SET deleted = 1 WHERE id = $1
+`
