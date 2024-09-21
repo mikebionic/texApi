@@ -58,6 +58,15 @@ func CreateContent(content dto.CreateContent) int {
 		content.VideoURL,
 		content.Step,
 	).Scan(&id)
-	
+
 	return id
+}
+
+func DeleteContent(id int) error {
+	_, err := db.DB.Exec(context.Background(), queries.DeleteContent, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
