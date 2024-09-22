@@ -8,15 +8,26 @@ import (
 	"texApi/internal/queries"
 )
 
-func GetContents() ([]dto.ContentResponse, error) {
+func GetContents(ctID int) ([]dto.ContentResponse, error) {
 	var contents []dto.ContentResponse
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&contents, queries.GetContents,
-	)
+	var err error
+	stmt := queries.GetContents
+	if ctID > 0 {
+		stmt += ` AND c.content_type_id=$1`
+		err = pgxscan.Select(
+			context.Background(), db.DB,
+			&contents, stmt, ctID,
+		)
+	} else {
+		err = pgxscan.Select(
+			context.Background(), db.DB,
+			&contents, stmt,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	return contents, nil
 }
 

@@ -12,5 +12,5 @@ func GetContentTypes(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"content_types": contentTypes})
+	ctx.JSON(http.StatusOK, contentTypes)
 }
