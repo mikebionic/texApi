@@ -10,3 +10,4 @@ daemon.log
 daemon.*.log
 build/daemon_linux.gz
 build/daemon_bsd.gz
+bin/
