@@ -11,24 +11,24 @@ var GetContentTypes = `
 
 var GetContentTypesWithContent = `
 	SELECT 
-		ct.id AS content_type_id,
+-- 		ct.id AS content_type_id,
 		ct.uuid AS content_type_uuid,
 		ct.name AS content_type_name,
 		ct.title AS content_type_title,
 		ct.description AS content_type_description,
-		c.id AS content_id,
-		c.uuid AS content_uuid,
-		c.lang_id AS content_lang_id,
-		c.content_type_id AS content_content_type_id,
-		c.title AS content_title,
-		c.subtitle AS content_subtitle,
-		c.description AS content_description,
-		c.image_url AS content_image_url,
-		c.video_url AS content_video_url,
-		c.step AS content_step,
-		c.created_at::VARCHAR AS content_created_at,
-		c.updated_at::VARCHAR AS content_updated_at,
-		c.deleted AS content_deleted
+		c.id,
+		c.uuid,
+		c.lang_id,
+-- 		c.content_type_id AS content_content_type_id,
+		c.title,
+		c.subtitle,
+		c.description,
+		c.image_url,
+		c.video_url,
+		c.step,
+		c.created_at::VARCHAR,
+		c.updated_at::VARCHAR,
+		c.deleted
 	FROM 
 		tbl_content_type ct
 	LEFT JOIN 

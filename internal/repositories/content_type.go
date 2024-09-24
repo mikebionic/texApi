@@ -2,19 +2,17 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
 )
 
-func GetContentTypes(withContent int) ([]dto.ContentType, error) {
-	var contentTypes []dto.ContentType
+func GetContentTypes(withContent int) ([]dto.ContentTypeWithContent, error) {
+	var contentTypes []dto.ContentTypeWithContent
 	if withContent > 0 {
-		fmt.Println("Withcontent")
 		var results []struct {
-			ContentType dto.ContentType
+			ContentType dto.ContentTypeWithContent
 			Content     dto.ContentResponse
 		}
 		err := pgxscan.Select(context.Background(), db.DB, &results, queries.GetContentTypesWithContent)
@@ -22,21 +20,25 @@ func GetContentTypes(withContent int) ([]dto.ContentType, error) {
 			return nil, err
 		}
 
-		contentTypesMap := make(map[int]*dto.ContentType)
-		for _, row := range results {
-			if _, exists := contentTypesMap[row.ContentType.ID]; !exists {
-				contentTypesMap[row.ContentType.ID] = &row.ContentType
-				contentTypesMap[row.ContentType.ID].ContentData = []dto.ContentResponse{}
-			}
+		//contentTypesMap := make(map[int]*dto.ContentTypeWithContent)
+		//for _, row := range results {
+		//	fmt.Println(row)
+		//	if _, exists := contentTypesMap[row.ContentType.ID]; !exists {
+		//		contentTypesMap[row.ContentType.ID] = &row.ContentType
+		//		contentTypesMap[row.ContentType.ID].Contents = []dto.ContentResponse{}
+		//	}
+		//
+		//	if row.Content.ID != 0 {
+		//		contentTypesMap[row.ContentType.ID].Contents = append(
+		//			contentTypesMap[row.ContentType.ID].Contents,
+		//			row.Content,
+		//		)
+		//	}
+		//}
 
-			if row.Content.ID != 0 { // Ensure we only append non-null content rows
-				contentTypesMap[row.ContentType.ID].ContentData = append(contentTypesMap[row.ContentType.ID].ContentData, row.Content)
-			}
-		}
-
-		for _, ct := range contentTypesMap {
-			contentTypes = append(contentTypes, *ct)
-		}
+		//for _, ct := range contentTypesMap {
+		//	contentTypes = append(contentTypes, *ct)
+		//}
 	} else {
 		err := pgxscan.Select(
 			context.Background(), db.DB,
