@@ -15,7 +15,10 @@ CREATE TABLE
         uuid UUID DEFAULT gen_random_uuid (),
         name VARCHAR(50) DEFAULT '',
         title TEXT DEFAULT '',
-        description TEXT DEFAULT ''
+        title_ru TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        parent_id INT DEFAULT 0,
+        parent_name TEXT DEFAULT ''
     );
 
 CREATE TABLE
@@ -26,12 +29,14 @@ CREATE TABLE
         content_type_id INT REFERENCES tbl_content_type (id) ON DELETE SET NULL DEFAULT 0,
         title TEXT DEFAULT '',
         subtitle TEXT DEFAULT '',
+        slogan TEXT DEFAULT '',
         description TEXT DEFAULT '',
         image_url TEXT DEFAULT '',
         video_url TEXT DEFAULT '',
         step INT DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        active INT DEFAULT 1,
         deleted INT DEFAULT 0
     );
 
