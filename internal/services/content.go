@@ -45,6 +45,7 @@ func CreateContent(ctx *gin.Context) {
 	cID := repo.CreateContent(content)
 	if cID == 0 {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Can not create content"})
+		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"id": cID})
 }

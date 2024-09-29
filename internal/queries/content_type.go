@@ -6,12 +6,15 @@ var GetContentTypes = `
 	uuid,
 	name,
 	title,
-	description FROM tbl_content_type
+	title_ru,
+	description,
+	parent_id,
+	parent_name FROM tbl_content_type
 `
 
 var GetContentTypesWithContent = `
 	SELECT 
--- 		ct.id AS content_type_id,
+		ct.id AS content_type_id,
 		ct.uuid AS content_type_uuid,
 		ct.name AS content_type_name,
 		ct.title AS content_type_title,
