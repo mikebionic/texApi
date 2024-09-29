@@ -7,6 +7,7 @@ var GetContents = `
 	c.lang_id,
 	c.content_type_id,
 	c.title,
+	c.slogan,
 	c.subtitle,
 	c.description,
 	c.image_url,
@@ -14,6 +15,7 @@ var GetContents = `
 	c.step,
 	c.created_at::VARCHAR,
 	c.updated_at::VARCHAR,
+	c.active,
 	c.deleted
  FROM tbl_content c WHERE c.deleted = 0`
 
@@ -24,6 +26,7 @@ var GetContent = `
 	c.lang_id,
 	c.content_type_id,
 	c.title,
+	c.slogan,
 	c.subtitle,
 	c.description,
 	c.image_url,
@@ -31,6 +34,7 @@ var GetContent = `
 	c.step,
 	c.created_at::VARCHAR,
 	c.updated_at::VARCHAR,
+	c.active,
 	c.deleted
     FROM tbl_content c 
     WHERE c.id = $1
@@ -41,12 +45,13 @@ var CreateContent = `
 	lang_id,
 	content_type_id, 
 	title,
+	slogan,
 	subtitle,
 	description,
 	image_url,
 	video_url,
-	step)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+	step, active)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
     `
 
 var DeleteContent = `

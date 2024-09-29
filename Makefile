@@ -5,13 +5,9 @@ dev:
 db:
 	@echo "Initializing texApi database..."
 	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
-		-f ./database/init/init.sql
+		-f ./schamas/0.4.1_create_landing.sql
 	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d texApi \
-		-f ./database/init/create.sql
-	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d texApi \
-		-f ./database/init/insert.sql
-	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d texApi \
-		-f ./database/init/functions.sql
+		-f ./schamas/0.4.1_insert_landing.sql
 	@echo "Has been successfully created"
 build:
 	@echo "Building the app, please wait..."
@@ -19,7 +15,7 @@ build:
 	@echo "Done."
 build-cross:
 	@echo "Bulding for windows, linux and macos (darwin m2), please wait..."
-	@GOOS=linux GOARCH=amd64 go build -o ./bin/texApi-linux main.go
-	@GOOS=darwin GOARCH=arm64 go build -o ./bin/texApi-macos main.go
-	@GOOS=windows GOARCH=amd64 go build -o ./bin/texApi-windows main.go
+	@GOOS=linux GOARCH=amd64 go build -o ./bin/texApi-linux cmd/tex/main.go
+	@GOOS=darwin GOARCH=arm64 go build -o ./bin/texApi-macos cmd/tex/main.go
+	@GOOS=windows GOARCH=amd64 go build -o ./bin/texApi-windows cmd/tex/main.go
 	@echo "Done."

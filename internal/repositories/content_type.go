@@ -8,8 +8,8 @@ import (
 	"texApi/internal/queries"
 )
 
-func GetContentTypes(withContent int) ([]dto.ContentTypeWithContent, error) {
-	var contentTypes []dto.ContentTypeWithContent
+func GetContentTypes(withContent int) ([]dto.ContentType, error) {
+	var contentTypes []dto.ContentType
 	if withContent > 0 {
 		var results []struct {
 			ContentType dto.ContentTypeWithContent

@@ -42,6 +42,7 @@ func GetContent(id int) dto.ContentResponse {
 		&content.LangID,
 		&content.ContentTypeID,
 		&content.Title,
+		&content.Slogan,
 		&content.Subtitle,
 		&content.Description,
 		&content.ImageURL,
@@ -49,6 +50,7 @@ func GetContent(id int) dto.ContentResponse {
 		&content.Step,
 		&content.CreatedAt,
 		&content.UpdatedAt,
+		&content.Active,
 		&content.Deleted,
 	)
 
@@ -63,11 +65,13 @@ func CreateContent(content dto.CreateContent) int {
 		content.LangID,
 		content.ContentTypeID,
 		content.Title,
+		content.Slogan,
 		content.Subtitle,
 		content.Description,
 		content.ImageURL,
 		content.VideoURL,
 		content.Step,
+		content.Active,
 	).Scan(&id)
 
 	return id
