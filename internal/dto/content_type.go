@@ -11,17 +11,17 @@ type ContentType struct {
 	Description string            `json:"description"`
 	ParentID    int               `json:"parent_id"`
 	ParentName  string            `json:"parent_name"`
-	ContentData []ContentResponse `json:"content_data"`
+	Contents    []ContentResponse `json:"content_data"`
 }
 
-type ContentTypeWithContent struct {
-	ID          int               `db:"content_type_id" json:"id"`
-	UUID        uuid.UUID         `db:"content_type_uuid" json:"uuid"`
-	Name        string            `db:"content_type_name" json:"name"`
-	Title       string            `db:"content_type_title" json:"title"`
-	TitleRu     string            `db:"content_type_title_ru" json:"title_ru"`
-	Description string            `db:"content_type_description" json:"description"`
-	ParentID    string            `db:"content_type_parent_id" json:"parent_id"`
-	ParentName  string            `db:"content_type_parent_name" json:"parent_name"`
-	Contents    []ContentResponse `json:"contents"`
+type ContentTypeWithContents struct {
+	ID          int               `db:"id" json:"id"`
+	UUID        uuid.UUID         `db:"uuid" json:"uuid"`
+	Name        string            `db:"name" json:"name"`
+	Title       string            `db:"title" json:"title"`
+	TitleRu     string            `db:"title_ru" json:"title_ru"`
+	Description string            `db:"description" json:"description"`
+	ParentID    int               `db:"parent_id" json:"parent_id"`
+	ParentName  string            `db:"parent_name" json:"parent_name"`
+	Contents    []ContentResponse `db:"contents" json:"contents"`
 }
