@@ -9,7 +9,8 @@ import (
 
 func GetContentTypes(ctx *gin.Context) {
 	withContent, err := strconv.Atoi(ctx.GetHeader("WithContent"))
-	contentTypes, err := repo.GetContentTypes(withContent)
+	langID, err := strconv.Atoi(ctx.GetHeader("LangID"))
+	contentTypes, err := repo.GetContentTypes(withContent, langID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
