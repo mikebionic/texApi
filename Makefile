@@ -6,7 +6,7 @@ db:
 	@echo "Initializing texApi database..."
 	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
 		-f ./schemas/0.4.1_create_landing.sql
-	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d texApi \
+	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
 		-f ./schemas/0.4.2_insert_landing.sql
 	@echo "Has been successfully created"
 build:
