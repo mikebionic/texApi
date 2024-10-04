@@ -8,20 +8,22 @@ import (
 	"texApi/internal/queries"
 )
 
-func GetContentTypes(withContent int) ([]dto.ContentTypeWithContents, error) {
+func GetContentTypes(withContent, langID int) ([]dto.ContentTypeWithContents, error) {
 	var contentTypes []dto.ContentTypeWithContents
+	var stmt string
+	var err error
 
-	if withContent > 0 {
-		err := pgxscan.Select(context.Background(), db.DB, &contentTypes, queries.GetContentTypesWithContent)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		err := pgxscan.Select(context.Background(), db.DB, &contentTypes, queries.GetContentTypes)
-		if err != nil {
-			return nil, err
-		}
+	switch withContent {
+	case 1:
+		stmt = queries.GetContentTypesWithContent
+		err = pgxscan.Select(context.Background(), db.DB, &contentTypes, stmt, langID)
+	default:
+		stmt = queries.GetContentTypes
+		err = pgxscan.Select(context.Background(), db.DB, &contentTypes, stmt)
 	}
 
+	if err != nil {
+		return nil, err
+	}
 	return contentTypes, nil
 }
