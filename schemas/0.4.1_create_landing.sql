@@ -1,3 +1,5 @@
+DROP DATABASE IF EXISTS db_tex;
+create database db_tex;
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 

@@ -7,7 +7,7 @@ db:
 	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
 		-f ./schamas/0.4.1_create_landing.sql
 	@psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d texApi \
-		-f ./schamas/0.4.1_insert_landing.sql
+		-f ./schamas/0.4.2_insert_landing.sql
 	@echo "Has been successfully created"
 build:
 	@echo "Building the app, please wait..."
