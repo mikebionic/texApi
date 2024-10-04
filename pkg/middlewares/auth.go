@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"github.com/gin-contrib/sessions"
 	"strings"
 	"texApi/config"
 
@@ -40,4 +41,18 @@ func Guard(ctx *gin.Context) {
 	ctx.Set("id", int(claims["id"].(float64)))
 	ctx.Set("role", claims["role"])
 	ctx.Next()
+}
+
+func AuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		session := sessions.Default(ctx)
+		userID := session.Get("userID")
+
+		if userID == nil {
+			ctx.AbortWithStatusJSON(401, gin.H{"message": "Unauthorized"})
+			return
+		}
+
+		ctx.Next()
+	}
 }
