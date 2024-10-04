@@ -8,6 +8,8 @@ db:
 		-f ./schemas/0.4.1_create_landing.sql
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
 		-f ./schemas/0.4.2_insert_landing.sql
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+		-f ./schemas/0.5.1_create_core.sql
 	@echo "Has been successfully created"
 build:
 	@echo "Building the app, please wait..."

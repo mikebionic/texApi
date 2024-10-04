@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -22,21 +24,16 @@ func InitApp() *gin.Engine {
 	router.SetTrustedProxies(nil)
 	router.Use(gin.Logger())
 
+	store := cookie.NewStore([]byte("secret"))
+	router.Use(sessions.Sessions("simple_session", store))
+
 	router.Use(middlewares.Cors)
 	router.Static("/texapp/uploads", config.ENV.UPLOAD_PATH)
 
 	log.SetOutput(gin.DefaultWriter)
-
-	// controllers.WebSocket(router)
-	// controllers.Auth(router)
-	// controllers.Services(router)
-	// controllers.Users(router)
-	// controllers.Workers(router)
-	// controllers.Subscriptions(router)
-	// controllers.Statuses(router)
-	// controllers.AboutUs(router)
 	controllers.Content(router)
 	controllers.ContentType(router)
+	controllers.Auth(router)
 
 	return router
 }
