@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
-	"golang.org/x/crypto/bcrypt"
-	"texApi/config"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
 )
 
-func GetUser(username, password, loginMethod string) (dto.User, error) {
+func GetUser(username, loginMethod string) (dto.User, error) {
 	stmt := queries.GetUser
 	switch loginMethod {
 	case "phone":
@@ -31,21 +29,12 @@ func GetUser(username, password, loginMethod string) (dto.User, error) {
 		username,
 	)
 	if err != nil {
-		return user, fmt.Errorf("error fetching user")
+		return user, err
+		//fmt.Errorf("error fetching user")
 	}
 
 	if user.ID == 0 {
 		return user, fmt.Errorf("login failed")
-	}
-
-	if config.ENV.ENCRYPT_PASSWORDS > 0 {
-		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-			return user, fmt.Errorf("login failed")
-		}
-	} else {
-		if user.Password != password {
-			return user, fmt.Errorf("login failed")
-		}
 	}
 
 	return user, nil

@@ -28,6 +28,9 @@ type Config struct {
 	ACCESS_TIME  time.Duration
 	REFRESH_KEY  string
 	REFRESH_TIME time.Duration
+
+	GoogleClientID     string
+	GoogleClientSecret string
 }
 
 var ENV Config
@@ -56,4 +59,7 @@ func InitConfig() {
 	ENV.REFRESH_KEY = os.Getenv("REFRESH_KEY")
 	RT, _ := time.ParseDuration(os.Getenv(("REFRESH_TIME")))
 	ENV.REFRESH_TIME = RT
+
+	ENV.GoogleClientID = os.Getenv("GoogleClientID")
+	ENV.GoogleClientSecret = os.Getenv("GoogleClientSecret")
 }
