@@ -8,7 +8,7 @@ import (
 func Auth(router *gin.Engine) {
 	group := router.Group("texapp/auth/")
 
-	group.POST("/login", services.UserLogin)
-	group.GET("/profile", services.UserGetMe)
-	group.GET("/logout", services.Logout)
+	group.GET("/login/", services.UserLogin)
+	group.GET("/profile/", services.UserGetMe)
+	group.GET("/logout/", services.Logout)
 }

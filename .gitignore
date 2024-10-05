@@ -1,6 +1,7 @@
 **/build/**
 **.idea/
 .env
+**/_**/**
 
 config.json
 *.config.json
