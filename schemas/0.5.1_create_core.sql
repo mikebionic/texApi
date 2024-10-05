@@ -8,6 +8,7 @@ CREATE TABLE tbl_role (
 CREATE TABLE
     tbl_user (
         id SERIAL PRIMARY KEY,
+        uuid UUID DEFAULT gen_random_uuid (),
         username VARCHAR(200) NOT NULL,
         password VARCHAR(200) NOT NULL,
         email VARCHAR(100) NOT NULL DEFAULT '',
@@ -15,7 +16,7 @@ CREATE TABLE
         phone VARCHAR(100) NOT NULL DEFAULT '',
         address VARCHAR(200) NOT NULL DEFAULT '',
         role_id INT REFERENCES tbl_role(id) ON DELETE SET NULL DEFAULT 0,
-        verified BOOL NOT NULL DEFAULT false,
+        verified INT NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         active INT DEFAULT 1,
@@ -29,6 +30,6 @@ INSERT INTO tbl_role (name, description) VALUES
 
 INSERT INTO tbl_user (username, password, email, fullname, phone, address, role_id, verified, active, deleted)
 VALUES
-    ('root', 'letmein', 'texlogistics@gmail.com', 'Tex Admin', '+0036123456', 'Ashgabat, Turkmenistan', 1, true, 1, 0),
-    ('customer1', 'password123', 'customer1@example.com', 'Customer', '+123456789', 'Ashgabat, Turkmenistan', 2, true, 1, 0),
-    ('driver1', 'password123', 'driver1@example.com', 'Volodya', '+123456789', 'Ashgabat, Turkmenistan', 3, true, 1, 0);
+    ('root', 'letmein', 'texlogistics@gmail.com', 'Tex Admin', '+0036123456', 'Ashgabat, Turkmenistan', 1, 1, 1, 0),
+    ('customer1', 'password123', 'customer1@example.com', 'Customer', '+123456789', 'Ashgabat, Turkmenistan', 2, 1, 1, 0),
+    ('driver1', 'password123', 'driver1@example.com', 'Volodya', '+123456789', 'Ashgabat, Turkmenistan', 3, 1, 1, 0);
