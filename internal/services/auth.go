@@ -77,6 +77,27 @@ func Logout(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Logged out successfully"})
 }
 
+func RegisterRequest(ctx *gin.Context) {
+	loginMethod := ctx.GetHeader("LoginMethod")
+	roleID := ctx.GetHeader("RoleID")
+	credentials := ctx.GetHeader("Credentials")
+	registerMethod := ctx.GetHeader("RegisterMethod")
+	//subRoleID := ctx.GetHeader("SubRoleID")
+	if loginMethod == "" || roleID == "" || credentials == "" || registerMethod == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Request, missing required params"})
+		return
+	}
+
+	if !(registerMethod == "email" || registerMethod == "phone") {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Wrong method, use 'email' or 'phone'"})
+		return
+	}
+
+	// check email or phone number
+	// register method
+
+}
+
 func GetOAuthCallbackFunction(ctx *gin.Context) {
 	provider := ctx.Param("provider")
 	ctx.Set("provider", provider)
