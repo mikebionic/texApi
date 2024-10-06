@@ -15,8 +15,10 @@ type User struct {
 	NickName               string    `json:"nick_name"`
 	AvatarURL              string    `json:"avatar_url"`
 	Phone                  string    `json:"phone"`
+	InfoPhone              string    `json:"info_phone"`
 	Address                string    `json:"address"`
 	RoleID                 int       `json:"role_id"`
+	SubroleID              int       `json:"subrole_id"`
 	Verified               int       `json:"verified"`
 	CreatedAt              string    `json:"created_at"`
 	UpdatedAt              string    `json:"updated_at"`
