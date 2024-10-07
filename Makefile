@@ -1,7 +1,7 @@
 include .env
 
 dev:
-	@go run main.go
+	@go run cmd/tex/main.go
 db:
 	@echo "Initializing texApi database..."
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
