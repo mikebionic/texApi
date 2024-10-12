@@ -10,14 +10,12 @@ import (
 
 func Guard(ctx *gin.Context) {
 	authorization := ctx.Request.Header["Authorization"]
-
 	if len(authorization) == 0 {
 		ctx.AbortWithStatus(401)
 		return
 	}
 
 	bearer := strings.Split(authorization[0], "Bearer ")
-
 	if len(bearer) == 0 || len(bearer) == 1 {
 		ctx.AbortWithStatus(401)
 		return
@@ -31,7 +29,6 @@ func Guard(ctx *gin.Context) {
 			return []byte(config.ENV.ACCESS_KEY), nil
 		},
 	)
-
 	if err != nil {
 		ctx.AbortWithStatus(403)
 		return

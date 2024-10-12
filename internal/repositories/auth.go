@@ -79,3 +79,37 @@ func ManageToken(id int, token, action string) error {
 		return fmt.Errorf("invalid actionб must be create or validate")
 	}
 }
+
+func CreateUser(user dto.CreateUser) (int, error) {
+	var id int
+
+	err := db.DB.QueryRow(
+		context.Background(), queries.CreateUser,
+		user.Username,
+		user.Password,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.NickName,
+		user.AvatarURL,
+		user.Phone,
+		user.InfoPhone,
+		user.Address,
+		user.RoleID,
+		user.SubroleID,
+		user.Verified,
+		user.Active,
+		user.OauthProvider,
+		user.OauthUserID,
+		user.OauthLocation,
+		user.OauthAccessToken,
+		user.OauthAccessTokenSecret,
+		user.OauthRefreshToken,
+		user.OauthIDToken,
+	).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}

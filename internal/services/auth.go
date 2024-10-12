@@ -7,8 +7,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"texApi/config"
 	"texApi/internal/_others/schemas/request"
+	"texApi/internal/dto"
 	"texApi/internal/repositories"
 	"texApi/pkg/utils"
 	"time"
@@ -136,40 +138,107 @@ func RefreshToken(ctx *gin.Context) {
 }
 
 func RegisterRequest(ctx *gin.Context) {
-	roleID := ctx.GetHeader("RoleID")
+	roleID, err := strconv.Atoi(ctx.GetHeader("RoleID"))
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Role ID is required", ""))
+		return
+	}
 	credentials := ctx.GetHeader("Credentials")
 	registerMethod := ctx.GetHeader("RegisterMethod")
-	if roleID == "" || credentials == "" || registerMethod == "" {
-		response := utils.FormatErrorResponse("Invalid Request, missing required params", "")
-		ctx.JSON(http.StatusBadRequest, response)
+	if roleID == 0 || credentials == "" || registerMethod == "" {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, missing required params", ""))
 		return
 	}
 
 	if !(registerMethod == "email" || registerMethod == "phone") {
-		response := utils.FormatErrorResponse("Wrong method, use 'email' or 'phone'", "")
-		ctx.JSON(http.StatusBadRequest, response)
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Wrong method, use 'email' or 'phone'", ""))
 		return
 	}
 
-	user, err := repositories.GetUser(credentials, registerMethod)
-	if err != nil {
-		response := utils.FormatErrorResponse("Server couldn't process your request", "")
-		ctx.JSON(http.StatusBadRequest, response)
-		return
-	}
+	user, _ := repositories.GetUser(credentials, registerMethod)
 	if user.ID > 0 {
 		response := utils.FormatErrorResponse(fmt.Sprintf("A user with this %s already exists", registerMethod), "")
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
 
-	// save credentials in session to retrieve in register
-
+	// generate OTP
+	otp := "1234"
+	session := sessions.Default(ctx)
+	session.Set("RequestRoleID", roleID)
+	session.Set("Credentials", credentials)
+	session.Set("RegisterMethod", registerMethod)
+	session.Set("otp", otp)
+	session.Set("otpValidated", 0)
+	session.Save()
 	// send email with generated password OTP
 }
 
-func Register(ctx *gin.Context) {
+func ValidateOTP(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	otp := session.Get("otp")
+	promptOTP := ctx.GetHeader("OTP")
+	if otp != promptOTP {
+		response := utils.FormatErrorResponse("Wrong OTP", "")
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
 
+	session.Set("otpValidated", 1)
+	session.Save()
+	response := utils.FormatResponse("OTP check success", nil)
+	ctx.JSON(http.StatusOK, response)
+	return
+}
+
+func Register(ctx *gin.Context) {
+	session := sessions.Default(ctx)
+	otpValidated, ok := session.Get("otpValidated").(int)
+	if otpValidated == 0 || !ok {
+		response := utils.FormatErrorResponse("OTP error", "")
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	var user dto.CreateUser
+	validationError := ctx.BindJSON(&user)
+	if validationError != nil {
+		response := utils.FormatErrorResponse("Invalid request body", validationError.Error())
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	//Credentials := session.Get("Credentials")
+	//RegisterMethod := session.Get("RegisterMethod")
+	// just in case for harder logics
+	user.RoleID = session.Get("RequestRoleID").(int)
+	user.Verified = 1
+	user.Active = 1
+	fmt.Println(user)
+	userID, err := repositories.CreateUser(user)
+	if userID == 0 || err != nil {
+		response := utils.FormatErrorResponse("Cannot register user", err.Error())
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+	accessToken := utils.CreateToken(userID, user.RoleID)
+	refreshToken := utils.CreateToken(userID, user.RoleID)
+	err = repositories.ManageToken(userID, refreshToken, "create")
+	if err != nil {
+		log.Println(err.Error())
+		response := utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error())
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	session.Clear()
+	session.Save()
+	response := utils.FormatResponse("User created successfully", gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	})
+	ctx.JSON(http.StatusOK, response)
+	return
 }
 
 func GetOAuthCallbackFunction(ctx *gin.Context) {
