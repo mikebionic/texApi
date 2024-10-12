@@ -32,4 +32,5 @@ type User struct {
 	OauthRefreshToken      string    `json:"oauth_refresh_token"`
 	OauthExpiresAt         string    `json:"oauth_expires_at"`
 	OauthIDToken           string    `json:"oauth_id_token"`
+	RefreshToken           string    `json:"refresh_token"`
 }

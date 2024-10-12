@@ -46,6 +46,8 @@ CREATE TABLE
         slogan TEXT DEFAULT '',
         subtitle TEXT DEFAULT '',
         description TEXT DEFAULT '',
+        count TEXT DEFAULT '',
+        count_type TEXT DEFAULT '',
         image_url TEXT DEFAULT '',
         video_url TEXT DEFAULT '',
         step INT DEFAULT 0,

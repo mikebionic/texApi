@@ -11,6 +11,8 @@ type ContentResponse struct {
 	Slogan        string    `json:"slogan"`
 	Subtitle      string    `json:"subtitle"`
 	Description   string    `json:"description"`
+	Count         int       `json:"count"`
+	CountType     string    `json:"count_type"`
 	ImageURL      string    `json:"image_url"`
 	VideoURL      string    `json:"video_url"`
 	Step          int       `json:"step"`
@@ -27,6 +29,8 @@ type CreateContent struct {
 	Slogan        string `json:"slogan"`
 	Subtitle      string `json:"subtitle"`
 	Description   string `json:"description"`
+	Count         int    `json:"count"`
+	CountType     string `json:"count_type"`
 	ImageURL      string `json:"image_url"`
 	VideoURL      string `json:"video_url"`
 	Step          int    `json:"step"`
