@@ -13,6 +13,7 @@ func Auth(router *gin.Engine) {
 	group.GET("/profile/", services.UserGetMe)
 	group.GET("/logout/", services.Logout)
 	group.GET("/register-request/", services.RegisterRequest)
+	group.POST("/refresh-token/", services.RefreshToken)
 
 	group.GET("/oauth/:provider/callback/", services.GetOAuthCallbackFunction)
 	group.GET("/oauth/logout/:provider/", services.OAuthLogout)
