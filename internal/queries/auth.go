@@ -27,5 +27,6 @@ var GetUser = `SELECT
 	oauth_access_token_secret,
 	oauth_refresh_token,
 	oauth_expires_at::varchar,
-	oauth_id_token
+	oauth_id_token,
+	refresh_token
 FROM tbl_user`

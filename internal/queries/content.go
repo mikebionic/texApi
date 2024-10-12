@@ -29,6 +29,8 @@ var GetContent = `
 	c.slogan,
 	c.subtitle,
 	c.description,
+	c.count,
+	c.count_type,
 	c.image_url,
 	c.video_url,
 	c.step,
