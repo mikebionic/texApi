@@ -3,12 +3,15 @@ package services
 import (
 	"context"
 	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"html/template"
 	"log"
 	"net/http"
 	"texApi/config"
+	"texApi/internal/_others/schemas/request"
 	"texApi/internal/repositories"
 	"texApi/pkg/utils"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -96,6 +99,42 @@ func Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func RefreshToken(ctx *gin.Context) {
+	var refreshToken request.RefreshTokenForm
+
+	validationError := ctx.BindJSON(&refreshToken)
+	if validationError != nil {
+		ctx.JSON(400, validationError.Error())
+		return
+	}
+
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(
+		refreshToken.RefreshToken, claims, func(
+			t *jwt.Token,
+		) (interface{}, error) {
+			return []byte(config.ENV.REFRESH_KEY), nil
+		},
+	)
+	if err != nil {
+		ctx.AbortWithStatus(401)
+		return
+	}
+
+	prepareToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":     int(claims["id"].(float64)),
+		"roleID": claims["roleID"].(int),
+		"exp":    time.Now().Add(config.ENV.ACCESS_TIME).Unix(),
+	})
+	finalToken, _ := prepareToken.SignedString([]byte(config.ENV.ACCESS_KEY))
+
+	response := utils.FormatResponse("Token updated", gin.H{
+		"access_token":  finalToken,
+		"refresh_token": refreshToken,
+	})
+	ctx.JSON(http.StatusOK, response)
+}
+
 func RegisterRequest(ctx *gin.Context) {
 	roleID := ctx.GetHeader("RoleID")
 	credentials := ctx.GetHeader("Credentials")
@@ -123,6 +162,14 @@ func RegisterRequest(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
+
+	// save credentials in session to retrieve in register
+
+	// send email with generated password OTP
+}
+
+func Register(ctx *gin.Context) {
+
 }
 
 func GetOAuthCallbackFunction(ctx *gin.Context) {
