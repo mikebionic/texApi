@@ -52,13 +52,14 @@ func UserLogin(ctx *gin.Context) {
 
 	accessToken := utils.CreateToken(user.ID, config.ENV.ACCESS_TIME, config.ENV.ACCESS_KEY, "user.RoleId")
 	refreshToken := utils.CreateToken(user.ID, config.ENV.REFRESH_TIME, config.ENV.REFRESH_KEY, "user.RoleId")
-
-	if err != nil {
-		log.Println(err.Error())
-		response := utils.FormatErrorResponse("Error creating token", err.Error())
-		ctx.JSON(http.StatusInternalServerError, response)
-		return
-	}
+	//err := repositories.ManageToken(user.ID, refreshToken)
+	//
+	//if err != nil {
+	//	log.Println(err.Error())
+	//	response := utils.FormatErrorResponse("Error creating token", err.Error())
+	//	ctx.JSON(http.StatusInternalServerError, response)
+	//	return
+	//}
 
 	response := utils.FormatResponse("Login successful", gin.H{
 		"access_token":  accessToken,

@@ -83,68 +83,8 @@ VALUES
         0,
         1
     ),
-    (
-        2,
-        4,
-        'Активных Пользователей',
-        '',
-        '20,000+',
-        'Присоединяйтесь к растущему сообществу профессионалов, которые делают разницу в индустрии грузоперевозок',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        2,
-        4,
-        'Автомобильных Перевозок',
-        '',
-        '5,000+',
-        'Испытайте эффективность беспрепятственной автомобильной перевозки с ТЕХ',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        2,
-        4,
-        'Логистических Компаний',
-        '',
-        '5,000+',
-        'Сотрудничайте с ведущими логистическими компаниями по всему миру',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        2,
-        4,
-        'Отправителей',
-        '',
-        '8,000+',
-        'Найдите надежных отправителей, которые доверяют ТЕХ для их потребностей в грузоперевозках',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        2,
-        4,
-        'Заключенных Сделок',
-        '',
-        ' 50,000+',
-        'Укрепите свой бизнес успешными сделками и партнерствами, заключенными на ТЕХ',
-        '',
-        '',
-        0,
-        1
-    ),
-    (2, 6, 'Загляните в яркий мир ТЕХ', '', '', '', '', 'AD.mp4', 0, 1),
-    (2, 7, 'AD.mp4', '', '', '', '', 'AD.mp4', 0, 1),
+    (2, 6, 'Загляните в яркий мир ТЕХ', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
+    (2, 7, 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
     (
         2,
         18,
@@ -380,68 +320,8 @@ VALUES
         0,
         1
     ),
-    (
-        1,
-        4,
-        'Active Users',
-        '',
-        '20,000+',
-        'Join a growing community of professionals making a difference in the freight industry.',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        1,
-        4,
-        'Freight Shipments',
-        '',
-        '5,000+',
-        'Experience the efficiency of seamless freight transport with TECH.',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        1,
-        4,
-        'Logistics Companies',
-        '',
-        '5,000+',
-        'Partner with leading logistics companies across the globe.',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        1,
-        4,
-        'Shippers',
-        '',
-        '8,000+',
-        'Find reliable shippers who trust TECH for their freight needs.',
-        '',
-        '',
-        0,
-        1
-    ),
-    (
-        1,
-        4,
-        'Deals Closed',
-        '',
-        '50,000+',
-        'Strengthen your business with successful deals and partnerships made on TECH.',
-        '',
-        '',
-        0,
-        1
-    ),
-    (1, 6, 'Take a look at the vibrant world of TECH', '', '', '', '', 'AD.mp4', 0, 1),
-    (1, 7, 'AD.mp4', '', '', '', '', 'AD.mp4', 0, 1),
+    (1, 6, 'Take a look at the vibrant world of TECH', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
+    (1, 7, 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
     (
         1,
         18,
@@ -664,3 +544,157 @@ VALUES
     (1, 17, 'Instagram URL link', '', 'https:/www.Instagram.com/logistic_asa', '', '', '', 0, 1),
     (1, 17, 'LinkedIn URL link', '', 'https:/www.Linkedin.com/logistic_asa', '', '', '', 0, 1),
     (1, 17, 'TikTok URL link', '', 'https:/www.TikTok.com/logistic_asa', '', '', '', 0, 1);
+
+INSERT INTO
+    tbl_content (lang_id, content_type_id, title, slogan, subtitle, description, count, count_type, image_url, video_url, step, active)
+VALUES
+    (
+        2,
+        4,
+        'Активных Пользователей',
+        '',
+        '',
+     '',
+        20000,
+     'number'
+        'Присоединяйтесь к растущему сообществу профессионалов, которые делают разницу в индустрии грузоперевозок',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        2,
+        4,
+        'Автомобильных Перевозок',
+        '',
+        '',
+     '',
+        5000,
+     'number'
+        'Испытайте эффективность беспрепятственной автомобильной перевозки с ТЕХ',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        2,
+        4,
+        'Логистических Компаний',
+        '',
+        '',
+     '',
+        5000,
+     'number'
+        'Сотрудничайте с ведущими логистическими компаниями по всему миру',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        2,
+        4,
+        'Отправителей',
+        '',
+        '',
+     '',
+        8000,
+     'number'
+        'Найдите надежных отправителей, которые доверяют ТЕХ для их потребностей в грузоперевозках',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        2,
+        4,
+        'Заключенных Сделок',
+        '',
+        '',
+     '',
+         50000,
+     'number'
+        'Укрепите свой бизнес успешными сделками и партнерствами, заключенными на ТЕХ',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        1,
+        4,
+        'Active Users',
+        '',
+        '',
+     '',
+        20000,
+     'number'
+        'Join a growing community of professionals making a difference in the freight industry.',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        1,
+        4,
+        'Freight Shipments',
+        '',
+        '',
+     '',
+        5000,
+     'number'
+        'Experience the efficiency of seamless freight transport with TECH.',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        1,
+        4,
+        'Logistics Companies',
+        '',
+        '',
+     '',
+        5000,
+     'number'
+        'Partner with leading logistics companies across the globe.',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        1,
+        4,
+        'Shippers',
+        '',
+        '',
+     '',
+        8000,
+     'number'
+        'Find reliable shippers who trust TECH for their freight needs.',
+        '',
+        '',
+        0,
+        1
+    ),
+    (
+        1,
+        4,
+        'Deals Closed',
+        '',
+        '',
+     '',
+        50000,
+     'number'
+        'Strengthen your business with successful deals and partnerships made on TECH.',
+        '',
+        '',
+        0,
+        1
+    );
