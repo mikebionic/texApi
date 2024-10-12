@@ -25,7 +25,7 @@ func InitApp() *gin.Engine {
 	router.Use(gin.Logger())
 
 	store := cookie.NewStore([]byte("secret"))
-	router.Use(sessions.Sessions("simple_session", store))
+	router.Use(sessions.Sessions("texsession", store))
 
 	router.Use(middlewares.Cors)
 	router.Static("/texapp/uploads", config.ENV.UPLOAD_PATH)
