@@ -11,22 +11,16 @@ import (
 	app "texApi/internal"
 )
 
-const (
-	key    = "randomString"
-	MaxAge = 86400 * 30
-	IsProd = false
-)
-
 func NewGoogleAuth() {
-	store := sessions.NewCookieStore([]byte(key))
-	store.MaxAge(MaxAge)
+	store := sessions.NewCookieStore([]byte(config.ENV.API_SECRET))
+	store.MaxAge(config.ENV.SESSION_MAX_AGE)
 	store.Options.HttpOnly = true
-	store.Options.Secure = IsProd
+	store.Options.Secure = !config.ENV.API_DEBUG
 	store.Options.Path = "/"
 	gothic.Store = store
 
 	goth.UseProviders(
-		google.New(config.ENV.GoogleClientID, config.ENV.GoogleClientSecret, "http://localhost:7000/texapp/auth/oauth/google/callback/"))
+		google.New(config.ENV.GoogleClientID, config.ENV.GoogleClientSecret, fmt.Sprintf("%s/texapp/auth/oauth/google/callback/", config.ENV.API_SERVER_URL)))
 }
 
 func main() {

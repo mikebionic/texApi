@@ -1,8 +1,9 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"texApi/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Auth(router *gin.Engine) {
@@ -11,6 +12,7 @@ func Auth(router *gin.Engine) {
 	group.GET("/login/", services.UserLogin)
 	group.GET("/profile/", services.UserGetMe)
 	group.GET("/logout/", services.Logout)
+	group.GET("/register-request/", services.RegisterRequest)
 
 	group.GET("/oauth/:provider/callback/", services.GetOAuthCallbackFunction)
 	group.GET("/oauth/logout/:provider/", services.OAuthLogout)

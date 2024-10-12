@@ -1,9 +1,7 @@
 package config
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -14,9 +12,13 @@ var SocketClients = make(map[string]*websocket.Conn)
 
 type Config struct {
 	API_HOST          string
+	API_SERVER_URL    string
 	API_PORT          string
+	API_SECRET        string
+	API_DEBUG         bool
 	UPLOAD_PATH       string
-	ENCRYPT_PASSWORDS int
+	ENCRYPT_PASSWORDS bool
+	SESSION_MAX_AGE   int
 
 	DB_HOST     string
 	DB_PORT     string
@@ -37,14 +39,14 @@ var ENV Config
 
 func InitConfig() {
 	godotenv.Load()
-	var err error
 	ENV.API_HOST = os.Getenv("API_HOST")
+	ENV.API_SERVER_URL = os.Getenv("API_SERVER_URL")
 	ENV.API_PORT = os.Getenv("API_PORT")
+	ENV.API_DEBUG = os.Getenv("DEBUG") == "true"
+	ENV.API_SECRET = os.Getenv("API_SECRET")
+	ENV.SESSION_MAX_AGE = 86400 * 30
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
-	ENV.ENCRYPT_PASSWORDS, err = strconv.Atoi(os.Getenv("ENCRYPT_PASSWORDS"))
-	if err != nil {
-		fmt.Println("could not parse ENCRYPT_PASSWORDS")
-	}
+	ENV.ENCRYPT_PASSWORDS = os.Getenv("ENCRYPT_PASSWORDS") == "true"
 
 	ENV.DB_HOST = os.Getenv("DB_HOST")
 	ENV.DB_PORT = os.Getenv("DB_PORT")
