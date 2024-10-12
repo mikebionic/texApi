@@ -10,6 +10,8 @@ var GetContents = `
 	c.slogan,
 	c.subtitle,
 	c.description,
+	c.count,
+	c.count_type,
 	c.image_url,
 	c.video_url,
 	c.step,
@@ -50,10 +52,12 @@ var CreateContent = `
 	slogan,
 	subtitle,
 	description,
+	count,
+	count_type,
 	image_url,
 	video_url,
 	step, active)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id
     `
 
 var DeleteContent = `
