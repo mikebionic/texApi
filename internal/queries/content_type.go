@@ -32,6 +32,8 @@ SELECT
             'slogan', c.slogan,
             'subtitle', c.subtitle,
             'description', c.description,
+			'count', c.count,
+			'count_type', c.count_type,
             'image_url', c.image_url,
             'video_url', c.video_url,
             'step', c.step,
