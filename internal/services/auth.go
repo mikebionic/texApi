@@ -3,99 +3,126 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
-	"github.com/markbates/goth/gothic"
-	"golang.org/x/crypto/bcrypt"
 	"html/template"
 	"log"
 	"net/http"
 	"texApi/config"
 	"texApi/internal/repositories"
 	"texApi/pkg/utils"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-gonic/gin"
+	"github.com/markbates/goth/gothic"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func UserLogin(ctx *gin.Context) {
 	loginMethod := ctx.GetHeader("LoginMethod")
 	if loginMethod == "" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Login Method"})
+		response := utils.FormatErrorResponse("Invalid Login Method", "")
+		ctx.JSON(http.StatusUnauthorized, response)
 		return
 	}
 	username, password, err := utils.ExtractBasicAuth(ctx.GetHeader("Authorization"))
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response := utils.FormatErrorResponse("Unauthorized", err.Error())
+		ctx.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
 	user, err := repositories.GetUser(username, loginMethod)
 	if err != nil {
-		ctx.JSON(400, gin.H{"message": err.Error()})
+		response := utils.FormatErrorResponse("User not found", err.Error())
+		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
-	if config.ENV.ENCRYPT_PASSWORDS > 0 {
+	if config.ENV.ENCRYPT_PASSWORDS {
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "login failed"})
+			response := utils.FormatErrorResponse("Login failed", "Invalid credentials")
+			ctx.JSON(http.StatusUnauthorized, response)
 			return
 		}
 	} else {
 		if user.Password != password {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "login failed"})
+			response := utils.FormatErrorResponse("Login failed", "Invalid credentials")
+			ctx.JSON(http.StatusUnauthorized, response)
 			return
 		}
 	}
 
-	session := sessions.Default(ctx)
-	session.Set("userID", user.ID)
-	session.Set("role", user.RoleID)
-	session.Save()
+	accessToken := utils.CreateToken(user.ID, config.ENV.ACCESS_TIME, config.ENV.ACCESS_KEY, "user.RoleId")
+	refreshToken := utils.CreateToken(user.ID, config.ENV.REFRESH_TIME, config.ENV.REFRESH_KEY, "user.RoleId")
 
-	ctx.JSON(200, gin.H{"message": "Login successful", "user": user})
+	if err != nil {
+		log.Println(err.Error())
+		response := utils.FormatErrorResponse("Error creating token", err.Error())
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+
+	response := utils.FormatResponse("Login successful", gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"user":          user,
+	})
+	ctx.JSON(http.StatusOK, response)
 }
 
 func UserGetMe(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	userID := session.Get("userID")
+	userID := ctx.MustGet("id").(int)
 
-	if userID == nil {
-		ctx.JSON(401, gin.H{"message": "Unauthorized"})
+	if userID == 0 {
+		response := utils.FormatErrorResponse("Unauthorized", "")
+		ctx.JSON(http.StatusUnauthorized, response)
 		return
 	}
 
-	user := repositories.GetUserById(userID.(int))
+	user := repositories.GetUserById(userID)
 	if user.ID == 0 {
-		ctx.JSON(404, gin.H{"message": "User not found"})
+		response := utils.FormatErrorResponse("User not found", "")
+		ctx.JSON(http.StatusNotFound, response)
 		return
 	}
 
-	ctx.JSON(200, user)
+	response := utils.FormatResponse("User retrieved successfully", user)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func Logout(ctx *gin.Context) {
 	session := sessions.Default(ctx)
 	session.Clear()
 	session.Save()
-	ctx.JSON(200, gin.H{"message": "Logged out successfully"})
+	response := utils.FormatResponse("Logged out successfully", nil)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func RegisterRequest(ctx *gin.Context) {
-	loginMethod := ctx.GetHeader("LoginMethod")
 	roleID := ctx.GetHeader("RoleID")
 	credentials := ctx.GetHeader("Credentials")
 	registerMethod := ctx.GetHeader("RegisterMethod")
-	//subRoleID := ctx.GetHeader("SubRoleID")
-	if loginMethod == "" || roleID == "" || credentials == "" || registerMethod == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Request, missing required params"})
+	if roleID == "" || credentials == "" || registerMethod == "" {
+		response := utils.FormatErrorResponse("Invalid Request, missing required params", "")
+		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
 
 	if !(registerMethod == "email" || registerMethod == "phone") {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Wrong method, use 'email' or 'phone'"})
+		response := utils.FormatErrorResponse("Wrong method, use 'email' or 'phone'", "")
+		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	// check email or phone number
-	// register method
-
+	user, err := repositories.GetUser(credentials, registerMethod)
+	if err != nil {
+		response := utils.FormatErrorResponse("Server couldn't process your request", "")
+		ctx.JSON(http.StatusBadRequest, response)
+		return
+	}
+	if user.ID > 0 {
+		response := utils.FormatErrorResponse(fmt.Sprintf("A user with this %s already exists", registerMethod), "")
+		ctx.JSON(http.StatusOK, response)
+		return
+	}
 }
 
 func GetOAuthCallbackFunction(ctx *gin.Context) {
@@ -103,15 +130,20 @@ func GetOAuthCallbackFunction(ctx *gin.Context) {
 	ctx.Set("provider", provider)
 	user, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response := utils.FormatErrorResponse("Unauthorized", err.Error())
+		ctx.JSON(http.StatusUnauthorized, response)
+		return
 	}
-	fmt.Println(user)
+
 	dbuser, err := repositories.GetUser(user.Email, "email")
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		response := utils.FormatErrorResponse("Unauthorized", err.Error())
+		ctx.JSON(http.StatusUnauthorized, response)
+		return
 	}
+
 	if dbuser.ID == 0 {
-		fmt.Println("REGISTER USER")
+		// Handle user registration here if needed
 	} else {
 		session := sessions.Default(ctx)
 		session.Set("userID", dbuser.ID)
