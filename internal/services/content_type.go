@@ -1,27 +1,35 @@
 package services
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"strconv"
 	repo "texApi/internal/repositories"
 	"texApi/pkg/utils"
 )
 
 func GetContentTypes(ctx *gin.Context) {
-	withContent, err := strconv.Atoi(ctx.GetHeader("WithContent"))
-	langID, err := strconv.Atoi(ctx.GetHeader("LangID"))
+	withContent, err := utils.HandleHeaderInt(ctx.GetHeader("WithContent"))
+	langID, err := utils.HandleHeaderInt(ctx.GetHeader("LangID"))
+	ctID, err := utils.HandleHeaderInt(ctx.GetHeader("ContentTypeID"))
 	if err != nil {
 		response := utils.FormatErrorResponse("Invalid header value", err.Error())
 		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
-	contentTypes, err := repo.GetContentTypes(withContent, langID)
+
+	contentTypes, err := repo.GetContentTypes(withContent, langID, ctID)
 	if err != nil {
 		response := utils.FormatErrorResponse("Failed to retrieve content types", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	response := utils.FormatResponse("Content types retrieved successfully", contentTypes)
-	ctx.JSON(http.StatusOK, response)
+
+	if ctID > 0 {
+		response := utils.FormatResponse(fmt.Sprintf("Content type %d retrieved successfully", ctID), contentTypes[0])
+		ctx.JSON(http.StatusOK, response)
+	} else {
+		response := utils.FormatResponse("Content types retrieved successfully", contentTypes)
+		ctx.JSON(http.StatusOK, response)
+	}
 }

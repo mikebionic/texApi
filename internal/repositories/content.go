@@ -81,6 +81,27 @@ func CreateContent(content dto.CreateContent) int {
 	return id
 }
 
+func UpdateContent(content dto.CreateContent, id int) (updatedID int, err error) {
+	err = db.DB.QueryRow(
+		context.Background(), queries.UpdateContent,
+		content.LangID,
+		content.ContentTypeID,
+		content.Title,
+		content.Slogan,
+		content.Subtitle,
+		content.Description,
+		content.Count,
+		content.CountType,
+		content.ImageURL,
+		content.VideoURL,
+		content.Step,
+		content.Active,
+		id,
+	).Scan(&updatedID)
+	
+	return
+}
+
 func DeleteContent(id int) error {
 	_, err := db.DB.Exec(context.Background(), queries.DeleteContent, id)
 	if err != nil {

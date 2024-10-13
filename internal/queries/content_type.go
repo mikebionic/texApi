@@ -47,6 +47,8 @@ FROM
     tbl_content_type ct
 LEFT JOIN
     tbl_content c ON c.content_type_id = ct.id AND c.deleted = 0
+WHERE
+    (ct.id = $2 OR $2 = 0) 
 GROUP BY
    ct.id
 ORDER BY

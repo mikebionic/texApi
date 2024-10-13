@@ -1,0 +1,411 @@
+{
+	"info": {
+		"_postman_id": "55e7bc90-4c5f-4a60-804e-ef0d26d15410",
+		"name": "TEX",
+		"description": "Logistics API requests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10450180",
+		"_collection_link": "https://broxyteam.postman.co/workspace/BroxyTeam-Workspace~22197206-b3e8-435f-b6ad-7fe713f43b06/collection/10450180-55e7bc90-4c5f-4a60-804e-ef0d26d15410?action=share&source=collection_link&creator=10450180"
+	},
+	"item": [
+		{
+			"name": "Content",
+			"item": [
+				{
+					"name": "GetById",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjg3NzMxMjIsImlkIjoxLCJyb2xlSUQiOjF9.QWAPNV5j8FrYERwlZ24lI060X08rSCknxA4OAL-DVV8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/content/1 \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "All",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "ContentTypeId",
+								"value": "1"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/content/ \\\n  --header 'ContentTypeId: 1' \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {}
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"lang_id\":2,\n    \"content_type_id\":1,\n    \"title\":\"Лучие решения только у нас\",\n    \"slogan\":\"Only the best\",\n    \"subtitle\":\"Самые решения только у нас\",\n    \"description\":\"Самые самые Лучие решения только у нас\",\n    \"image_url\":\"\",\n    \"video_url\":\"\",\n    \"step\":2,\n    \"active\":1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request POST \\\n  --url http://localhost:7000/texapp/content/ \\\n  --header 'Content-Type: application/json' \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D \\\n  --data '{\n    \"lang_id\":2,\n    \"content_type_id\":1,\n    \"title\":\"Лучие решения только у нас\",\n    \"slogan\":\"Only the best\",\n    \"subtitle\":\"Самые решения только у нас\",\n    \"description\":\"Самые самые Лучие решения только у нас\",\n    \"image_url\":\"\",\n    \"video_url\":\"\",\n    \"step\":2,\n    \"active\":1\n}'"
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteContent",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateContent",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n\t\"lang_id\": 2,\n\t\"content_type_id\": 1,\n\t\"title\": \"Платформа, предназначенная для координации грузоперевозок\",\n\t\"slogan\": \"ЛЕГКО связывайтесь с новыми перевозчиками и клиентами, ЭФФЕКТИВНО управляя существующими партнерами\",\n\t\"subtitle\": \"Революция в грузоперевозках\",\n\t\"description\": \"ТЕХ - это не просто платформа, это революция в мире грузоперевозок. Как уникальная социальная сеть, специально созданная для бизнеса. ТЕХ соединяет вас с широкой сетью профессионалов в логистической индустрии. Независимо от того, являетесь ли вы перевозчиком, логистической компанией или отправителем, ТЕХ дает вам возможность определить, как вы работаете и с кем вы работаете\",\n\t\"count\": 0,\n\t\"count_type\": \"\",\n\t\"image_url\": \"\",\n\t\"video_url\": \"\",\n\t\"step\": 0,\n\t\"active\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ContentType",
+			"item": [
+				{
+					"name": "All",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "LangID",
+								"value": "1"
+							},
+							{
+								"key": "WithContent",
+								"value": "1"
+							},
+							{
+								"key": "ContentTypeID",
+								"value": "3",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content_type/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content_type",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/content_type/ \\\n  --header 'LangID: 2' \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --header 'WithContent: 1' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "username",
+									"value": "root",
+									"type": "string"
+								},
+								{
+									"key": "password",
+									"value": "PASSWORD_PLACEHOLDER",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "LoginMethod",
+								"value": "username"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/login/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"login",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/auth/login/ \\\n  --header 'Authorization: Basic cm9vdDpsZXRtZWlu' \\\n  --header 'LoginMethod: username' \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjg3ODAzMzYsImlkIjoxLCJyb2xlSUQiOjF9.O0PQeoPBytOakIwWAj17Nj7sDsg9ZdYnYRj5GcahdWU",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/profile/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"profile",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/auth/profile/ \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/logout/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"logout",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/auth/logout/ \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "RegisterRequest",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Credentials",
+								"value": "newemail@gmail.com"
+							},
+							{
+								"key": "RegisterMethod",
+								"value": "email"
+							},
+							{
+								"key": "RoleID",
+								"value": "3"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/register-request/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"register-request",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl --request GET \\\n  --url http://localhost:7000/texapp/auth/register-request/ \\\n  --header 'Credentials: texlogistics@gmail.com' \\\n  --header 'RegisterMethod: email' \\\n  --header 'RoleID: 3' \\\n  --header 'User-Agent: insomnia/9.3.3' \\\n  --cookie simple_session=MTcyODQ1NzA3M3xEWDhFQVFMX2dBQUJFQUVRQUFBMF80QUFBZ1p6ZEhKcGJtY01DQUFHZFhObGNrbEVBMmx1ZEFRQ0FBSUdjM1J5YVc1bkRBWUFCSEp2YkdVRGFXNTBCQUlBQWc9PXyEYD4kRNOaawOL83_pVvtwKUBI_z0SoVSZ0OujUS5rkQ%3D%3D"
+					},
+					"response": []
+				},
+				{
+					"name": "ValidateOTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "OTP",
+								"value": "1234",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/validate-otp/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"validate-otp",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\":\"Driver\",\n\t\"password\":\"dr123\",\n\t\"email\":\"driver123@gmail.com\",\n\t\"first_name\":\"Vladimir\",\n\t\"last_name\":\"Petrovich\",\n\t\"nick_name\":\"Petya\",\n\t\"avatar_url\":\"\",\n\t\"phone\":\"+993123453\",\n\t\"info_phone\":\"+993 12 45 45 45\",\n\t\"address\":\"Tverskaya st., 12/34\",\n\t\"role_id\":3,\n\t\"subrole_id\":4,\n\t\"oauth_provider\":\"\",\n\t\"oauth_user_id\":\"\",\n\t\"oauth_location\":\"\",\n\t\"oauth_access_token\":\"\",\n\t\"oauth_access_token_secret\":\"\",\n\t\"oauth_refresh_token\":\"\",\n\t\"oauth_id_token\":\"\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/register/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "http://localhost:7000",
+			"type": "default"
+		},
+		{
+			"key": "prefix",
+			"value": "texapp",
+			"type": "string"
+		}
+	]
+}
