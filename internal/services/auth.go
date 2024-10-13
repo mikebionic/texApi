@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"texApi/config"
-	"texApi/internal/_others/schemas/request"
 	"texApi/internal/dto"
 	"texApi/internal/repositories"
 	"texApi/pkg/utils"
@@ -102,7 +101,7 @@ func Logout(ctx *gin.Context) {
 }
 
 func RefreshToken(ctx *gin.Context) {
-	var refreshToken request.RefreshTokenForm
+	var refreshToken dto.RefreshTokenForm
 
 	validationError := ctx.BindJSON(&refreshToken)
 	if validationError != nil {
