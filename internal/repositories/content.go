@@ -98,7 +98,6 @@ func UpdateContent(content dto.CreateContent, id int) (updatedID int, err error)
 		content.Active,
 		id,
 	).Scan(&updatedID)
-	
 	return
 }
 
