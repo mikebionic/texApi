@@ -58,3 +58,7 @@ type CreateUser struct {
 	OauthRefreshToken      string `json:"oauth_refresh_token"`
 	OauthIDToken           string `json:"oauth_id_token"`
 }
+
+type RefreshTokenForm struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
