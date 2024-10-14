@@ -9,6 +9,7 @@ CREATE TABLE tbl_role (
     subtitle_ru VARCHAR(200) NOT NULL DEFAULT ''
 );
 
+-- // add verify expiration
 CREATE TABLE tbl_user (
   id SERIAL PRIMARY KEY,
   uuid UUID DEFAULT gen_random_uuid(),
@@ -38,7 +39,8 @@ CREATE TABLE tbl_user (
   oauth_refresh_token VARCHAR(500) DEFAULT '',
   oauth_expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   oauth_id_token VARCHAR(500) DEFAULT '',
-  refresh_token VARCHAR(500) DEFAULT ''
+  refresh_token VARCHAR(500) DEFAULT '',
+  otp_key VARCHAR(20) DEFAULT ''
 );
 
 
