@@ -162,42 +162,42 @@ func RegisterRequest(ctx *gin.Context) {
 	}
 
 	// generate OTP
-	otp := "1234"
-	session := sessions.Default(ctx)
-	session.Set("RequestRoleID", roleID)
-	session.Set("Credentials", credentials)
-	session.Set("RegisterMethod", registerMethod)
-	session.Set("otp", otp)
-	session.Set("otpValidated", 0)
-	session.Save()
+	//otp := "1234"
+	//session := sessions.Default(ctx)
+	//session.Set("RequestRoleID", roleID)
+	//session.Set("Credentials", credentials)
+	//session.Set("RegisterMethod", registerMethod)
+	//session.Set("otp", otp)
+	//session.Set("otpValidated", 0)
+	//session.Save()
 	// send email with generated password OTP
 }
 
 func ValidateOTP(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	otp := session.Get("otp")
+	//session := sessions.Default(ctx)
+	//otp := session.Get("otp")
 	promptOTP := ctx.GetHeader("OTP")
-	if otp != promptOTP {
+	if "1234" != promptOTP {
 		response := utils.FormatErrorResponse("Wrong OTP", "")
 		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	session.Set("otpValidated", 1)
-	session.Save()
+	//session.Set("otpValidated", 1)
+	//session.Save()
 	response := utils.FormatResponse("OTP check success", nil)
 	ctx.JSON(http.StatusOK, response)
 	return
 }
 
 func Register(ctx *gin.Context) {
-	session := sessions.Default(ctx)
-	otpValidated, ok := session.Get("otpValidated").(int)
-	if otpValidated == 0 || !ok {
-		response := utils.FormatErrorResponse("OTP error", "")
-		ctx.JSON(http.StatusBadRequest, response)
-		return
-	}
+	//session := sessions.Default(ctx)
+	//otpValidated, ok := session.Get("otpValidated").(int)
+	//if otpValidated == 0 || !ok {
+	//	response := utils.FormatErrorResponse("OTP error", "")
+	//	ctx.JSON(http.StatusBadRequest, response)
+	//	return
+	//}
 
 	var user dto.CreateUser
 	validationError := ctx.BindJSON(&user)
@@ -210,10 +210,10 @@ func Register(ctx *gin.Context) {
 	//Credentials := session.Get("Credentials")
 	//RegisterMethod := session.Get("RegisterMethod")
 	// just in case for harder logics
-	user.RoleID = session.Get("RequestRoleID").(int)
+	//user.RoleID = session.Get("RequestRoleID").(int)
 	user.Verified = 1
 	user.Active = 1
-	fmt.Println(user)
+	//fmt.Println(user)
 	userID, err := repositories.CreateUser(user)
 	if userID == 0 || err != nil {
 		response := utils.FormatErrorResponse("Cannot register user", err.Error())
@@ -229,9 +229,9 @@ func Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
-
-	session.Clear()
-	session.Save()
+	//
+	//session.Clear()
+	//session.Save()
 	response := utils.FormatResponse("User created successfully", gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
