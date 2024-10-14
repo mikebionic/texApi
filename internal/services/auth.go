@@ -215,7 +215,7 @@ func Register(ctx *gin.Context) {
 	user.Active = 1
 	//fmt.Println(user)
 	userID, err := repositories.CreateUser(user)
-	if userID == 0 || err != nil {
+	if err != nil {
 		response := utils.FormatErrorResponse("Cannot register user", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
