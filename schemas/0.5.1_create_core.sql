@@ -40,7 +40,8 @@ CREATE TABLE tbl_user (
   oauth_expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   oauth_id_token VARCHAR(500) DEFAULT '',
   refresh_token VARCHAR(500) DEFAULT '',
-  otp_key VARCHAR(20) DEFAULT ''
+  otp_key VARCHAR(20) DEFAULT '',
+  check_time TIMESTAMP
 );
 
 

@@ -174,8 +174,8 @@ func RegisterRequest(ctx *gin.Context) {
 }
 
 func ValidateOTP(ctx *gin.Context) {
-	//session := sessions.Default(ctx)
-	//otp := session.Get("otp")
+
+	//// TODO: Get user's OTP from DB and validate
 	promptOTP := ctx.GetHeader("OTP")
 	if "1234" != promptOTP {
 		response := utils.FormatErrorResponse("Wrong OTP", "")
@@ -183,16 +183,14 @@ func ValidateOTP(ctx *gin.Context) {
 		return
 	}
 
-	//session.Set("otpValidated", 1)
-	//session.Save()
+	//// TODO: Set validated = 1, update timestamp for registering
 	response := utils.FormatResponse("OTP check success", nil)
 	ctx.JSON(http.StatusOK, response)
 	return
 }
 
 func Register(ctx *gin.Context) {
-	//session := sessions.Default(ctx)
-	//otpValidated, ok := session.Get("otpValidated").(int)
+	//// TODO: Check user validated == 1 and Register time is less than TIMESTAMP
 	//if otpValidated == 0 || !ok {
 	//	response := utils.FormatErrorResponse("OTP error", "")
 	//	ctx.JSON(http.StatusBadRequest, response)
