@@ -153,7 +153,31 @@ func UpdateUser(user dto.CreateUser, userID int) (int, error) {
 	return id, nil
 }
 
-func SaveUserWithOTP(userID, roleID int, registerType, credentials, otpkey string) (id int, err error) {
+func ProfileUpdate(user dto.ProfileUpdate, userID int) (int, error) {
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.ProfileUpdate,
+		userID,
+		user.Username,
+		user.Password,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.NickName,
+		user.AvatarURL,
+		user.Phone,
+		user.InfoPhone,
+		user.Address,
+	).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func SaveUserWithOTP(userID, roleID, verified int, registerType, credentials, otpkey string) (id int, err error) {
 	// Update OTP if user exists
 	if userID > 0 {
 		err = db.DB.QueryRow(
@@ -162,6 +186,7 @@ func SaveUserWithOTP(userID, roleID int, registerType, credentials, otpkey strin
 			registerType,
 			credentials,
 			roleID,
+			verified,
 			otpkey,
 			userID,
 		).Scan(&id)
@@ -172,6 +197,7 @@ func SaveUserWithOTP(userID, roleID int, registerType, credentials, otpkey strin
 			registerType,
 			credentials,
 			roleID,
+			verified,
 			otpkey,
 		).Scan(&id)
 	}

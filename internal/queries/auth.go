@@ -29,7 +29,8 @@ var GetUser = `SELECT
 	oauth_expires_at::varchar,
 	oauth_id_token,
 	refresh_token,
-	verify_time::varchar
+	verify_time::varchar,
+	otp_key
 FROM tbl_user`
 
 var CreateUser = `
@@ -87,6 +88,23 @@ var UpdateUser = `
     RETURNING id;
 `
 
+var ProfileUpdate = `
+    UPDATE tbl_user
+    SET
+        username = COALESCE($2, username),
+        password = COALESCE($3, password),
+        email = COALESCE($4, email),
+        first_name = COALESCE($5, first_name),
+        last_name = COALESCE($6, last_name),
+        nick_name = COALESCE($7, nick_name),
+        avatar_url = COALESCE($8, avatar_url),
+        phone = COALESCE($9, phone),
+        info_phone = COALESCE($10, info_phone),
+        address = COALESCE($11, address)  
+    WHERE id = $1
+    RETURNING id;
+`
+
 var SaveUserWithOTP = `
 INSERT INTO tbl_user (
 email, phone, role_id, verified, otp_key, verify_time
@@ -94,7 +112,7 @@ email, phone, role_id, verified, otp_key, verify_time
 CASE WHEN $1 = 'email' THEN $2 ELSE '' END,
 CASE WHEN $1 = 'phone' THEN $2 ELSE '' END,
 $3,
-0, $4, NOW()
+$4, $5, NOW()
 ) RETURNING id;
 `
 var UpdateUserWithOTP = `
@@ -103,10 +121,10 @@ SET
     email = CASE WHEN $1 = 'email' THEN $2 ELSE email END,
     phone = CASE WHEN $1 = 'phone' THEN $2 ELSE phone END,
     role_id = $3,
-    otp_key = $4,
-    verify_time = NOW(),
-    verified = 0
-WHERE id = $5
+    verified = $4,
+    otp_key = $5,
+    verify_time = NOW()
+WHERE id = $6
 RETURNING id;
 `
 
