@@ -41,7 +41,7 @@ var GetContent = `
 	c.active,
 	c.deleted
     FROM tbl_content c 
-    WHERE c.id = $1
+    WHERE c.id = $1 AND c.deleted = 0
 `
 
 var CreateContent = `
