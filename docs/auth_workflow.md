@@ -3,10 +3,10 @@
 
 1. Send register requests with **Credentials** and **RegisterMethod** in header
 2. Validate email or phone number accordingly
-3. If user not found or validated != 1 -> save OTPPassword and time OTP timeissued, to track otp validation time
-4. Create user with validated 0.
-5. OTP validation, with email or phone included, if success -> update timeissued to track register process time
-6. register user with POST request
+3. If user not found or Verified != 1 -> 
+   + save user with OTPKey VerifyTime, to track otp validation time
+4. OTPKey validation, with email or phone included, if success -> update VerifyTime to track register process time
+5. register user with POST request
 
 ## Google auth workflow
 

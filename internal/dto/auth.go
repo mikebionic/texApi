@@ -33,19 +33,19 @@ type User struct {
 	OauthExpiresAt         string    `json:"oauth_expires_at"`
 	OauthIDToken           string    `json:"oauth_id_token"`
 	RefreshToken           string    `json:"refresh_token"`
-	OTPKey                 string    `json:"otp_key"`
-	CheckTime              string    `json:"check_time"`
+	VerifyTime             string    `json:"verify_time"`
+	//OTPKey                 string    `json:"otp_key"`
 }
 
 type CreateUser struct {
 	Username               *string `json:"username,omitempty"`
 	Password               *string `json:"password,omitempty"`
-	Email                  *string `json:"email,omitempty"`
+	Email                  string  `json:"email,omitempty"`
 	FirstName              *string `json:"first_name,omitempty"`
 	LastName               *string `json:"last_name,omitempty"`
 	NickName               *string `json:"nick_name,omitempty"`
 	AvatarURL              *string `json:"avatar_url,omitempty"`
-	Phone                  *string `json:"phone,omitempty"`
+	Phone                  string  `json:"phone,omitempty"`
 	InfoPhone              *string `json:"info_phone,omitempty"`
 	Address                *string `json:"address,omitempty"`
 	RoleID                 int     `json:"role_id,omitempty" binding:"gt=0"`
