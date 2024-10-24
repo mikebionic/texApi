@@ -352,7 +352,7 @@
 						"header": [
 							{
 								"key": "OTP",
-								"value": "1234",
+								"value": "0984",
 								"type": "text"
 							},
 							{
@@ -388,7 +388,7 @@
 						"header": [
 							{
 								"key": "Credentials",
-								"value": "newemail@gmail.com",
+								"value": "newemasil@gmail.com",
 								"type": "text"
 							},
 							{
