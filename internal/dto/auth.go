@@ -34,7 +34,7 @@ type User struct {
 	OauthIDToken           string    `json:"oauth_id_token"`
 	RefreshToken           string    `json:"refresh_token"`
 	VerifyTime             string    `json:"verify_time"`
-	//OTPKey                 string    `json:"otp_key"`
+	OTPKey                 string    `json:"otp_key"`
 }
 
 type CreateUser struct {
@@ -59,6 +59,19 @@ type CreateUser struct {
 	OauthAccessTokenSecret *string `json:"oauth_access_token_secret,omitempty"`
 	OauthRefreshToken      *string `json:"oauth_refresh_token,omitempty"`
 	OauthIDToken           *string `json:"oauth_id_token,omitempty"`
+}
+
+type ProfileUpdate struct {
+	Username  *string `json:"username,omitempty"`
+	Password  *string `json:"password,omitempty"`
+	Email     *string `json:"email,omitempty"`
+	FirstName *string `json:"first_name,omitempty"`
+	LastName  *string `json:"last_name,omitempty"`
+	NickName  *string `json:"nick_name,omitempty"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
+	Phone     *string `json:"phone,omitempty"`
+	InfoPhone *string `json:"info_phone,omitempty"`
+	Address   *string `json:"address,omitempty"`
 }
 
 type RefreshTokenForm struct {

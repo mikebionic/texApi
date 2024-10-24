@@ -239,7 +239,7 @@
 						"method": "GET",
 						"header": [
 							{
-								"key": "LoginMethod",
+								"key": "CredType",
 								"value": "username"
 							}
 						],
@@ -321,7 +321,7 @@
 								"value": "newemail@gmail.com"
 							},
 							{
-								"key": "RegisterType",
+								"key": "CredType",
 								"value": "email"
 							},
 							{
@@ -352,16 +352,16 @@
 						"header": [
 							{
 								"key": "OTP",
-								"value": "0984",
+								"value": "4582",
 								"type": "text"
 							},
 							{
 								"key": "Credentials",
-								"value": "newemail@gmail.com",
+								"value": "texlogistics@gmail.com",
 								"type": "text"
 							},
 							{
-								"key": "RegisterType",
+								"key": "CredType",
 								"value": "email",
 								"type": "text"
 							}
@@ -392,8 +392,13 @@
 								"type": "text"
 							},
 							{
-								"key": "RegisterType",
+								"key": "CredType",
 								"value": "email",
+								"type": "text"
+							},
+							{
+								"key": "OTP",
+								"value": "1234",
 								"type": "text"
 							}
 						],
@@ -415,6 +420,120 @@
 								"{{prefix}}",
 								"auth",
 								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ProfileUpdate",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Mjk4MDQzNDcsImlkIjoxLCJyb2xlSUQiOjF9.DbJI0iOjq5VtQ5w5sNkRdN4ZqyIF8NxUiOF1bpfFWuI",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"username\":\"Driver\",\n\t\"password\":\"dr123\",\n\t\"email\":\"driver123@gmail.com\",\n\t\"first_name\":\"Vladimir\",\n\t\"last_name\":\"Petrovich\",\n\t\"nick_name\":\"Petya\",\n\t\"avatar_url\":\"\",\n\t\"phone\":\"+993123453\",\n\t\"info_phone\":\"+993 12 45 45 45\",\n\t\"address\":\"Tverskaya st., 12/34\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/profile/update/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"profile",
+								"update",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ForgotPassword",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Credentials",
+								"value": "texlogistics@gmail.com",
+								"type": "text"
+							},
+							{
+								"key": "CredType",
+								"value": "email",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/password/forgot/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"password",
+								"forgot",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PasswordUpdate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Credentials",
+								"value": "texlogistics@gmail.com",
+								"type": "text"
+							},
+							{
+								"key": "CredType",
+								"value": "email",
+								"type": "text"
+							},
+							{
+								"key": "Password",
+								"value": "3333",
+								"type": "text"
+							},
+							{
+								"key": "OTP",
+								"value": "4582",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/auth/password/update/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"auth",
+								"password",
+								"update",
 								""
 							]
 						}

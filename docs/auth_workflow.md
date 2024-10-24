@@ -16,3 +16,9 @@
 + Access Token Request: Our application will then make a POST call to Google requesting an access token, attaching the authorization code received in the previous step, as well as the client ID and client secret (received during client registration).
 + User Details Retrieval: Once we obtain the access token, we can request Google to provide the user’s details by authorizing the access token.
 + Profile Creation: After we get the user’s details, such as email, username, and profile picture from Google, we can create a profile for the user in our application without requiring them to manually provide their details.
+
+## Recovery password ForgotPassword workflow
+
++ /password/forgot/ request with Credentials CredType in header
++ /validate-otp/
++ /password/update/
