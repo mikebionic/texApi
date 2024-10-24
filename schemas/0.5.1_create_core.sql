@@ -61,6 +61,47 @@ CREATE TABLE tbl_company
     deleted    INT                                                      DEFAULT 0
 );
 
+CREATE TABLE tbl_driver
+(
+    id              SERIAL PRIMARY KEY,
+    uuid            UUID                  DEFAULT gen_random_uuid(),
+    company_id      INT                   DEFAULT 0,
+    first_name      VARCHAR(100) NOT NULL DEFAULT '',
+    last_name       VARCHAR(100) NOT NULL DEFAULT '',
+    patronymic_name VARCHAR(100) NOT NULL DEFAULT '',
+    phone           VARCHAR(100) NOT NULL DEFAULT '',
+    email           VARCHAR(100) NOT NULL DEFAULT '',
+    avatar_url      VARCHAR(200)          DEFAULT '',
+    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    active          INT                   DEFAULT 1,
+    deleted         INT                   DEFAULT 0
+);
+
+CREATE TABLE tbl_vehicle
+(
+    id                  SERIAL PRIMARY KEY,
+    uuid                UUID                  DEFAULT gen_random_uuid(),
+    company_id          INT                   DEFAULT 0,
+    vehivle_type        VARCHAR(100) NOT NULL DEFAULT '',
+    brand               VARCHAR(100) NOT NULL DEFAULT '',
+    vehicle_model       VARCHAR(100) NOT NULL DEFAULT '',
+    year_of_isse        VARCHAR(10)  NOT NULL DEFAULT '',
+    numberplate         VARCHAR(20)  NOT NULL DEFAULT '',
+    trailer_numberplate VARCHAR(20)  NOT NULL DEFAULT '',
+    gps_active          INT                   DEFAULT 0,
+    photo1_url          VARCHAR(200)          DEFAULT '',
+    photo2_url          VARCHAR(200)          DEFAULT '',
+    photo3_url          VARCHAR(200)          DEFAULT '',
+    docs1_url           VARCHAR(200)          DEFAULT '',
+    docs2_url           VARCHAR(200)          DEFAULT '',
+    docs3_url           VARCHAR(200)          DEFAULT '',
+    created_at          TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    active              INT                   DEFAULT 1,
+    deleted             INT                   DEFAULT 0
+);
+
 
 INSERT INTO tbl_role (name, description, title, subtitle, title_ru, subtitle_ru) VALUES
     ('admin', 'Has full access to manage the system','','','',''),
