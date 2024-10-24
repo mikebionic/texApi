@@ -144,6 +144,35 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "UpdateContent",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\n{\n\t\"lang_id\": 2,\n\t\"content_type_id\": 1,\n\t\"title\": \"Платформа, предназначенная для координации грузоперевозок\",\n\t\"slogan\": \"ЛЕГКО связывайтесь с новыми перевозчиками и клиентами, ЭФФЕКТИВНО управляя существующими партнерами\",\n\t\"subtitle\": \"Революция в грузоперевозках\",\n\t\"description\": \"ТЕХ - это не просто платформа, это революция в мире грузоперевозок. Как уникальная социальная сеть, специально созданная для бизнеса. ТЕХ соединяет вас с широкой сетью профессионалов в логистической индустрии. Независимо от того, являетесь ли вы перевозчиком, логистической компанией или отправителем, ТЕХ дает вам возможность определить, как вы работаете и с кем вы работаете\",\n\t\"count\": 0,\n\t\"count_type\": \"\",\n\t\"image_url\": \"\",\n\t\"video_url\": \"\",\n\t\"step\": 0,\n\t\"active\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/content/update/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"content",
+								"update",
+								"1"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -292,7 +321,7 @@
 								"value": "newemail@gmail.com"
 							},
 							{
-								"key": "RegisterMethod",
+								"key": "RegisterType",
 								"value": "email"
 							},
 							{
@@ -325,6 +354,16 @@
 								"key": "OTP",
 								"value": "1234",
 								"type": "text"
+							},
+							{
+								"key": "Credentials",
+								"value": "newemail@gmail.com",
+								"type": "text"
+							},
+							{
+								"key": "RegisterType",
+								"value": "email",
+								"type": "text"
 							}
 						],
 						"url": {
@@ -346,7 +385,18 @@
 					"name": "Register",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Credentials",
+								"value": "newemail@gmail.com",
+								"type": "text"
+							},
+							{
+								"key": "RegisterType",
+								"value": "email",
+								"type": "text"
+							}
+						],
 						"body": {
 							"mode": "raw",
 							"raw": "{\n\t\"username\":\"Driver\",\n\t\"password\":\"dr123\",\n\t\"email\":\"driver123@gmail.com\",\n\t\"first_name\":\"Vladimir\",\n\t\"last_name\":\"Petrovich\",\n\t\"nick_name\":\"Petya\",\n\t\"avatar_url\":\"\",\n\t\"phone\":\"+993123453\",\n\t\"info_phone\":\"+993 12 45 45 45\",\n\t\"address\":\"Tverskaya st., 12/34\",\n\t\"role_id\":3,\n\t\"subrole_id\":4,\n\t\"oauth_provider\":\"\",\n\t\"oauth_user_id\":\"\",\n\t\"oauth_location\":\"\",\n\t\"oauth_access_token\":\"\",\n\t\"oauth_access_token_secret\":\"\",\n\t\"oauth_refresh_token\":\"\",\n\t\"oauth_id_token\":\"\"\n}\n",
