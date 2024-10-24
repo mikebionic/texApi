@@ -45,6 +45,23 @@ CREATE TABLE tbl_user (
 );
 
 
+CREATE TABLE tbl_company
+(
+    id         SERIAL PRIMARY KEY,
+    uuid       UUID                                                     DEFAULT gen_random_uuid(),
+    user_id    INT          REFERENCES tbl_user (id) ON DELETE SET NULL DEFAULT 0,
+    name       VARCHAR(100) NOT NULL                                    DEFAULT '',
+    address    VARCHAR(200) NOT NULL                                    DEFAULT '',
+    phone      VARCHAR(100) NOT NULL                                    DEFAULT '',
+    email      VARCHAR(100) NOT NULL                                    DEFAULT '',
+    logo_url   VARCHAR(200)                                             DEFAULT '',
+    created_at TIMESTAMP                                                DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP                                                DEFAULT CURRENT_TIMESTAMP,
+    active     INT                                                      DEFAULT 1,
+    deleted    INT                                                      DEFAULT 0
+);
+
+
 INSERT INTO tbl_role (name, description, title, subtitle, title_ru, subtitle_ru) VALUES
     ('admin', 'Has full access to manage the system','','','',''),
     ('sender', 'Can place orders and track deliveries', 'Sender', 'I am looking for transport','Отправитель', 'Я ищу транспорт'),
