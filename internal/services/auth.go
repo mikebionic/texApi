@@ -21,8 +21,8 @@ import (
 )
 
 func UserLogin(ctx *gin.Context) {
-	loginMethod := ctx.GetHeader("LoginMethod")
-	if loginMethod == "" {
+	loginType := ctx.GetHeader("LoginType")
+	if loginType == "" {
 		response := utils.FormatErrorResponse("Invalid Login Method", "")
 		ctx.JSON(http.StatusUnauthorized, response)
 		return
@@ -34,7 +34,7 @@ func UserLogin(ctx *gin.Context) {
 		return
 	}
 
-	user, err := repositories.GetUser(username, loginMethod)
+	user, err := repositories.GetUser(username, loginType)
 	if err != nil {
 		response := utils.FormatErrorResponse("User not found", err.Error())
 		ctx.JSON(http.StatusBadRequest, response)
@@ -143,59 +143,57 @@ func RegisterRequest(ctx *gin.Context) {
 		return
 	}
 	credentials := ctx.GetHeader("Credentials")
-	registerMethod := ctx.GetHeader("RegisterMethod")
-	if roleID == 0 || credentials == "" || registerMethod == "" {
+	registerType := ctx.GetHeader("RegisterType")
+	if roleID == 0 || credentials == "" || registerType == "" {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, missing required params", ""))
 		return
 	}
 
-	if !(registerMethod == "email" || registerMethod == "phone") {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Wrong method, use 'email' or 'phone'", ""))
+	if ok, msg := utils.ValidateCredential(registerType, credentials); !ok {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse(msg, ""))
 		return
 	}
 
-	user, _ := repositories.GetUser(credentials, registerMethod)
+	user, _ := repositories.GetUser(credentials, registerType)
 	if user.ID > 0 {
-		response := utils.FormatErrorResponse(fmt.Sprintf("A user with this %s already exists", registerMethod), "")
-		ctx.JSON(http.StatusOK, response)
+		if user.Verified == 1 && user.Deleted == 0 {
+			response := utils.FormatErrorResponse(fmt.Sprintf("A user with this %s already exists", registerType), "")
+			ctx.JSON(http.StatusOK, response)
+			return
+		}
+	}
+
+	otp, _ := utils.GenerateOTP()
+
+	_, err = repositories.SaveUserWithOTP(user.ID, roleID, registerType, credentials, otp)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating token", err.Error()))
 		return
 	}
 
-	// generate OTP
-	//otp := "1234"
-	//session := sessions.Default(ctx)
-	//session.Set("RequestRoleID", roleID)
-	//session.Set("Credentials", credentials)
-	//session.Set("RegisterMethod", registerMethod)
-	//session.Set("otp", otp)
-	//session.Set("otpValidated", 0)
-	//session.Save()
-	// send email with generated password OTP
+	//// TODO: change this, it's development mode:
+	ctx.JSON(http.StatusOK, utils.FormatResponse(otp, ""))
+	return
 }
 
 func ValidateOTP(ctx *gin.Context) {
-
-	//// TODO: Get user's OTP from DB and validate
 	promptOTP := ctx.GetHeader("OTP")
-	if "1234" != promptOTP {
-		response := utils.FormatErrorResponse("Wrong OTP", "")
+	credentials := ctx.GetHeader("Credentials")
+	registerType := ctx.GetHeader("RegisterType")
+	if err := repositories.ValidateOTPAndTime(registerType, credentials, promptOTP); err != nil {
+		response := utils.FormatErrorResponse(err.Error(), "")
 		ctx.JSON(http.StatusBadRequest, response)
 		return
 	}
 
-	//// TODO: Set validated = 1, update timestamp for registering
 	response := utils.FormatResponse("OTP check success", nil)
 	ctx.JSON(http.StatusOK, response)
 	return
 }
 
 func Register(ctx *gin.Context) {
-	//// TODO: Check user validated == 1 and Register time is less than TIMESTAMP
-	//if otpValidated == 0 || !ok {
-	//	response := utils.FormatErrorResponse("OTP error", "")
-	//	ctx.JSON(http.StatusBadRequest, response)
-	//	return
-	//}
+	credentials := ctx.GetHeader("Credentials")
+	registerType := ctx.GetHeader("RegisterType")
 
 	var user dto.CreateUser
 	validationError := ctx.BindJSON(&user)
@@ -205,14 +203,35 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	//Credentials := session.Get("Credentials")
-	//RegisterMethod := session.Get("RegisterMethod")
-	// just in case for harder logics
-	//user.RoleID = session.Get("RequestRoleID").(int)
-	user.Verified = 1
-	user.Active = 1
-	//fmt.Println(user)
-	userID, err := repositories.CreateUser(user)
+	currentUser, err := repositories.GetUser(credentials, registerType)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("User Not Verified!", err.Error()))
+		return
+	}
+	// verifying that request time is valid
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", currentUser.VerifyTime)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing time", err.Error()))
+		return
+	}
+	expirationTime := parsedTime.Add(15 * time.Minute)
+	if time.Now().After(expirationTime) {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired. Start over!", ""))
+		return
+	}
+	if currentUser.Verified == 0 {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("User Not Verified!", ""))
+		return
+	}
+	user.Verified = currentUser.Verified
+	user.Active = currentUser.Active
+	user.RoleID = currentUser.RoleID
+	if registerType == "email" {
+		user.Email = currentUser.Email
+	} else {
+		user.Phone = currentUser.Phone
+	}
+	userID, err := repositories.UpdateUser(user, currentUser.ID)
 	if err != nil {
 		response := utils.FormatErrorResponse("Cannot register user", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
@@ -227,9 +246,6 @@ func Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	//
-	//session.Clear()
-	//session.Save()
 	response := utils.FormatResponse("User created successfully", gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,

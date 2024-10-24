@@ -2,11 +2,14 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/jackc/pgx/v5"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"time"
 )
 
 func GetUser(username, loginMethod string) (dto.User, error) {
@@ -112,4 +115,117 @@ func CreateUser(user dto.CreateUser) (int, error) {
 	}
 
 	return id, nil
+}
+
+func UpdateUser(user dto.CreateUser, userID int) (int, error) {
+	var id int
+
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.UpdateUser,
+		userID,
+		user.Username,
+		user.Password,
+		user.Email,
+		user.FirstName,
+		user.LastName,
+		user.NickName,
+		user.AvatarURL,
+		user.Phone,
+		user.InfoPhone,
+		user.Address,
+		user.RoleID,
+		user.SubroleID,
+		user.Verified,
+		user.Active,
+		user.OauthProvider,
+		user.OauthUserID,
+		user.OauthLocation,
+		user.OauthAccessToken,
+		user.OauthAccessTokenSecret,
+		user.OauthRefreshToken,
+		user.OauthIDToken,
+	).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+func SaveUserWithOTP(userID, roleID int, registerType, credentials, otpkey string) (id int, err error) {
+	// Update OTP if user exists
+	if userID > 0 {
+		err = db.DB.QueryRow(
+			context.Background(),
+			queries.UpdateUserWithOTP,
+			registerType,
+			credentials,
+			roleID,
+			otpkey,
+			userID,
+		).Scan(&id)
+	} else {
+		err = db.DB.QueryRow(
+			context.Background(),
+			queries.SaveUserWithOTP,
+			registerType,
+			credentials,
+			roleID,
+			otpkey,
+		).Scan(&id)
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+var ErrOTPExpired = errors.New("otp has expired")
+var ErrInvalidOTP = errors.New("invalid otp")
+var ErrUserNotFound = errors.New("user not found")
+
+func ValidateOTPAndTime(registerType, credentials, promptOTP string) error {
+	var (
+		userID     int
+		otpKey     string
+		verifyTime time.Time
+	)
+
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.GetOTPInfo,
+		registerType,
+		credentials,
+	).Scan(&userID, &otpKey, &verifyTime)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrUserNotFound
+	} else if err != nil {
+		return err
+	}
+
+	if otpKey != promptOTP {
+		return ErrInvalidOTP
+	}
+
+	// Check if the OTP has expired (15 minutes time window)
+	expirationTime := verifyTime.Add(15 * time.Minute)
+	if time.Now().After(expirationTime) {
+		return ErrOTPExpired
+	}
+
+	// Set verified = 1
+	err = db.DB.QueryRow(
+		context.Background(),
+		queries.VerifyUserByID,
+		userID,
+	).Scan(&userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

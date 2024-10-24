@@ -13,8 +13,8 @@ CREATE TABLE tbl_role (
 CREATE TABLE tbl_user (
   id SERIAL PRIMARY KEY,
   uuid UUID DEFAULT gen_random_uuid(),
-  username VARCHAR(200) NOT NULL,
-  password VARCHAR(200) NOT NULL,
+  username VARCHAR(200) NOT NULL DEFAULT '',
+  password VARCHAR(200) NOT NULL DEFAULT '',
   email VARCHAR(100) NOT NULL DEFAULT '',
   first_name VARCHAR(100) NOT NULL DEFAULT '',
   last_name VARCHAR(100) NOT NULL DEFAULT '',
@@ -41,7 +41,7 @@ CREATE TABLE tbl_user (
   oauth_id_token VARCHAR(500) DEFAULT '',
   refresh_token VARCHAR(500) DEFAULT '',
   otp_key VARCHAR(20) DEFAULT '',
-  check_time TIMESTAMP
+  verify_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
