@@ -33,6 +33,12 @@ type Config struct {
 
 	GoogleClientID     string
 	GoogleClientSecret string
+
+	SMTP_HOST     string
+	SMTP_PORT     string
+	SMTP_MAIL     string
+	SMTP_PASSWORD string
+	APP_LOGO_URL  string
 }
 
 var ENV Config
@@ -64,4 +70,10 @@ func InitConfig() {
 
 	ENV.GoogleClientID = os.Getenv("GoogleClientID")
 	ENV.GoogleClientSecret = os.Getenv("GoogleClientSecret")
+
+	ENV.SMTP_HOST = os.Getenv("SMTP_HOST")
+	ENV.SMTP_PORT = os.Getenv("SMTP_PORT")
+	ENV.SMTP_MAIL = os.Getenv("SMTP_MAIL")
+	ENV.SMTP_PASSWORD = os.Getenv("SMTP_PASSWORD")
+	ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
 }
