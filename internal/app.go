@@ -36,6 +36,7 @@ func InitApp() *gin.Engine {
 	controllers.Auth(router)
 	controllers.Company(router)
 	controllers.Driver(router)
+	controllers.Vehicle(router)
 
 	return router
 }

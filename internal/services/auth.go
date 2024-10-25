@@ -11,6 +11,7 @@ import (
 	"texApi/config"
 	"texApi/internal/dto"
 	"texApi/internal/repositories"
+	"texApi/pkg/smtp"
 	"texApi/pkg/utils"
 	"time"
 
@@ -160,6 +161,13 @@ func ForgotPassword(ctx *gin.Context) {
 		return
 	}
 
+	if credType == "email" {
+		err := smtp.SendOTPEmail(credentials, otp)
+		if err != nil {
+			log.Fatalf("Error sending email: %v", err)
+		}
+	}
+
 	//// TODO: change this, it's development mode:
 	ctx.JSON(http.StatusOK, utils.FormatResponse(otp, ""))
 	return
@@ -242,6 +250,13 @@ func RegisterRequest(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating token", err.Error()))
 		return
+	}
+
+	if credType == "email" {
+		err := smtp.SendOTPEmail(credentials, otp)
+		if err != nil {
+			log.Fatalf("Error sending email: %v", err)
+		}
 	}
 
 	//// TODO: change this, it's development mode:
