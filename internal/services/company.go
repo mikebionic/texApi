@@ -7,31 +7,30 @@ import (
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"texApi/pkg/utils"
 )
 
 func CreateCompany(ctx *gin.Context) {
 	var company dto.CompanyCreate
 
 	if err := ctx.ShouldBindJSON(&company); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing data", err.Error()))
 		return
 	}
 
 	var id int
 	err := db.DB.QueryRow(
 		context.Background(),
-		`INSERT INTO tbl_company (user_id, name, address, phone, email, logo_url) 
-		 VALUES ($1, $2, $3, $4, $5, $6) 
-		 RETURNING id`,
+		queries.CreateCompany,
 		company.UserID, company.Name, company.Address, company.Phone, company.Email, company.LogoURL,
 	).Scan(&id)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating company"})
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating company", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"company_id": id})
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Company created", gin.H{"company_id": id}))
 }
 
 func GetCompany(ctx *gin.Context) {
@@ -42,14 +41,14 @@ func GetCompany(ctx *gin.Context) {
 		context.Background(),
 		queries.GetCompany,
 		id,
-	).Scan(&company.UserID, &company.Name, &company.Address, &company.Phone, &company.Email, &company.LogoURL)
+	).Scan(&company.ID, &company.UserID, &company.Name, &company.Address, &company.Phone, &company.Email, &company.LogoURL)
 
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Company not found"})
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Not found", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, company)
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Company data", company))
 }
 
 func UpdateCompany(ctx *gin.Context) {
