@@ -1,6 +1,7 @@
 package dto
 
 type CompanyCreate struct {
+	ID      int    `json:"id"`
 	UserID  int    `json:"user_id"`
 	Name    string `json:"name"`
 	Address string `json:"address"`

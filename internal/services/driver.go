@@ -32,24 +32,6 @@ func CreateDriver(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"driver_id": id})
 }
 
-func GetDriver(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	var driver dto.DriverCreate
-	err := db.DB.QueryRow(
-		context.Background(),
-		queries.GetDriver,
-		id,
-	).Scan(&driver.CompanyID, &driver.FirstName, &driver.LastName, &driver.PatronymicName, &driver.Phone, &driver.Email, &driver.AvatarURL)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Driver not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, driver)
-}
-
 func UpdateDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
 	var driver dto.DriverUpdate
@@ -88,4 +70,23 @@ func DeleteDriver(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Driver deleted"})
+}
+
+func GetDriver(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	var driver dto.DriverCreate
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.GetDriver,
+		id,
+	).Scan(&driver.CompanyID, &driver.FirstName, &driver.LastName, &driver.PatronymicName, &driver.Phone, &driver.Email, &driver.AvatarURL)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Driver not found"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, driver)
+	return
 }

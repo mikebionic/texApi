@@ -1,7 +1,8 @@
 package queries
 
 var GetCompany = `
-SELECT * FROM tbl_company WHERE id = $1 AND deleted = 0;
+SELECT id, user_id, name, address, phone, email, logo_url, created_at, updated_at, active, deleted
+FROM tbl_company WHERE id = $1 AND deleted = 0
 `
 
 var CreateCompany = `
