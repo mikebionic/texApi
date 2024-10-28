@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 
 func GetContents(ctx *gin.Context) {
 	ctID, err := strconv.Atoi(ctx.GetHeader("ContentTypeId"))
-	fmt.Println(ctID)
 	contents, err := repo.GetContents(ctID)
 	if err != nil {
 		log.Println(err.Error())
