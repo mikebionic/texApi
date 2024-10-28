@@ -1,31 +1,8 @@
 package queries
 
-var GetVehicles = `
-SELECT
-	id,
-	company_id,
-	vehicle_type,
-	brand,
-	vehicle_model,
-	year_of_issue,
-	numberplate,
-	trailer_numberplate,
-	gps_active,
-	photo1_url,
-	photo2_url,
-	photo3_url,
-	docs1_url,
-	docs2_url,
-	docs3_url,
-	created_at::varchar,
-	updated_at::varchar,
-	active,
-	deleted
-FROM tbl_vehicle WHERE deleted = 0 AND ($1::INT IS NULL OR company_id = $1)
-`
-
 var GetVehicle = `
 SELECT 
+    id,
     company_id,
 	vehicle_type,
 	brand,
@@ -44,7 +21,7 @@ SELECT
 	updated_at::varchar,
 	active,
 	deleted 
-FROM tbl_vehicle WHERE id = $1 AND deleted = 0
+FROM tbl_vehicle WHERE deleted = 0
 `
 
 var CreateVehicle = `

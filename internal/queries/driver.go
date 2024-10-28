@@ -14,7 +14,7 @@ SELECT
 	updated_at::varchar,
 	active,
 	deleted
-FROM tbl_driver
+FROM tbl_driver WHERE deleted = 0
 `
 
 var CreateDriver = `

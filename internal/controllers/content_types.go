@@ -7,6 +7,6 @@ import (
 
 func ContentType(router *gin.Engine) {
 	group := router.Group("texapp/content_type/")
-	group.GET("", services.GetContentTypes)
-	group.GET(":id", services.GetContentTypes)
+	group.GET("/", services.GetContentTypes)
+	group.GET("/:id", services.GetContentTypes)
 }
