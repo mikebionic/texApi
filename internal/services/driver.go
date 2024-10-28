@@ -12,7 +12,7 @@ import (
 	"texApi/pkg/utils"
 )
 
-func GetDriver(ctx *gin.Context) {
+func SingleDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
 	stmt := queries.GetDriver + " WHERE id = $1 AND deleted = 0;"
 	var driver []dto.DriverCreate
