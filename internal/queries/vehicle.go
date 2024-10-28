@@ -1,25 +1,78 @@
 package queries
 
 var GetVehicles = `
-SELECT * FROM tbl_vehicle WHERE deleted = 0 AND ($1::INT IS NULL OR company_id = $1);
+SELECT
+	id,
+	company_id,
+	vehicle_type,
+	brand,
+	vehicle_model,
+	year_of_issue,
+	numberplate,
+	trailer_numberplate,
+	gps_active,
+	photo1_url,
+	photo2_url,
+	photo3_url,
+	docs1_url,
+	docs2_url,
+	docs3_url,
+	created_at::varchar,
+	updated_at::varchar,
+	active,
+	deleted
+FROM tbl_vehicle WHERE deleted = 0 AND ($1::INT IS NULL OR company_id = $1)
 `
 
 var GetVehicle = `
-SELECT * FROM tbl_vehicle WHERE id = $1 AND deleted = 0;
+SELECT 
+    company_id,
+	vehicle_type,
+	brand,
+	vehicle_model,
+	year_of_issue,
+	numberplate,
+	trailer_numberplate,
+	gps_active,
+	photo1_url,
+	photo2_url,
+	photo3_url,
+	docs1_url,
+	docs2_url,
+	docs3_url,
+	created_at::varchar,
+	updated_at::varchar,
+	active,
+	deleted 
+FROM tbl_vehicle WHERE id = $1 AND deleted = 0
 `
 
 var CreateVehicle = `
-INSERT INTO tbl_vehicle (company_id, vehivle_type, brand, vehicle_model, year_of_isse, numberplate, trailer_numberplate, gps_active, photo1_url, photo2_url, photo3_url, docs1_url, docs2_url, docs3_url)
+INSERT INTO tbl_vehicle (
+	company_id,
+	vehicle_type,
+	brand,
+	vehicle_model,
+	year_of_issue,
+	numberplate,
+	trailer_numberplate,
+	gps_active,
+	photo1_url,
+	photo2_url,
+	photo3_url,
+	docs1_url,
+	docs2_url,
+	docs3_url)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 RETURNING id;
 `
 
 var UpdateVehicle = `
 UPDATE tbl_vehicle
-SET vehivle_type = COALESCE($2, vehivle_type),
+SET vehicle_type = COALESCE($2, vehicle_type),
 brand = COALESCE($3, brand),
 vehicle_model = COALESCE($4, vehicle_model),
-year_of_isse = COALESCE($5, year_of_isse),
+year_of_issue = COALESCE($5, year_of_issue),
 numberplate = COALESCE($6, numberplate),
 trailer_numberplate = COALESCE($7, trailer_numberplate),
 gps_active = COALESCE($8, gps_active),

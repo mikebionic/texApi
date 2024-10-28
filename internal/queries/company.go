@@ -1,7 +1,18 @@
 package queries
 
 var GetCompany = `
-SELECT id, user_id, name, address, phone, email, logo_url, created_at, updated_at, active, deleted
+SELECT 
+	id,
+   user_id,
+   name,
+   address,
+   phone,
+   email,
+   logo_url,
+   created_at::varchar,
+   updated_at::varchar,
+   active,
+   deleted
 FROM tbl_company WHERE id = $1 AND deleted = 0
 `
 

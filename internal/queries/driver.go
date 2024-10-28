@@ -1,14 +1,47 @@
 package queries
 
-var GetDrivers = `
-SELECT * FROM tbl_user WHERE deleted = 0;
+var GetCompanyDrivers = `
+SELECT 
+	id,
+	company_id,
+	first_name,
+	last_name,
+	patronymic_name,
+	phone,
+	email,
+	avatar_url,
+	created_at::varchar,
+	updated_at::varchar,
+	active,
+	deleted
+FROM tbl_driver WHERE company_id = $1 AND deleted = 0;
 `
 var GetDriver = `
-SELECT * FROM tbl_driver WHERE id = $1 AND deleted = 0;
+SELECT 
+    id,
+	company_id,
+	first_name,
+	last_name,
+	patronymic_name,
+	phone,
+	email,
+	avatar_url,
+	created_at::varchar,
+	updated_at::varchar,
+	active,
+	deleted
+FROM tbl_driver WHERE id = $1 AND deleted = 0;
 `
 
 var CreateDriver = `
-INSERT INTO tbl_driver (company_id, first_name, last_name, patronymic_name, phone, email, avatar_url)
+INSERT INTO tbl_driver (
+    company_id,
+	first_name,
+	last_name,
+	patronymic_name,
+	phone,
+	email,
+	avatar_url)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id;
 `
