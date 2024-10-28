@@ -14,7 +14,7 @@ func CreateCompany(ctx *gin.Context) {
 	var company dto.CompanyCreate
 
 	if err := ctx.ShouldBindJSON(&company); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing data", err.Error()))
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
@@ -30,7 +30,7 @@ func CreateCompany(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.FormatResponse("Company created", gin.H{"company_id": id}))
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
 }
 
 func GetCompany(ctx *gin.Context) {
@@ -56,7 +56,7 @@ func UpdateCompany(ctx *gin.Context) {
 	var company dto.CompanyUpdate
 
 	if err := ctx.ShouldBindJSON(&company); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing data", err.Error()))
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
@@ -72,7 +72,7 @@ func UpdateCompany(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"company_id": updatedID})
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
 }
 
 func DeleteCompany(ctx *gin.Context) {
@@ -89,5 +89,5 @@ func DeleteCompany(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Company deleted", gin.H{"company_id": id}))
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
 }

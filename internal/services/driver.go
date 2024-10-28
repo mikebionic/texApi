@@ -2,18 +2,60 @@ package services
 
 import (
 	"context"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"texApi/pkg/utils"
 )
+
+func GetDriver(ctx *gin.Context) {
+	id := ctx.Param("id")
+	stmt := queries.GetDriver + " WHERE id = $1 AND deleted = 0;"
+	var driver []dto.DriverCreate
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&driver, stmt, id,
+	)
+
+	if err != nil || len(driver) == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Driver not found", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver", driver[0]))
+	return
+}
+
+func GetDrivers(ctx *gin.Context) {
+	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
+	stmt := queries.GetDriver + " WHERE (company_id = $1 OR $1 = 0) AND deleted = 0;"
+
+	var drivers []dto.DriverCreate
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&drivers, stmt, companyID,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Driver not found", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Company drivers", drivers))
+	return
+}
 
 func CreateDriver(ctx *gin.Context) {
 	var driver dto.DriverCreate
 
 	if err := ctx.ShouldBindJSON(&driver); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
@@ -21,15 +63,21 @@ func CreateDriver(ctx *gin.Context) {
 	err := db.DB.QueryRow(
 		context.Background(),
 		queries.CreateDriver,
-		driver.CompanyID, driver.FirstName, driver.LastName, driver.PatronymicName, driver.Phone, driver.Email, driver.AvatarURL,
+		driver.CompanyID,
+		driver.FirstName,
+		driver.LastName,
+		driver.PatronymicName,
+		driver.Phone,
+		driver.Email,
+		driver.AvatarURL,
 	).Scan(&id)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating driver"})
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating driver", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"driver_id": id})
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
 }
 
 func UpdateDriver(ctx *gin.Context) {
@@ -37,7 +85,7 @@ func UpdateDriver(ctx *gin.Context) {
 	var driver dto.DriverUpdate
 
 	if err := ctx.ShouldBindJSON(&driver); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
@@ -45,15 +93,21 @@ func UpdateDriver(ctx *gin.Context) {
 	err := db.DB.QueryRow(
 		context.Background(),
 		queries.UpdateDriver,
-		id, driver.FirstName, driver.LastName, driver.PatronymicName, driver.Phone, driver.Email, driver.AvatarURL,
+		id,
+		driver.FirstName,
+		driver.LastName,
+		driver.PatronymicName,
+		driver.Phone,
+		driver.Email,
+		driver.AvatarURL,
 	).Scan(&updatedID)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating driver"})
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating driver", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"driver_id": updatedID})
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
 }
 
 func DeleteDriver(ctx *gin.Context) {
@@ -69,24 +123,5 @@ func DeleteDriver(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting driver"})
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Driver deleted"})
-}
-
-func GetDriver(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	var driver dto.DriverCreate
-	err := db.DB.QueryRow(
-		context.Background(),
-		queries.GetDriver,
-		id,
-	).Scan(&driver.CompanyID, &driver.FirstName, &driver.LastName, &driver.PatronymicName, &driver.Phone, &driver.Email, &driver.AvatarURL)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "Driver not found"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, driver)
-	return
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
 }

@@ -1,6 +1,7 @@
 package dto
 
 type DriverCreate struct {
+	ID             int    `json:"id"`
 	CompanyID      int    `json:"company_id"`
 	FirstName      string `json:"first_name"`
 	LastName       string `json:"last_name"`
@@ -8,6 +9,10 @@ type DriverCreate struct {
 	Phone          string `json:"phone"`
 	Email          string `json:"email"`
 	AvatarURL      string `json:"avatar_url"`
+	CreatedAt      string `json:"created_at"`
+	UpdatedAt      string `json:"updated_at"`
+	Active         int    `json:"active"`
+	Deleted        int    `json:"deleted"`
 }
 
 type DriverUpdate struct {

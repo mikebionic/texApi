@@ -1,21 +1,5 @@
 package queries
 
-var GetCompanyDrivers = `
-SELECT 
-	id,
-	company_id,
-	first_name,
-	last_name,
-	patronymic_name,
-	phone,
-	email,
-	avatar_url,
-	created_at::varchar,
-	updated_at::varchar,
-	active,
-	deleted
-FROM tbl_driver WHERE company_id = $1 AND deleted = 0;
-`
 var GetDriver = `
 SELECT 
     id,
@@ -30,7 +14,7 @@ SELECT
 	updated_at::varchar,
 	active,
 	deleted
-FROM tbl_driver WHERE id = $1 AND deleted = 0;
+FROM tbl_driver
 `
 
 var CreateDriver = `

@@ -7,13 +7,14 @@ import (
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"texApi/pkg/utils"
 )
 
 func CreateVehicle(ctx *gin.Context) {
 	var vehicle dto.VehicleCreate
 
 	if err := ctx.ShouldBindJSON(&vehicle); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
@@ -83,7 +84,7 @@ func UpdateVehicle(ctx *gin.Context) {
 	var vehicle dto.VehicleUpdate
 
 	if err := ctx.ShouldBindJSON(&vehicle); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
