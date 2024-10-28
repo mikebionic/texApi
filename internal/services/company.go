@@ -56,7 +56,7 @@ func UpdateCompany(ctx *gin.Context) {
 	var company dto.CompanyUpdate
 
 	if err := ctx.ShouldBindJSON(&company); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing data", err.Error()))
 		return
 	}
 
@@ -68,7 +68,7 @@ func UpdateCompany(ctx *gin.Context) {
 	).Scan(&updatedID)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating company"})
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating company", err.Error()))
 		return
 	}
 
@@ -85,9 +85,9 @@ func DeleteCompany(ctx *gin.Context) {
 	)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting company"})
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting company", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Company deleted"})
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Company deleted", gin.H{"company_id": id}))
 }
