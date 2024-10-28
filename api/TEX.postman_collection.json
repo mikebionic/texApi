@@ -318,7 +318,7 @@
 						"header": [
 							{
 								"key": "Credentials",
-								"value": "newemail@gmail.com"
+								"value": "muhammedjepbarov@gmail.com"
 							},
 							{
 								"key": "CredType",
@@ -537,6 +537,433 @@
 								""
 							]
 						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Company",
+			"item": [
+				{
+					"name": "ByID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/company/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"company",
+								"2"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:7000/texapp/company/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1,\n  \"name\": \"Example Company\",\n  \"address\": \"123 Main St, Cityville\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"company@example.com\",\n  \"logo_url\": \"http://example.com/logo.png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/company",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"company"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:7000/texapp/company\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"user_id\": 1,\n  \"name\": \"Example Company\",\n  \"address\": \"123 Main St, Cityville\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"company@example.com\",\n  \"logo_url\": \"http://example.com/logo.png\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 1,\n  \"name\": \"Updated Company Name\",\n  \"address\": \"456 Elm St, Cityville\",\n  \"phone\": \"+9876543210\",\n  \"email\": \"updated_company@example.com\",\n  \"logo_url\": \"http://example.com/new_logo.png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/company/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"company",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT \"http://localhost:7000/texapp/company/1\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"user_id\": 1,\n  \"name\": \"Updated Company Name\",\n  \"address\": \"456 Elm St, Cityville\",\n  \"phone\": \"+9876543210\",\n  \"email\": \"updated_company@example.com\",\n  \"logo_url\": \"http://example.com/new_logo.png\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/company/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"company",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE \"http://localhost:7000/texapp/company/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vehicles",
+			"item": [
+				{
+					"name": "GetByID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/vehicle/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"vehicle",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/texapp/vehicle/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "All ?company__id",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "CompanyID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/vehicle/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"vehicle",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/texapp/vehicle?company_id=2\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": 2,\n  \"vehivle_type\": \"Truck\",\n  \"brand\": \"Ford\",\n  \"vehicle_model\": \"F-150\",\n  \"year_of_isse\": \"2020\",\n  \"numberplate\": \"XYZ123\",\n  \"trailer_numberplate\": \"TRL123\",\n  \"gps_active\": 1,\n  \"photo1_url\": \"http://example.com/photo1.jpg\",\n  \"photo2_url\": \"http://example.com/photo2.jpg\",\n  \"photo3_url\": \"http://example.com/photo3.jpg\",\n  \"docs1_url\": \"http://example.com/docs1.pdf\",\n  \"docs2_url\": \"http://example.com/docs2.pdf\",\n  \"docs3_url\": \"http://example.com/docs3.pdf\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/vehicle/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"vehicle",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:8080/texapp/vehicle\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"company_id\": 2,\n  \"vehivle_type\": \"Truck\",\n  \"brand\": \"Ford\",\n  \"vehicle_model\": \"F-150\",\n  \"year_of_isse\": \"2020\",\n  \"numberplate\": \"XYZ123\",\n  \"trailer_numberplate\": \"TRL123\",\n  \"gps_active\": 1,\n  \"photo1_url\": \"http://example.com/photo1.jpg\",\n  \"photo2_url\": \"http://example.com/photo2.jpg\",\n  \"photo3_url\": \"http://example.com/photo3.jpg\",\n  \"docs1_url\": \"http://example.com/docs1.pdf\",\n  \"docs2_url\": \"http://example.com/docs2.pdf\",\n  \"docs3_url\": \"http://example.com/docs3.pdf\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": 3,\n  \"vehivle_type\": \"SUV\",\n  \"brand\": \"Toyota\",\n  \"vehicle_model\": \"Highlander\",\n  \"year_of_isse\": \"2018\",\n  \"numberplate\": \"XYZ456\",\n  \"trailer_numberplate\": \"TRL456\",\n  \"gps_active\": 1,\n  \"photo1_url\": \"http://example.com/newphoto1.jpg\",\n  \"photo2_url\": \"http://example.com/newphoto2.jpg\",\n  \"photo3_url\": \"http://example.com/newphoto3.jpg\",\n  \"docs1_url\": \"http://example.com/newdocs1.pdf\",\n  \"docs2_url\": \"http://example.com/newdocs2.pdf\",\n  \"docs3_url\": \"http://example.com/newdocs3.pdf\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/vehicle/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"vehicle",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT \"http://localhost:8080/texapp/vehicle/1\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"company_id\": 3,\n  \"vehivle_type\": \"SUV\",\n  \"brand\": \"Toyota\",\n  \"vehicle_model\": \"Highlander\",\n  \"year_of_isse\": \"2018\",\n  \"numberplate\": \"XYZ456\",\n  \"trailer_numberplate\": \"TRL456\",\n  \"gps_active\": 1,\n  \"photo1_url\": \"http://example.com/newphoto1.jpg\",\n  \"photo2_url\": \"http://example.com/newphoto2.jpg\",\n  \"photo3_url\": \"http://example.com/newphoto3.jpg\",\n  \"docs1_url\": \"http://example.com/newdocs1.pdf\",\n  \"docs2_url\": \"http://example.com/newdocs2.pdf\",\n  \"docs3_url\": \"http://example.com/newdocs3.pdf\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/vehicle/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"vehicle",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE \"http://localhost:8080/texapp/vehicle/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Driver",
+			"item": [
+				{
+					"name": "ByID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/driver/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"driver",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:7000/texapp/driver/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": 2,\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"patronymic_name\": \"Smith\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"john.doe@example.com\",\n  \"avatar_url\": \"http://example.com/avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/driver",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"driver"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:7000/texapp/driver\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"company_id\": 2,\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"patronymic_name\": \"Smith\",\n  \"phone\": \"+1234567890\",\n  \"email\": \"john.doe@example.com\",\n  \"avatar_url\": \"http://example.com/avatar.jpg\"\n}'\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/driver/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"driver",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE \"http://localhost:7000/texapp/driver/1\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "All/ByCompanyID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "CompanyID",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host}}/{{prefix}}/driver/",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"driver",
+								""
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:7000/texapp/driver?company_id=2\" \\\n-H \"Content-Type: application/json\"\n"
+					},
+					"response": []
+				},
+				{
+					"name": "Update",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"company_id\": 2,\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"patronymic_name\": \"Johnson\",\n  \"phone\": \"+0987654321\",\n  \"email\": \"jane.doe@example.com\",\n  \"avatar_url\": \"http://example.com/new_avatar.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/{{prefix}}/driver/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"{{prefix}}",
+								"driver",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT \"http://localhost:7000/texapp/driver/1\" \\\n-H \"Content-Type: application/json\" \\\n-d '{\n  \"company_id\": 2,\n  \"first_name\": \"Jane\",\n  \"last_name\": \"Doe\",\n  \"patronymic_name\": \"Johnson\",\n  \"phone\": \"+0987654321\",\n  \"email\": \"jane.doe@example.com\",\n  \"avatar_url\": \"http://example.com/new_avatar.jpg\"\n}'\n"
 					},
 					"response": []
 				}
