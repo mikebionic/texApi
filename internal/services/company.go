@@ -41,7 +41,7 @@ func GetCompany(ctx *gin.Context) {
 		context.Background(),
 		queries.GetCompany,
 		id,
-	).Scan(&company.ID, &company.UserID, &company.Name, &company.Address, &company.Phone, &company.Email, &company.LogoURL)
+	).Scan(&company.ID, &company.UserID, &company.Name, &company.Address, &company.Phone, &company.Email, &company.LogoURL, &company.CreatedAt, &company.UpdatedAt, &company.Active, &company.Deleted)
 
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Not found", err.Error()))

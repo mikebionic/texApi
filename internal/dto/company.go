@@ -1,13 +1,27 @@
 package dto
 
+//type CompanyGet struct {
+//	ID      int    `json:"id"`
+//	UserID  int    `json:"user_id"`
+//	Name    string `json:"name"`
+//	Address string `json:"address"`
+//	Phone   string `json:"phone"`
+//	Email   string `json:"email"`
+//	LogoURL string `json:"logo_url"`
+//}
+
 type CompanyCreate struct {
-	ID      int    `json:"id"`
-	UserID  int    `json:"user_id"`
-	Name    string `json:"name"`
-	Address string `json:"address"`
-	Phone   string `json:"phone"`
-	Email   string `json:"email"`
-	LogoURL string `json:"logo_url"`
+	ID        int    `json:"id"`
+	UserID    int    `json:"user_id"`
+	Name      string `json:"name"`
+	Address   string `json:"address"`
+	Phone     string `json:"phone"`
+	Email     string `json:"email"`
+	LogoURL   string `json:"logo_url"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	Active    int    `json:"active"`
+	Deleted   int    `json:"deleted"`
 }
 
 type CompanyUpdate struct {
