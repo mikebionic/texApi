@@ -14,7 +14,7 @@ import (
 
 func SingleDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
-	stmt := queries.GetDriver + " WHERE id = $1 AND deleted = 0;"
+	stmt := queries.GetDriver + " AND id = $1;"
 	var driver []dto.DriverCreate
 
 	err := pgxscan.Select(
@@ -33,8 +33,7 @@ func SingleDriver(ctx *gin.Context) {
 
 func GetDrivers(ctx *gin.Context) {
 	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
-	stmt := queries.GetDriver + " WHERE (company_id = $1 OR $1 = 0) AND deleted = 0;"
-
+	stmt := queries.GetDriver + " AND (company_id = $1 OR $1 = 0);"
 	var drivers []dto.DriverCreate
 
 	err := pgxscan.Select(

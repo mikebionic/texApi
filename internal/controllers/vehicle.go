@@ -10,7 +10,7 @@ func Vehicle(router *gin.Engine) {
 
 	group.GET("/", services.GetVehicles)
 	group.GET("/:id", services.GetVehicle)
-	group.POST("", services.CreateVehicle)
+	group.POST("/", services.CreateVehicle)
 	group.PUT("/:id", services.UpdateVehicle)
 	group.DELETE("/:id", services.DeleteVehicle)
 }
