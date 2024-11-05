@@ -8,6 +8,7 @@ type VehicleCreate struct {
 	VehicleModel       string `json:"vehicle_model"`
 	YearOfIssue        string `json:"year_of_issue"`
 	Numberplate        string `json:"numberplate"`
+	Mileage            string `json:"mileage"`
 	TrailerNumberplate string `json:"trailer_numberplate"`
 	GPSActive          int    `json:"gps_active"`
 	Photo1URL          string `json:"photo1_url"`

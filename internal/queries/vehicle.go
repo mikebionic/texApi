@@ -8,6 +8,7 @@ SELECT
 	brand,
 	vehicle_model,
 	year_of_issue,
+	mileage,
 	numberplate,
 	trailer_numberplate,
 	gps_active,
