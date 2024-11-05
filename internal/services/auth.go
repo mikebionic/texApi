@@ -55,8 +55,8 @@ func UserLogin(ctx *gin.Context) {
 		}
 	}
 
-	accessToken := utils.CreateToken(user.ID, user.RoleID)
-	refreshToken := utils.CreateToken(user.ID, user.RoleID)
+	accessToken, _ := utils.CreateToken(user.ID, user.RoleID)
+	refreshToken, exp := utils.CreateToken(user.ID, user.RoleID)
 	err = repositories.ManageToken(user.ID, refreshToken, "create")
 	if err != nil {
 		log.Println(err.Error())
@@ -68,6 +68,7 @@ func UserLogin(ctx *gin.Context) {
 	response := utils.FormatResponse("Login successful", gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
+		"exp":           exp,
 		"user":          user,
 	})
 	ctx.JSON(http.StatusOK, response)
@@ -94,6 +95,7 @@ func UserGetMe(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
+	//// TODO: Delete token from DB
 	session := sessions.Default(ctx)
 	session.Clear()
 	session.Save()
@@ -327,8 +329,8 @@ func Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	accessToken := utils.CreateToken(userID, user.RoleID)
-	refreshToken := utils.CreateToken(userID, user.RoleID)
+	accessToken, _ := utils.CreateToken(userID, user.RoleID)
+	refreshToken, exp := utils.CreateToken(userID, user.RoleID)
 	err = repositories.ManageToken(userID, refreshToken, "create")
 	if err != nil {
 		log.Println(err.Error())
@@ -339,6 +341,7 @@ func Register(ctx *gin.Context) {
 	response := utils.FormatResponse("User created successfully", gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
+		"exp":           exp,
 	})
 	ctx.JSON(http.StatusOK, response)
 	return
