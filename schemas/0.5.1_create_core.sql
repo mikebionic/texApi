@@ -61,6 +61,7 @@ CREATE TABLE tbl_company
     deleted    INT                                                      DEFAULT 0
 );
 
+-- TODO: can we save the foreign key with zero value?
 CREATE TABLE tbl_driver
 (
     id              SERIAL PRIMARY KEY,
