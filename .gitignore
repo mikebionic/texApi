@@ -3,6 +3,7 @@
 .env
 **/_**/**
 
+_**.go
 config.json
 *.config.json
 .vscode/
