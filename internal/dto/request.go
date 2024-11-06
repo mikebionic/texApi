@@ -5,12 +5,13 @@ type RequestCreate struct {
 	UserID        int     `json:"user_id"`
 	CompanyID     int     `json:"company_id"`
 	DriverID      int     `json:"driver_id"`
-	TransportID   int     `json:"transport_id"`
+	VehicleID     int     `json:"vehicle_id"`
 	CostPerKM     float64 `json:"cost_per_km"`
 	FromCountry   string  `json:"from_country"`
 	FromRegion    string  `json:"from_region"`
 	ToCountry     string  `json:"to_country"`
 	ToRegion      string  `json:"to_region"`
+	ViewCount     string  `json:"view_count"`
 	ValidityStart string  `json:"validity_start"`
 	ValidityEnd   string  `json:"validity_end"`
 	Note          string  `json:"note"`
