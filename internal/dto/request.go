@@ -22,7 +22,7 @@ type RequestCreate struct {
 
 type RequestUpdate struct {
 	DriverID      *int     `json:"driver_id,omitempty"`
-	TransportID   *int     `json:"transport_id,omitempty"`
+	VehicleID     *int     `json:"vehicle_id,omitempty"`
 	CostPerKM     *float64 `json:"cost_per_km,omitempty"`
 	FromCountry   *string  `json:"from_country,omitempty"`
 	FromRegion    *string  `json:"from_region,omitempty"`

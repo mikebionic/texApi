@@ -45,12 +45,12 @@ SET driver_id = COALESCE($2, driver_id),
     validity_end = COALESCE($10, validity_end),
     note = COALESCE($11, note),
     updated_at = NOW()
-WHERE id = $1 AND deleted = 0
+WHERE id = $1 AND user_id = $12
 RETURNING id;
 `
 
 var DeleteMyRequest = `
 UPDATE tbl_request
 SET deleted = 1, updated_at = NOW()
-WHERE id = $1;
+WHERE id = $1 AND  user_id = $2;
 `
