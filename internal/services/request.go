@@ -13,11 +13,80 @@ import (
 )
 
 func CreateRequest(ctx *gin.Context) {
+	var myRequest dto.RequestCreate
+	if err := ctx.ShouldBindJSON(&myRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
 
+	// TODO: this also should be checked
+	//myRequest.UserID = loginUser.ID
+	//myRequest.CompanyID = loginUser.CompanyID
+
+	//should it check wheter the driver and vehicle are from that company?
+
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.CreateMyRequest,
+		&myRequest.UserID,
+		&myRequest.CompanyID,
+		&myRequest.DriverID,
+		&myRequest.VehicleID,
+		&myRequest.CostPerKM,
+		&myRequest.FromCountry,
+		&myRequest.FromRegion,
+		&myRequest.ToCountry,
+		&myRequest.ToRegion,
+		&myRequest.ValidityStart,
+		&myRequest.ValidityEnd,
+		&myRequest.Note,
+	).Scan(&id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating request", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
 }
 
 func UpdateRequest(ctx *gin.Context) {
+	userID, _ := strconv.Atoi(ctx.GetHeader("UserID"))
+	id := ctx.Param("id")
 
+	var myRequest dto.RequestUpdate
+	if err := ctx.ShouldBindJSON(&myRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	// TODO: should driver and vehicle be checked if linked to company
+
+	var updatedID int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.UpdateMyRequest,
+		id,
+		myRequest.DriverID,
+		myRequest.VehicleID,
+		myRequest.CostPerKM,
+		myRequest.FromCountry,
+		myRequest.FromRegion,
+		myRequest.ToCountry,
+		myRequest.ToRegion,
+		myRequest.ValidityStart,
+		myRequest.ValidityEnd,
+		myRequest.Note,
+		userID,
+	).Scan(&updatedID)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating request", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
 }
 
 // User Company specific request
@@ -53,8 +122,8 @@ func GetRequests(ctx *gin.Context) {
 		&allRequests, stmt,
 	)
 
-	if err != nil || len(allRequests) == 0 {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Requests not found", ""))
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Requests not found", err.Error()))
 		return
 	}
 
@@ -62,5 +131,27 @@ func GetRequests(ctx *gin.Context) {
 }
 
 func DeleteRequest(ctx *gin.Context) {
+	// TODO: validate user with request user
+	userID, _ := strconv.Atoi(ctx.GetHeader("UserID"))
+	id := ctx.Param("id")
 
+	result, err := db.DB.Exec(
+		context.Background(),
+		queries.DeleteMyRequest,
+		id,
+		userID,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting request", err.Error()))
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Request not found or already deleted", "No matching request found"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
 }

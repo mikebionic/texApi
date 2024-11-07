@@ -16,6 +16,7 @@ func Request(router *gin.Engine) {
 	group.GET("/company/", services.GetCompanyRequests)
 
 	// TODO: Implement pagination
+	// Everyone see this in BIDS section
 	group.GET("/", services.GetRequests)
 
 	//Only user's created ones, or admin
