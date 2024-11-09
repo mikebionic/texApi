@@ -10,17 +10,10 @@ type User struct {
 	Username               string    `json:"username"`
 	Password               string    `json:"-"`
 	Email                  string    `json:"email"`
-	InfoEmail              string    `json:"info_email,omitempty"`
-	FirstName              string    `json:"first_name"`
-	LastName               string    `json:"last_name"`
-	NickName               string    `json:"nick_name"`
-	AvatarURL              string    `json:"avatar_url"`
 	Phone                  string    `json:"phone"`
-	InfoPhone              string    `json:"info_phone"`
-	Address                string    `json:"address"`
-	Entity                 string    `json:"entity,omitempty"`
+	Role                   string    `json:"role"`
 	RoleID                 int       `json:"role_id"`
-	SubroleID              int       `json:"subrole_id"`
+	CompanyID              int       `json:"company_id"`
 	Verified               int       `json:"verified"`
 	CreatedAt              string    `json:"created_at"`
 	UpdatedAt              string    `json:"updated_at"`
@@ -43,17 +36,10 @@ type CreateUser struct {
 	Username               *string `json:"username,omitempty"`
 	Password               *string `json:"password,omitempty"`
 	Email                  string  `json:"email,omitempty"`
-	InfoEmail              *string `json:"info_email,omitempty"`
-	FirstName              *string `json:"first_name,omitempty"`
-	LastName               *string `json:"last_name,omitempty"`
-	NickName               *string `json:"nick_name,omitempty"`
-	AvatarURL              *string `json:"avatar_url,omitempty"`
 	Phone                  string  `json:"phone,omitempty"`
-	InfoPhone              *string `json:"info_phone,omitempty"`
-	Address                *string `json:"address,omitempty"`
-	Entity                 *string `json:"entity,omitempty"`
+	Role                   string  `json:"role,omitempty"`
 	RoleID                 int     `json:"role_id,omitempty" binding:"gt=0"`
-	SubroleID              *int    `json:"subrole_id,omitempty"`
+	CompanyID              *int    `json:"company_id,omitempty"`
 	Verified               int     `json:"verified,omitempty"`
 	Active                 int     `json:"active,omitempty"`
 	OauthProvider          *string `json:"oauth_provider,omitempty"`
@@ -66,16 +52,10 @@ type CreateUser struct {
 }
 
 type ProfileUpdate struct {
-	Username  *string `json:"username,omitempty"`
-	Password  *string `json:"password,omitempty"`
-	Email     *string `json:"email,omitempty"`
-	FirstName *string `json:"first_name,omitempty"`
-	LastName  *string `json:"last_name,omitempty"`
-	NickName  *string `json:"nick_name,omitempty"`
-	AvatarURL *string `json:"avatar_url,omitempty"`
-	Phone     *string `json:"phone,omitempty"`
-	InfoPhone *string `json:"info_phone,omitempty"`
-	Address   *string `json:"address,omitempty"`
+	Username *string `json:"username,omitempty"`
+	Password *string `json:"password,omitempty"`
+	Email    *string `json:"email,omitempty"`
+	Phone    *string `json:"phone,omitempty"`
 }
 
 type RefreshTokenForm struct {

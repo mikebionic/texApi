@@ -1,63 +1,54 @@
 package queries
 
-var GetUser = `SELECT 
-	id,
-	uuid,
-	username,
-	password,
-	email,
-	first_name,
-	last_name,
-	nick_name,
-	avatar_url,
-	phone,
-	info_phone,
-	address,
-	role_id,
-	subrole_id,
-	verified,
-	created_at::varchar,
-	updated_at::varchar,
-	active,
-	deleted,
-	oauth_provider,
-	oauth_user_id,
-	oauth_location,
-	oauth_access_token,
-	oauth_access_token_secret,
-	oauth_refresh_token,
-	oauth_expires_at::varchar,
-	oauth_id_token,
-	refresh_token,
-	verify_time::varchar,
-	otp_key
-FROM tbl_user`
+var GetUser = `
+SELECT 
+    u.id,
+    u.uuid,
+    u.username,
+    u.password,
+    u.email,
+    u.phone,
+    r.role as role,
+    u.role_id,
+    u.company_id,
+    u.verified,
+    u.created_at::varchar,
+    u.updated_at::varchar,
+    u.active,
+    u.deleted,
+    u.oauth_provider,
+    u.oauth_user_id,
+    u.oauth_location,
+    u.oauth_access_token,
+    u.oauth_access_token_secret,
+    u.oauth_refresh_token,
+    u.oauth_expires_at::varchar,
+    u.oauth_id_token,
+    u.refresh_token,
+    u.verify_time::varchar,
+    u.otp_key
+FROM tbl_user u
+LEFT JOIN tbl_role r ON u.role_id = r.id`
 
 var CreateUser = `
     INSERT INTO tbl_user (
-		username,
-		password,
-		email,
-		first_name,
-		last_name,
-		nick_name,
-		avatar_url,
-		phone,
-		info_phone,
-		address,
-		role_id,
-		subrole_id,
-		verified,
-		active,
-		oauth_provider,
-		oauth_user_id,
-		oauth_location,
-		oauth_access_token,
-		oauth_access_token_secret,
-		oauth_refresh_token,
-		oauth_id_token
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) 
-      RETURNING id
+        username,
+        password,
+        email,
+        phone,
+        role_id,
+        company_id,
+        verified,
+        active,
+        oauth_provider,
+        oauth_user_id,
+        oauth_location,
+        oauth_access_token,
+        oauth_access_token_secret,
+        oauth_refresh_token,
+        oauth_id_token
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+    RETURNING id
 `
 
 var UpdateUser = `
@@ -66,26 +57,20 @@ var UpdateUser = `
         username = $2,
         password = $3,
         email = $4,
-        first_name = $5,
-        last_name = $6,
-        nick_name = $7,
-        avatar_url = $8,
-        phone = $9,
-        info_phone = $10,
-        address = $11,
-        role_id = $12,
-        subrole_id = $13,
-        verified = $14,
-        active = $15,
-        oauth_provider = $16,
-        oauth_user_id = $17,
-        oauth_location = $18,
-        oauth_access_token = $19,
-        oauth_access_token_secret = $20,
-        oauth_refresh_token = $21,
-        oauth_id_token = $22
+        phone = $5,
+        role_id = $6,
+        company_id = $7,
+        verified = $8,
+        active = $9,
+        oauth_provider = $10,
+        oauth_user_id = $11,
+        oauth_location = $12,
+        oauth_access_token = $13,
+        oauth_access_token_secret = $14,
+        oauth_refresh_token = $15,
+        oauth_id_token = $16
     WHERE id = $1
-    RETURNING id;
+    RETURNING id
 `
 
 var ProfileUpdate = `
@@ -94,15 +79,9 @@ var ProfileUpdate = `
         username = COALESCE($2, username),
         password = COALESCE($3, password),
         email = COALESCE($4, email),
-        first_name = COALESCE($5, first_name),
-        last_name = COALESCE($6, last_name),
-        nick_name = COALESCE($7, nick_name),
-        avatar_url = COALESCE($8, avatar_url),
-        phone = COALESCE($9, phone),
-        info_phone = COALESCE($10, info_phone),
-        address = COALESCE($11, address)  
+        phone = COALESCE($5, phone)
     WHERE id = $1
-    RETURNING id;
+    RETURNING id
 `
 
 var SaveUserWithOTP = `
