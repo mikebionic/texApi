@@ -5,57 +5,6 @@ VALUES
     ('en', 'English'),
     ('ru', 'Russian');
 
--- Insert content types
-INSERT INTO
-    tbl_content_type (name, title, title_ru, description, parent_id, parent_name)
-VALUES
-    ('hero', 'Hero', 'Херо', 'Information about our company and who we are.', 0, ''),
-    (
-        'achievement',
-        'Achievements',
-        'Достижения',
-        'Notable awards and recognitions we have received.',
-        0,
-        ''
-    ),
-    ('achievement_text', 'Text management', 'Управление текстом', '', 2, 'achievement'),
-    ('achievement_cards', 'Achievement cards', 'Карточки достижений', '', 2, 'achievement'),
-    ('gallery', 'Media Gallery', 'Медиагалерея', '', 0, ''),
-    ('gallery_text', 'Text management', 'Управление текстом', '', 5, 'gallery'),
-    (
-        'video',
-        'Video upload',
-        'Загрузка видео',
-        'A collection of videos showcasing our operations and client feedback.',
-        5,
-        'gallery'
-    ),
-    ('contents', 'Content categories', 'Разделы контента', '', 0, ''),
-    (
-        'how_we_work',
-        'How We Work',
-        'Как мы работаем',
-        'An overview of our process and methodology.',
-        9,
-        'contents'
-    ),
-    ('mission', 'Our Mission', 'Наша миссия', 'Our core values and goals.', 9, 'contents'),
-    ('partner', 'Our Partners', 'Партнёры', 'Details about our trusted business partners.', 0, ''),
-    ('partner_text', 'Text management', 'Управление текстом', '', 12, 'partner'),
-    ('partner_management', 'Manage partners', 'Управление партнёрами', '', 12, 'partner'),
-    (
-        'faq',
-        'Frequently asked questions',
-        'Часто задаваемые вопросы',
-        'Answers to common questions.',
-        0,
-        ''
-    ),
-    ('footer', 'Footer', 'Футер', '', 0, ''),
-    ('contact', 'Contacts', 'Контакты', '', 16, 'footer'),
-    ('social_links', 'Social links', 'Социальные ссылки', '', 16, 'footer'),
-    ('other', 'Other', 'Другие', '', 0, '');
-
 INSERT INTO
     tbl_content (lang_id, content_type_id, title, slogan, subtitle, description, image_url, video_url, step, active)
 VALUES

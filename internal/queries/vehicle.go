@@ -70,3 +70,90 @@ UPDATE tbl_vehicle
 SET deleted = 1, updated_at = NOW()
 WHERE id = $1;
 `
+
+// Vehicle Brand queries
+var GetVehicleBrand = `
+SELECT id, name, country, founded_year, deleted
+FROM tbl_vehicle_brand 
+WHERE deleted = 0
+`
+
+var CreateVehicleBrand = `
+INSERT INTO tbl_vehicle_brand (name, country, founded_year)
+VALUES ($1, $2, $3)
+RETURNING id;
+`
+
+var UpdateVehicleBrand = `
+UPDATE tbl_vehicle_brand
+SET name = COALESCE($2, name),
+    country = COALESCE($3, country),
+    founded_year = COALESCE($4, founded_year)
+WHERE id = $1 AND deleted = 0
+RETURNING id;
+`
+
+var DeleteVehicleBrand = `
+UPDATE tbl_vehicle_brand
+SET deleted = 1
+WHERE id = $1;
+`
+
+// Vehicle Type queries
+var GetVehicleType = `
+SELECT id, type_name, description, deleted
+FROM tbl_vehicle_type 
+WHERE deleted = 0
+`
+
+var CreateVehicleType = `
+INSERT INTO tbl_vehicle_type (type_name, description)
+VALUES ($1, $2)
+RETURNING id;
+`
+
+var UpdateVehicleType = `
+UPDATE tbl_vehicle_type
+SET type_name = COALESCE($2, type_name),
+    description = COALESCE($3, description)
+WHERE id = $1 AND deleted = 0
+RETURNING id;
+`
+
+var DeleteVehicleType = `
+UPDATE tbl_vehicle_type
+SET deleted = 1
+WHERE id = $1;
+`
+
+// Vehicle Model queries
+var GetVehicleModel = `
+SELECT m.id, m.name, m.year, m.brand, m.vehicle_type_id, 
+       t.type_name as vehicle_type, m.feature, m.deleted
+FROM tbl_vehicle_model m
+LEFT JOIN tbl_vehicle_type t ON t.id = m.vehicle_type_id
+WHERE m.deleted = 0
+`
+
+var CreateVehicleModel = `
+INSERT INTO tbl_vehicle_model (name, year, brand, vehicle_type_id, feature)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id;
+`
+
+var UpdateVehicleModel = `
+UPDATE tbl_vehicle_model
+SET name = COALESCE($2, name),
+    year = COALESCE($3, year),
+    brand = COALESCE($4, brand),
+    vehicle_type_id = COALESCE($5, vehicle_type_id),
+    feature = COALESCE($6, feature)
+WHERE id = $1 AND deleted = 0
+RETURNING id;
+`
+
+var DeleteVehicleModel = `
+UPDATE tbl_vehicle_model
+SET deleted = 1
+WHERE id = $1;
+`
