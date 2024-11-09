@@ -16,11 +16,11 @@ func GetUser(username, loginMethod string) (dto.User, error) {
 	stmt := queries.GetUser
 	switch loginMethod {
 	case "phone":
-		stmt = stmt + " WHERE phone = $1"
+		stmt = stmt + " WHERE u.phone = $1"
 	case "username":
-		stmt = stmt + " WHERE username = $1"
+		stmt = stmt + " WHERE u.username = $1"
 	case "email":
-		stmt = stmt + " WHERE email = $1"
+		stmt = stmt + " WHERE u.email = $1"
 	}
 
 	var user dto.User
@@ -32,6 +32,7 @@ func GetUser(username, loginMethod string) (dto.User, error) {
 		username,
 	)
 	if err != nil {
+		fmt.Println(err)
 		return user, err
 		//fmt.Errorf("error fetching user")
 	}
@@ -45,13 +46,16 @@ func GetUser(username, loginMethod string) (dto.User, error) {
 
 func GetUserById(userID int) dto.User {
 	var user dto.User
-	_ = pgxscan.Get(
+	err := pgxscan.Get(
 		context.Background(),
 		db.DB,
 		&user,
-		fmt.Sprintf("%s WHERE id = $1", queries.GetUser),
+		queries.GetUser+` WHERE u.id = $1`,
 		userID,
 	)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return user
 }
 
@@ -91,15 +95,9 @@ func CreateUser(user dto.CreateUser) (int, error) {
 		user.Username,
 		user.Password,
 		user.Email,
-		user.FirstName,
-		user.LastName,
-		user.NickName,
-		user.AvatarURL,
 		user.Phone,
-		user.InfoPhone,
-		user.Address,
 		user.RoleID,
-		user.SubroleID,
+		user.CompanyID,
 		user.Verified,
 		user.Active,
 		user.OauthProvider,
@@ -127,15 +125,10 @@ func UpdateUser(user dto.CreateUser, userID int) (int, error) {
 		user.Username,
 		user.Password,
 		user.Email,
-		user.FirstName,
-		user.LastName,
-		user.NickName,
-		user.AvatarURL,
 		user.Phone,
-		user.InfoPhone,
-		user.Address,
+		user.Role,
 		user.RoleID,
-		user.SubroleID,
+		user.CompanyID,
 		user.Verified,
 		user.Active,
 		user.OauthProvider,
@@ -162,13 +155,7 @@ func ProfileUpdate(user dto.ProfileUpdate, userID int) (int, error) {
 		user.Username,
 		user.Password,
 		user.Email,
-		user.FirstName,
-		user.LastName,
-		user.NickName,
-		user.AvatarURL,
 		user.Phone,
-		user.InfoPhone,
-		user.Address,
 	).Scan(&id)
 
 	if err != nil {

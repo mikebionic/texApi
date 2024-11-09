@@ -33,22 +33,22 @@ type User struct {
 }
 
 type CreateUser struct {
-	Username               *string `json:"username,omitempty"`
-	Password               *string `json:"password,omitempty"`
-	Email                  string  `json:"email,omitempty"`
-	Phone                  string  `json:"phone,omitempty"`
-	Role                   string  `json:"role,omitempty"`
-	RoleID                 int     `json:"role_id,omitempty" binding:"gt=0"`
-	CompanyID              *int    `json:"company_id,omitempty"`
-	Verified               int     `json:"verified,omitempty"`
-	Active                 int     `json:"active,omitempty"`
-	OauthProvider          *string `json:"oauth_provider,omitempty"`
-	OauthUserID            *string `json:"oauth_user_id,omitempty"`
-	OauthLocation          *string `json:"oauth_location,omitempty"`
-	OauthAccessToken       *string `json:"oauth_access_token,omitempty"`
-	OauthAccessTokenSecret *string `json:"oauth_access_token_secret,omitempty"`
-	OauthRefreshToken      *string `json:"oauth_refresh_token,omitempty"`
-	OauthIDToken           *string `json:"oauth_id_token,omitempty"`
+	Username               string `json:"username,omitempty"`
+	Password               string `json:"password,omitempty"`
+	Email                  string `json:"email,omitempty"`
+	Phone                  string `json:"phone,omitempty"`
+	Role                   string `json:"role,omitempty"`
+	RoleID                 int    `json:"role_id,omitempty"`
+	CompanyID              int    `json:"company_id,omitempty"`
+	Verified               int    `json:"verified,omitempty"`
+	Active                 int    `json:"active,omitempty"`
+	OauthProvider          string `json:"oauth_provider,omitempty"`
+	OauthUserID            string `json:"oauth_user_id,omitempty"`
+	OauthLocation          string `json:"oauth_location,omitempty"`
+	OauthAccessToken       string `json:"oauth_access_token,omitempty"`
+	OauthAccessTokenSecret string `json:"oauth_access_token_secret,omitempty"`
+	OauthRefreshToken      string `json:"oauth_refresh_token,omitempty"`
+	OauthIDToken           string `json:"oauth_id_token,omitempty"`
 }
 
 type ProfileUpdate struct {
