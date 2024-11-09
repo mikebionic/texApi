@@ -8,9 +8,10 @@ import (
 func Driver(router *gin.Engine) {
 	group := router.Group("texapp/driver/")
 
-	group.GET("/", services.GetDrivers)
-	group.GET("/:id", services.SingleDriver)
+	group.GET("/", services.GetDriverList)
+	group.GET("/:id", services.GetDriver)
 	group.POST("/", services.CreateDriver)
 	group.PUT("/:id", services.UpdateDriver)
 	group.DELETE("/:id", services.DeleteDriver)
+
 }

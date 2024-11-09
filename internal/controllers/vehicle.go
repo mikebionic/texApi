@@ -8,7 +8,7 @@ import (
 func Vehicle(router *gin.Engine) {
 	group := router.Group("texapp/vehicle/")
 
-	group.GET("/", services.GetVehicles)
+	group.GET("/", services.GetVehicleList)
 	group.GET("/:id", services.GetVehicle)
 	group.POST("/", services.CreateVehicle)
 	group.PUT("/:id", services.UpdateVehicle)
