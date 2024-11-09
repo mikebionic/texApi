@@ -23,8 +23,8 @@ CREATE TABLE
     tbl_content (
         id SERIAL PRIMARY KEY,
         uuid UUID DEFAULT gen_random_uuid (),
-        lang_id INT REFERENCES tbl_language (id) ON DELETE SET NULL DEFAULT 0,
-        content_type_id INT REFERENCES tbl_content_type (id) ON DELETE SET NULL DEFAULT 0,
+        lang_id INT REFERENCES tbl_language (id) ON DELETE CASCADE DEFAULT 0,
+        content_type_id INT REFERENCES tbl_content_type (id) ON DELETE CASCADE DEFAULT 0,
         title TEXT DEFAULT '',
         slogan TEXT DEFAULT '',
         subtitle TEXT DEFAULT '',
