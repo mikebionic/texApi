@@ -1,20 +1,3 @@
-DROP DATABASE IF EXISTS db_tex;
-
-CREATE DATABASE db_tex;
-
-\c db_tex;
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
-DROP TABLE IF EXISTS tbl_content CASCADE;
-
-DROP TABLE IF EXISTS tbl_content_type CASCADE;
-
-DROP TABLE IF EXISTS tbl_language CASCADE;
-
-DROP TRIGGER IF EXISTS update_content_updated_at ON tbl_content;
-
-DROP FUNCTION IF EXISTS update_updated_at_column;
 
 CREATE TABLE
     tbl_language (

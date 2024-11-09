@@ -128,3 +128,316 @@ func DeleteVehicle(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
 }
+
+// Vehicle Brand Services
+func SingleVehicleBrand(ctx *gin.Context) {
+	id := ctx.Param("id")
+	stmt := queries.GetVehicleBrand + " AND id = $1;"
+	var brand []dto.VehicleBrand
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&brand, stmt, id,
+	)
+
+	if err != nil || len(brand) == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle brand not found", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle brand", brand[0]))
+}
+
+func GetVehicleBrands(ctx *gin.Context) {
+	var brands []dto.VehicleBrand
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&brands, queries.GetVehicleBrand,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle brands not found", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle brands", brands))
+}
+
+func CreateVehicleBrand(ctx *gin.Context) {
+	var brand dto.VehicleBrand
+
+	if err := ctx.ShouldBindJSON(&brand); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.CreateVehicleBrand,
+		brand.Name,
+		brand.Country,
+		brand.FoundedYear,
+	).Scan(&id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating vehicle brand", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
+}
+
+func UpdateVehicleBrand(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var brand dto.VehicleBrandUpdate
+
+	if err := ctx.ShouldBindJSON(&brand); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var updatedID int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.UpdateVehicleBrand,
+		id,
+		brand.Name,
+		brand.Country,
+		brand.FoundedYear,
+	).Scan(&updatedID)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating vehicle brand", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+}
+
+func DeleteVehicleBrand(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	_, err := db.DB.Exec(
+		context.Background(),
+		queries.DeleteVehicleBrand,
+		id,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting vehicle brand", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+}
+
+// Vehicle Type Services
+func SingleVehicleType(ctx *gin.Context) {
+	id := ctx.Param("id")
+	stmt := queries.GetVehicleType + " AND id = $1;"
+	var vehicleType []dto.VehicleType
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&vehicleType, stmt, id,
+	)
+
+	if err != nil || len(vehicleType) == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle type not found", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle type", vehicleType[0]))
+}
+
+func GetVehicleTypes(ctx *gin.Context) {
+	var types []dto.VehicleType
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&types, queries.GetVehicleType,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle types not found", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle types", types))
+}
+
+func CreateVehicleType(ctx *gin.Context) {
+	var vehicleType dto.VehicleType
+
+	if err := ctx.ShouldBindJSON(&vehicleType); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.CreateVehicleType,
+		vehicleType.TypeName,
+		vehicleType.Description,
+	).Scan(&id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating vehicle type", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
+}
+
+func UpdateVehicleType(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var vehicleType dto.VehicleTypeUpdate
+
+	if err := ctx.ShouldBindJSON(&vehicleType); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var updatedID int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.UpdateVehicleType,
+		id,
+		vehicleType.TypeName,
+		vehicleType.Description,
+	).Scan(&updatedID)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating vehicle type", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+}
+
+func DeleteVehicleType(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	_, err := db.DB.Exec(
+		context.Background(),
+		queries.DeleteVehicleType,
+		id,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting vehicle type", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+}
+
+// Vehicle Model Services
+func SingleVehicleModel(ctx *gin.Context) {
+	id := ctx.Param("id")
+	stmt := queries.GetVehicleModel + " AND m.id = $1;"
+	var model []dto.VehicleModel
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&model, stmt, id,
+	)
+
+	if err != nil || len(model) == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle model not found", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle model", model[0]))
+}
+
+func GetVehicleModels(ctx *gin.Context) {
+	var models []dto.VehicleModel
+
+	err := pgxscan.Select(
+		context.Background(), db.DB,
+		&models, queries.GetVehicleModel,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle models not found", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle models", models))
+}
+
+func CreateVehicleModel(ctx *gin.Context) {
+	var model dto.VehicleModel
+
+	if err := ctx.ShouldBindJSON(&model); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var id int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.CreateVehicleModel,
+		model.Name,
+		model.Year,
+		model.Brand,
+		model.VehicleTypeID,
+		model.Feature,
+	).Scan(&id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating vehicle model", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
+}
+
+func UpdateVehicleModel(ctx *gin.Context) {
+	id := ctx.Param("id")
+	var model dto.VehicleModelUpdate
+
+	if err := ctx.ShouldBindJSON(&model); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	var updatedID int
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.UpdateVehicleModel,
+		id,
+		model.Name,
+		model.Year,
+		model.Brand,
+		model.VehicleTypeID,
+		model.Feature,
+	).Scan(&updatedID)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating vehicle model", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+}
+func DeleteVehicleModel(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	_, err := db.DB.Exec(
+		context.Background(),
+		queries.DeleteVehicleModel,
+		id,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting vehicle model", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+}

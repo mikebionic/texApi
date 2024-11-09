@@ -1,6 +1,6 @@
 package dto
 
-type RequestCreate struct {
+type OfferCreate struct {
 	ID            int     `json:"id"`
 	UserID        int     `json:"user_id"`
 	CompanyID     int     `json:"company_id"`
@@ -20,7 +20,7 @@ type RequestCreate struct {
 	Deleted       int     `json:"deleted"`
 }
 
-type RequestUpdate struct {
+type OfferUpdate struct {
 	DriverID      *int     `json:"driver_id,omitempty"`
 	VehicleID     *int     `json:"vehicle_id,omitempty"`
 	CostPerKM     *float64 `json:"cost_per_km,omitempty"`

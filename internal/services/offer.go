@@ -12,35 +12,35 @@ import (
 	"texApi/pkg/utils"
 )
 
-func CreateRequest(ctx *gin.Context) {
-	var myRequest dto.RequestCreate
-	if err := ctx.ShouldBindJSON(&myRequest); err != nil {
+func CreateOffer(ctx *gin.Context) {
+	var myOffer dto.OfferCreate
+	if err := ctx.ShouldBindJSON(&myOffer); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
 	// TODO: this also should be checked
-	//myRequest.UserID = loginUser.ID
-	//myRequest.CompanyID = loginUser.CompanyID
+	//myOffer.UserID = loginUser.ID
+	//myOffer.CompanyID = loginUser.CompanyID
 
 	//should it check wheter the driver and vehicle are from that company?
 
 	var id int
 	err := db.DB.QueryRow(
 		context.Background(),
-		queries.CreateMyRequest,
-		&myRequest.UserID,
-		&myRequest.CompanyID,
-		&myRequest.DriverID,
-		&myRequest.VehicleID,
-		&myRequest.CostPerKM,
-		&myRequest.FromCountry,
-		&myRequest.FromRegion,
-		&myRequest.ToCountry,
-		&myRequest.ToRegion,
-		&myRequest.ValidityStart,
-		&myRequest.ValidityEnd,
-		&myRequest.Note,
+		queries.CreateOffer,
+		&myOffer.UserID,
+		&myOffer.CompanyID,
+		&myOffer.DriverID,
+		&myOffer.VehicleID,
+		&myOffer.CostPerKM,
+		&myOffer.FromCountry,
+		&myOffer.FromRegion,
+		&myOffer.ToCountry,
+		&myOffer.ToRegion,
+		&myOffer.ValidityStart,
+		&myOffer.ValidityEnd,
+		&myOffer.Note,
 	).Scan(&id)
 
 	if err != nil {
@@ -51,12 +51,12 @@ func CreateRequest(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
 }
 
-func UpdateRequest(ctx *gin.Context) {
+func UpdateOffer(ctx *gin.Context) {
 	userID, _ := strconv.Atoi(ctx.GetHeader("UserID"))
 	id := ctx.Param("id")
 
-	var myRequest dto.RequestUpdate
-	if err := ctx.ShouldBindJSON(&myRequest); err != nil {
+	var myOffer dto.OfferUpdate
+	if err := ctx.ShouldBindJSON(&myOffer); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
@@ -66,18 +66,18 @@ func UpdateRequest(ctx *gin.Context) {
 	var updatedID int
 	err := db.DB.QueryRow(
 		context.Background(),
-		queries.UpdateMyRequest,
+		queries.UpdateOffer,
 		id,
-		myRequest.DriverID,
-		myRequest.VehicleID,
-		myRequest.CostPerKM,
-		myRequest.FromCountry,
-		myRequest.FromRegion,
-		myRequest.ToCountry,
-		myRequest.ToRegion,
-		myRequest.ValidityStart,
-		myRequest.ValidityEnd,
-		myRequest.Note,
+		myOffer.DriverID,
+		myOffer.VehicleID,
+		myOffer.CostPerKM,
+		myOffer.FromCountry,
+		myOffer.FromRegion,
+		myOffer.ToCountry,
+		myOffer.ToRegion,
+		myOffer.ValidityStart,
+		myOffer.ValidityEnd,
+		myOffer.Note,
 		userID,
 	).Scan(&updatedID)
 
@@ -91,31 +91,31 @@ func UpdateRequest(ctx *gin.Context) {
 
 // User Company specific request
 // TODO: take userID and validate in query
-func GetCompanyRequests(ctx *gin.Context) {
+func GetCompanyOffers(ctx *gin.Context) {
 	userID, _ := strconv.Atoi(ctx.GetHeader("UserID"))
 	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
 
-	stmt := queries.GetMyRequest + " AND company_id = $1 AND user_id = $2;"
-	var myRequests []dto.RequestCreate
+	stmt := queries.GetOffer + " AND company_id = $1 AND user_id = $2;"
+	var myOffers []dto.OfferCreate
 
 	err := pgxscan.Select(
 		context.Background(), db.DB,
-		&myRequests, stmt,
+		&myOffers, stmt,
 		companyID,
 		userID,
 	)
 
-	if err != nil || len(myRequests) == 0 {
+	if err != nil || len(myOffers) == 0 {
 		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Requests not found", ""))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("My Requests", myRequests))
+	ctx.JSON(http.StatusOK, utils.FormatResponse("My Requests", myOffers))
 }
 
-func GetRequests(ctx *gin.Context) {
-	stmt := queries.GetMyRequest
-	var allRequests []dto.RequestCreate
+func GetOffers(ctx *gin.Context) {
+	stmt := queries.GetOffer
+	var allRequests []dto.OfferCreate
 
 	err := pgxscan.Select(
 		context.Background(), db.DB,
@@ -130,14 +130,14 @@ func GetRequests(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Requests", allRequests))
 }
 
-func DeleteRequest(ctx *gin.Context) {
+func DeleteOffer(ctx *gin.Context) {
 	// TODO: validate user with request user
 	userID, _ := strconv.Atoi(ctx.GetHeader("UserID"))
 	id := ctx.Param("id")
 
 	result, err := db.DB.Exec(
 		context.Background(),
-		queries.DeleteMyRequest,
+		queries.DeleteOffer,
 		id,
 		userID,
 	)

@@ -38,3 +38,48 @@ type VehicleUpdate struct {
 	Docs2URL           *string `json:"docs2_url,omitempty"`
 	Docs3URL           *string `json:"docs3_url,omitempty"`
 }
+
+type VehicleBrand struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Country     string `json:"country"`
+	FoundedYear int    `json:"founded_year"`
+	Deleted     int    `json:"deleted"`
+}
+
+type VehicleType struct {
+	ID          int    `json:"id"`
+	TypeName    string `json:"type_name"`
+	Description string `json:"description"`
+	Deleted     int    `json:"deleted"`
+}
+
+type VehicleModel struct {
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Year          int    `json:"year"`
+	Brand         string `json:"brand"`
+	VehicleTypeID int    `json:"vehicle_type_id"`
+	VehicleType   string `json:"vehicle_type"`
+	Feature       string `json:"feature"`
+	Deleted       int    `json:"deleted"`
+}
+
+type VehicleBrandUpdate struct {
+	Name        *string `json:"name,omitempty"`
+	Country     *string `json:"country,omitempty"`
+	FoundedYear *int    `json:"founded_year,omitempty"`
+}
+
+type VehicleTypeUpdate struct {
+	TypeName    *string `json:"type_name,omitempty"`
+	Description *string `json:"description,omitempty"`
+}
+
+type VehicleModelUpdate struct {
+	Name          *string `json:"name,omitempty"`
+	Year          *int    `json:"year,omitempty"`
+	Brand         *string `json:"brand,omitempty"`
+	VehicleTypeID *int    `json:"vehicle_type_id,omitempty"`
+	Feature       *string `json:"feature,omitempty"`
+}

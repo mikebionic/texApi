@@ -10,6 +10,7 @@ type User struct {
 	Username               string    `json:"username"`
 	Password               string    `json:"-"`
 	Email                  string    `json:"email"`
+	InfoEmail              string    `json:"info_email,omitempty"`
 	FirstName              string    `json:"first_name"`
 	LastName               string    `json:"last_name"`
 	NickName               string    `json:"nick_name"`
@@ -17,6 +18,7 @@ type User struct {
 	Phone                  string    `json:"phone"`
 	InfoPhone              string    `json:"info_phone"`
 	Address                string    `json:"address"`
+	Entity                 string    `json:"entity,omitempty"`
 	RoleID                 int       `json:"role_id"`
 	SubroleID              int       `json:"subrole_id"`
 	Verified               int       `json:"verified"`
@@ -41,6 +43,7 @@ type CreateUser struct {
 	Username               *string `json:"username,omitempty"`
 	Password               *string `json:"password,omitempty"`
 	Email                  string  `json:"email,omitempty"`
+	InfoEmail              *string `json:"info_email,omitempty"`
 	FirstName              *string `json:"first_name,omitempty"`
 	LastName               *string `json:"last_name,omitempty"`
 	NickName               *string `json:"nick_name,omitempty"`
@@ -48,6 +51,7 @@ type CreateUser struct {
 	Phone                  string  `json:"phone,omitempty"`
 	InfoPhone              *string `json:"info_phone,omitempty"`
 	Address                *string `json:"address,omitempty"`
+	Entity                 *string `json:"entity,omitempty"`
 	RoleID                 int     `json:"role_id,omitempty" binding:"gt=0"`
 	SubroleID              *int    `json:"subrole_id,omitempty"`
 	Verified               int     `json:"verified,omitempty"`
