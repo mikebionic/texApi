@@ -1,5 +1,5 @@
 CREATE TYPE entity_t AS ENUM ('individual', 'legal');
-CREATE TYPE role_t AS ENUM ('system','inactive','admin','sender','carrier','unknown');
+CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','unknown');
 CREATE TYPE state_t AS ENUM ('enabled', 'disabled', 'deleted');
 
 
@@ -25,25 +25,25 @@ CREATE TABLE tbl_user
     email                     VARCHAR(100) NOT NULL                          DEFAULT '',
     phone                     VARCHAR(100) NOT NULL                          DEFAULT '',
     role                      role_t       NOT NULL                          DEFAULT 'unknown',
-    role_id                   INT REFERENCES tbl_role (id) ON DELETE CASCADE DEFAULT 1,
-    company_id                INT                                            DEFAULT 0,
+    role_id                   INT REFERENCES tbl_role (id) ON DELETE CASCADE,
+    company_id                INT          NOT NULL                          DEFAULT 0,
     verified                  INT          NOT NULL                          DEFAULT 0,
     created_at                TIMESTAMP                                      DEFAULT CURRENT_TIMESTAMP,
     updated_at                TIMESTAMP                                      DEFAULT CURRENT_TIMESTAMP,
     active                    INT                                            DEFAULT 1,
     deleted                   INT                                            DEFAULT 0,
 
-    oauth_provider            VARCHAR(100)                                   DEFAULT '',
-    oauth_user_id             VARCHAR(100)                                   DEFAULT '',
-    oauth_location            VARCHAR(200)                                   DEFAULT '',
-    oauth_access_token        VARCHAR(500)                                   DEFAULT '',
-    oauth_access_token_secret VARCHAR(500)                                   DEFAULT '',
-    oauth_refresh_token       VARCHAR(500)                                   DEFAULT '',
-    oauth_expires_at          TIMESTAMP                                      DEFAULT CURRENT_TIMESTAMP,
-    oauth_id_token            VARCHAR(500)                                   DEFAULT '',
-    refresh_token             VARCHAR(500)                                   DEFAULT '',
-    otp_key                   VARCHAR(20)                                    DEFAULT '',
-    verify_time               TIMESTAMP                                      DEFAULT CURRENT_TIMESTAMP
+    oauth_provider            VARCHAR(100) NOT NULL                          DEFAULT '',
+    oauth_user_id             VARCHAR(100) NOT NULL                          DEFAULT '',
+    oauth_location            VARCHAR(200) NOT NULL                          DEFAULT '',
+    oauth_access_token        VARCHAR(500) NOT NULL                          DEFAULT '',
+    oauth_access_token_secret VARCHAR(500) NOT NULL                          DEFAULT '',
+    oauth_refresh_token       VARCHAR(500) NOT NULL                          DEFAULT '',
+    oauth_expires_at          TIMESTAMP    NOT NULL                          DEFAULT CURRENT_TIMESTAMP,
+    oauth_id_token            VARCHAR(500) NOT NULL                          DEFAULT '',
+    refresh_token             VARCHAR(500) NOT NULL                          DEFAULT '',
+    otp_key                   VARCHAR(20)  NOT NULL                          DEFAULT '',
+    verify_time               TIMESTAMP    NOT NULL                          DEFAULT CURRENT_TIMESTAMP
 );
 
 
@@ -52,13 +52,20 @@ CREATE TABLE tbl_company
     id              SERIAL PRIMARY KEY,
     uuid            UUID                                                             DEFAULT gen_random_uuid(),
     user_id         INT          NOT NULL REFERENCES tbl_user (id) ON DELETE CASCADE,
-    role_id         INT          NOT NULL REFERENCES tbl_role (id) ON DELETE CASCADE DEFAULT 1,
+    role_id         INT          NOT NULL REFERENCES tbl_role (id) ON DELETE CASCADE,
     company_name    VARCHAR(100) NOT NULL                                            DEFAULT '',
     first_name      VARCHAR(100) NOT NULL                                            DEFAULT '',
     last_name       VARCHAR(100) NOT NULL                                            DEFAULT '',
     patronymic_name VARCHAR(100) NOT NULL                                            DEFAULT '',
     phone           VARCHAR(100) NOT NULL                                            DEFAULT '',
+    phone2           VARCHAR(100) NOT NULL                                            DEFAULT '',
+    phone3           VARCHAR(100) NOT NULL                                            DEFAULT '',
     email           VARCHAR(100) NOT NULL                                            DEFAULT '',
+    email2          VARCHAR(100) NOT NULL                                            DEFAULT '',
+    email3           VARCHAR(100) NOT NULL                                            DEFAULT '',
+    meta           TEXT NOT NULL                                            DEFAULT '',
+    meta2           TEXT NOT NULL                                            DEFAULT '',
+    meta3           TEXT NOT NULL                                            DEFAULT '',
     address         VARCHAR(200) NOT NULL                                            DEFAULT '',
     country         VARCHAR(200) NOT NULL                                            DEFAULT '',
     image_url       VARCHAR(200)                                                     DEFAULT '',

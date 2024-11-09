@@ -5,6 +5,57 @@ VALUES
     ('en', 'English'),
     ('ru', 'Russian');
 
+-- Insert content types
+INSERT INTO
+    tbl_content_type (name, title, title_ru, description, parent_id, parent_name)
+VALUES
+    ('hero', 'Hero', 'Херо', 'Information about our company and who we are.', 0, ''),
+    (
+        'achievement',
+        'Achievements',
+        'Достижения',
+        'Notable awards and recognitions we have received.',
+        0,
+        ''
+    ),
+    ('achievement_text', 'Text management', 'Управление текстом', '', 2, 'achievement'),
+    ('achievement_cards', 'Achievement cards', 'Карточки достижений', '', 2, 'achievement'),
+    ('gallery', 'Media Gallery', 'Медиагалерея', '', 0, ''),
+    ('gallery_text', 'Text management', 'Управление текстом', '', 5, 'gallery'),
+    (
+        'video',
+        'Video upload',
+        'Загрузка видео',
+        'A collection of videos showcasing our operations and client feedback.',
+        5,
+        'gallery'
+    ),
+    ('contents', 'Content categories', 'Разделы контента', '', 0, ''),
+    (
+        'how_we_work',
+        'How We Work',
+        'Как мы работаем',
+        'An overview of our process and methodology.',
+        9,
+        'contents'
+    ),
+    ('mission', 'Our Mission', 'Наша миссия', 'Our core values and goals.', 9, 'contents'),
+    ('partner', 'Our Partners', 'Партнёры', 'Details about our trusted business partners.', 0, ''),
+    ('partner_text', 'Text management', 'Управление текстом', '', 12, 'partner'),
+    ('partner_management', 'Manage partners', 'Управление партнёрами', '', 12, 'partner'),
+    (
+        'faq',
+        'Frequently asked questions',
+        'Часто задаваемые вопросы',
+        'Answers to common questions.',
+        0,
+        ''
+    ),
+    ('footer', 'Footer', 'Футер', '', 0, ''),
+    ('contact', 'Contacts', 'Контакты', '', 16, 'footer'),
+    ('social_links', 'Social links', 'Социальные ссылки', '', 16, 'footer'),
+    ('other', 'Other', 'Другие', '', 0, '');
+
 INSERT INTO
     tbl_content (lang_id, content_type_id, title, slogan, subtitle, description, image_url, video_url, step, active)
 VALUES
@@ -147,10 +198,10 @@ VALUES
         11,
         'Наша миссия',
         '',
-    'В ТЕХ наша миссия — развивать индустрию грузоперевозок и укреплять связи между бизнесами. Мы обеспечиваем сотрудничество, объединяя логистические компании, перевозчиков и отправителей, предоставляя инструменты для оптимизации операций и расширения глобального охвата.',
-    'С ТЕХ вы не просто присоединяетесь к платформе, а становитесь частью динамичной сети, формирующей будущее грузоперевозок.',
-    '',
-    '',
+        'В ТЕХ наша миссия — развивать индустрию грузоперевозок и укреплять связи между бизнесами. Мы обеспечиваем сотрудничество, объединяя логистические компании, перевозчиков и отправителей, предоставляя инструменты для оптимизации операций и расширения глобального охвата.',
+        'С ТЕХ вы не просто присоединяетесь к платформе, а становитесь частью динамичной сети, формирующей будущее грузоперевозок.',
+        '',
+        '',
         0,
         1
     ),
@@ -505,8 +556,8 @@ VALUES
         '',
         'Присоединяйтесь к растущему сообществу профессионалов',
         20000,
-     'number',
-     '',
+        'number',
+        '',
         '',
         0,
         1
@@ -519,7 +570,7 @@ VALUES
         '',
         'Испытайте эффективность беспрепятственной автомобильной перевозки с ТЕХ',
         5000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -533,7 +584,7 @@ VALUES
         '',
         'Сотрудничайте с ведущими логистическими компаниями по всему миру',
         5000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -546,8 +597,8 @@ VALUES
         '',
         '',
         'Укрепите свой бизнес успешными сделками и партнерствами, заключенными на ТЕХ',
-         50000,
-     'number',
+        50000,
+        'number',
         '',
         '',
         0,
@@ -561,7 +612,7 @@ VALUES
         '',
         'Join a growing community of professionals making a difference in the freight industry.',
         20000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -575,7 +626,7 @@ VALUES
         '',
         'Experience the efficiency of seamless freight transport with TECH.',
         5000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -589,7 +640,7 @@ VALUES
         '',
         'Partner with leading logistics companies across the globe.',
         5000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -603,7 +654,7 @@ VALUES
         '',
         'Find reliable shippers who trust TECH for their freight needs.',
         8000,
-     'number',
+        'number',
         '',
         '',
         0,
@@ -617,7 +668,7 @@ VALUES
         '',
         'Strengthen your business with successful deals and partnerships made on TECH.',
         50000,
-     'number',
+        'number',
         '',
         '',
         0,

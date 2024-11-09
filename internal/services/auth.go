@@ -83,6 +83,7 @@ func UserGetMe(ctx *gin.Context) {
 		return
 	}
 
+	fmt.Println(userID)
 	user := repositories.GetUserById(userID)
 	if user.ID == 0 {
 		response := utils.FormatErrorResponse("User not found", "")
@@ -103,6 +104,7 @@ func Logout(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// TODO: this should refresh by checking db as well or ensure that exp calculated and even then check that token is the same or ensure token is not empty
 func RefreshToken(ctx *gin.Context) {
 	var refreshToken dto.RefreshTokenForm
 
@@ -121,7 +123,7 @@ func RefreshToken(ctx *gin.Context) {
 		},
 	)
 	if err != nil {
-		ctx.AbortWithStatus(401)
+		ctx.JSON(http.StatusUnauthorized, utils.FormatResponse("Error occured", err.Error()))
 		return
 	}
 
@@ -136,7 +138,7 @@ func RefreshToken(ctx *gin.Context) {
 		"access_token":  finalToken,
 		"refresh_token": refreshToken,
 	})
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Success", response))
 }
 
 func ForgotPassword(ctx *gin.Context) {
@@ -320,8 +322,10 @@ func Register(ctx *gin.Context) {
 	user.RoleID = currentUser.RoleID
 	if credType == "email" {
 		user.Email = currentUser.Email
+		user.Phone = ""
 	} else {
 		user.Phone = currentUser.Phone
+		user.Email = ""
 	}
 	userID, err := repositories.UpdateUser(user, currentUser.ID)
 	if err != nil {
