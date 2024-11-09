@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -11,6 +12,95 @@ import (
 	"texApi/internal/queries"
 	"texApi/pkg/utils"
 )
+
+// services/vehicle.go
+func GetVehicleList(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	rows, err := db.DB.Query(
+		context.Background(),
+		queries.GetVehicleList,
+		perPage,
+		offset,
+	)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+	defer rows.Close()
+
+	var vehicles []dto.VehicleDetails
+	var totalCount int
+
+	for rows.Next() {
+		var vehicle dto.VehicleDetails
+		var companyJSON, brandJSON, modelJSON []byte
+
+		err := rows.Scan(
+			&vehicle.ID, &vehicle.UUID, &vehicle.CompanyID, &vehicle.VehicleType,
+			&vehicle.VehicleBrandID, &vehicle.VehicleModelID, &vehicle.YearOfIssue,
+			&vehicle.Mileage, &vehicle.Numberplate, &vehicle.TrailerNumberplate,
+			&vehicle.GpsActive, &vehicle.Photo1URL, &vehicle.Photo2URL,
+			&vehicle.Photo3URL, &vehicle.Docs1URL, &vehicle.Docs2URL,
+			&vehicle.Docs3URL, &vehicle.ViewCount, &vehicle.CreatedAt,
+			&vehicle.UpdatedAt, &vehicle.Active, &totalCount,
+			&companyJSON, &brandJSON, &modelJSON,
+		)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
+			return
+		}
+
+		json.Unmarshal(companyJSON, &vehicle.Company)
+		json.Unmarshal(brandJSON, &vehicle.Brand)
+		json.Unmarshal(modelJSON, &vehicle.Model)
+		vehicles = append(vehicles, vehicle)
+	}
+
+	response := dto.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    vehicles,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle list", response))
+}
+
+func GetVehicle(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	var vehicle dto.VehicleDetails
+	var companyJSON, brandJSON, modelJSON []byte
+
+	err := db.DB.QueryRow(
+		context.Background(),
+		queries.GetVehicleByID,
+		id,
+	).Scan(
+		&vehicle.ID, &vehicle.UUID, &vehicle.CompanyID, &vehicle.VehicleType,
+		&vehicle.VehicleBrandID, &vehicle.VehicleModelID, &vehicle.YearOfIssue,
+		&vehicle.Mileage, &vehicle.Numberplate, &vehicle.TrailerNumberplate,
+		&vehicle.GpsActive, &vehicle.Photo1URL, &vehicle.Photo2URL,
+		&vehicle.Photo3URL, &vehicle.Docs1URL, &vehicle.Docs2URL,
+		&vehicle.Docs3URL, &vehicle.ViewCount, &vehicle.CreatedAt,
+		&vehicle.UpdatedAt, &vehicle.Active,
+		&companyJSON, &brandJSON, &modelJSON,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle not found", err.Error()))
+		return
+	}
+
+	json.Unmarshal(companyJSON, &vehicle.Company)
+	json.Unmarshal(brandJSON, &vehicle.Brand)
+	json.Unmarshal(modelJSON, &vehicle.Model)
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle details", vehicle))
+}
 
 func CreateVehicle(ctx *gin.Context) {
 	var vehicle dto.VehicleCreate
@@ -24,20 +114,11 @@ func CreateVehicle(ctx *gin.Context) {
 	err := db.DB.QueryRow(
 		context.Background(),
 		queries.CreateVehicle,
-		&vehicle.CompanyID,
-		&vehicle.VehicleType,
-		&vehicle.Brand,
-		&vehicle.VehicleModel,
-		&vehicle.YearOfIssue,
-		&vehicle.Numberplate,
-		&vehicle.TrailerNumberplate,
-		&vehicle.GPSActive,
-		&vehicle.Photo1URL,
-		&vehicle.Photo2URL,
-		&vehicle.Photo3URL,
-		&vehicle.Docs1URL,
-		&vehicle.Docs2URL,
-		&vehicle.Docs3URL,
+		vehicle.CompanyID, vehicle.VehicleType, vehicle.VehicleBrandID,
+		vehicle.VehicleModelID, vehicle.YearOfIssue, vehicle.Mileage,
+		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GpsActive,
+		vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL,
+		vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
 	).Scan(&id)
 
 	if err != nil {
@@ -45,47 +126,7 @@ func CreateVehicle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
-}
-
-func GetVehicle(ctx *gin.Context) {
-	//// TODO: add company_id validation
-	id := ctx.Param("id")
-	stmt := queries.GetVehicle + " AND id = $1;"
-	var vehicles []dto.VehicleCreate
-
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&vehicles, stmt,
-		id,
-	)
-	if err != nil || len(vehicles) == 0 {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Not found", ""))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Company vehicles", vehicles))
-	return
-}
-
-func GetVehicles(ctx *gin.Context) {
-	//// TODO: Change this to user.company_id valid drivers, not headers
-	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
-	stmt := queries.GetVehicle + " AND (company_id = $1 OR $1 = 0);"
-	var vehicles []dto.VehicleCreate
-
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&vehicles, stmt,
-		companyID,
-	)
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Error retrieving vehicles", err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Company vehicles", vehicles))
-	return
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created vehicle!", gin.H{"id": id}))
 }
 
 func UpdateVehicle(ctx *gin.Context) {
@@ -101,15 +142,20 @@ func UpdateVehicle(ctx *gin.Context) {
 	err := db.DB.QueryRow(
 		context.Background(),
 		queries.UpdateVehicle,
-		id, vehicle.VehicleType, vehicle.Brand, vehicle.VehicleModel, vehicle.YearOfIssue, vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GPSActive, vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL, vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
+		id, vehicle.VehicleType, vehicle.VehicleBrandID,
+		vehicle.VehicleModelID, vehicle.YearOfIssue, vehicle.Mileage,
+		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GpsActive,
+		vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL,
+		vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
+		vehicle.Active,
 	).Scan(&updatedID)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatResponse("Error updating vehicle", err.Error()))
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating vehicle", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated vehicle!", gin.H{"id": updatedID}))
 }
 
 func DeleteVehicle(ctx *gin.Context) {
@@ -126,8 +172,126 @@ func DeleteVehicle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted vehicle!", gin.H{"id": id}))
 }
+
+//func CreateVehicle(ctx *gin.Context) {
+//	var vehicle dto.VehicleCreate
+//
+//	if err := ctx.ShouldBindJSON(&vehicle); err != nil {
+//		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+//		return
+//	}
+//
+//	var id int
+//	err := db.DB.QueryRow(
+//		context.Background(),
+//		queries.CreateVehicle,
+//		&vehicle.CompanyID,
+//		&vehicle.VehicleType,
+//		&vehicle.Brand,
+//		&vehicle.VehicleModel,
+//		&vehicle.YearOfIssue,
+//		&vehicle.Numberplate,
+//		&vehicle.TrailerNumberplate,
+//		&vehicle.GPSActive,
+//		&vehicle.Photo1URL,
+//		&vehicle.Photo2URL,
+//		&vehicle.Photo3URL,
+//		&vehicle.Docs1URL,
+//		&vehicle.Docs2URL,
+//		&vehicle.Docs3URL,
+//	).Scan(&id)
+//
+//	if err != nil {
+//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating vehicle", err.Error()))
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
+//}
+//
+//func GetVehicle(ctx *gin.Context) {
+//	//// TODO: add company_id validation
+//	id := ctx.Param("id")
+//	stmt := queries.GetVehicle + " AND id = $1;"
+//	var vehicles []dto.VehicleCreate
+//
+//	err := pgxscan.Select(
+//		context.Background(), db.DB,
+//		&vehicles, stmt,
+//		id,
+//	)
+//	if err != nil || len(vehicles) == 0 {
+//		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Not found", ""))
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, utils.FormatResponse("Company vehicles", vehicles))
+//	return
+//}
+//
+//func GetVehicles(ctx *gin.Context) {
+//	//// TODO: Change this to user.company_id valid drivers, not headers
+//	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
+//	stmt := queries.GetVehicle + " AND (company_id = $1 OR $1 = 0);"
+//	var vehicles []dto.VehicleCreate
+//
+//	err := pgxscan.Select(
+//		context.Background(), db.DB,
+//		&vehicles, stmt,
+//		companyID,
+//	)
+//	if err != nil {
+//		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Error retrieving vehicles", err.Error()))
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, utils.FormatResponse("Company vehicles", vehicles))
+//	return
+//}
+//
+//func UpdateVehicle(ctx *gin.Context) {
+//	id := ctx.Param("id")
+//	var vehicle dto.VehicleUpdate
+//
+//	if err := ctx.ShouldBindJSON(&vehicle); err != nil {
+//		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+//		return
+//	}
+//
+//	var updatedID int
+//	err := db.DB.QueryRow(
+//		context.Background(),
+//		queries.UpdateVehicle,
+//		id, vehicle.VehicleType, vehicle.Brand, vehicle.VehicleModel, vehicle.YearOfIssue, vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GPSActive, vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL, vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
+//	).Scan(&updatedID)
+//
+//	if err != nil {
+//		ctx.JSON(http.StatusInternalServerError, utils.FormatResponse("Error updating vehicle", err.Error()))
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+//}
+//
+//func DeleteVehicle(ctx *gin.Context) {
+//	id := ctx.Param("id")
+//
+//	_, err := db.DB.Exec(
+//		context.Background(),
+//		queries.DeleteVehicle,
+//		id,
+//	)
+//
+//	if err != nil {
+//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting vehicle", err.Error()))
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+//}
+//
 
 // Vehicle Brand Services
 func SingleVehicleBrand(ctx *gin.Context) {
