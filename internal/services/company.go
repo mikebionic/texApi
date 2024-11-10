@@ -102,6 +102,7 @@ func GetCompany(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company))
 }
 
+// // TODO: should they be able to create only one company? check if company of that user exists?
 func CreateCompany(ctx *gin.Context) {
 	var company dto.CompanyCreate
 

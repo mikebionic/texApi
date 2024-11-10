@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"texApi/internal/services"
+	"texApi/pkg/middlewares"
 )
 
 func Driver(router *gin.Engine) {
@@ -10,8 +11,8 @@ func Driver(router *gin.Engine) {
 
 	group.GET("/", services.GetDriverList)
 	group.GET("/:id", services.GetDriver)
-	group.POST("/", services.CreateDriver)
-	group.PUT("/:id", services.UpdateDriver)
-	group.DELETE("/:id", services.DeleteDriver)
+	group.POST("/", middlewares.Guard, services.CreateDriver)
+	group.PUT("/:id", middlewares.Guard, services.UpdateDriver)
+	group.DELETE("/:id", middlewares.Guard, services.DeleteDriver)
 
 }
