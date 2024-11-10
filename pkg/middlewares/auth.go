@@ -13,13 +13,13 @@ import (
 func Guard(ctx *gin.Context) {
 	authorization := ctx.Request.Header["Authorization"]
 	if len(authorization) == 0 {
-		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", ""))
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", ""))
 		return
 	}
 
 	bearer := strings.Split(authorization[0], "Bearer ")
 	if len(bearer) == 0 || len(bearer) == 1 {
-		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", ""))
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", ""))
 		return
 	}
 
