@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"texApi/internal/services"
+	"texApi/pkg/middlewares"
 )
 
 func Vehicle(router *gin.Engine) {
@@ -10,10 +11,11 @@ func Vehicle(router *gin.Engine) {
 
 	group.GET("/", services.GetVehicleList)
 	group.GET("/:id", services.GetVehicle)
-	group.POST("/", services.CreateVehicle)
-	group.PUT("/:id", services.UpdateVehicle)
-	group.DELETE("/:id", services.DeleteVehicle)
+	group.POST("/", middlewares.Guard, services.CreateVehicle)
+	group.PUT("/:id", middlewares.Guard, services.UpdateVehicle)
+	group.DELETE("/:id", middlewares.Guard, services.DeleteVehicle)
 
+	//// TODO: These all probably should be manageable only by admin
 	// Vehicle Brand routes
 	group.GET("/brand", services.GetVehicleBrands)
 	group.GET("/brand/:id", services.SingleVehicleBrand)
