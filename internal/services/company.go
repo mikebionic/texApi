@@ -45,7 +45,7 @@ func GetCompanyList(ctx *gin.Context) {
 			&company.Country, &company.CountryID, &company.CityID,
 			&company.ImageURL, &company.Entity, &company.Featured,
 			&company.Rating, &company.Partner, &company.SuccessfulOps,
-			&company.CreatedAt, &company.UpdatedAt, &company.Active,
+			&company.CreatedAt, &company.UpdatedAt, &company.Active, &company.Deleted,
 			&totalCount, &driversJSON, &vehiclesJSON,
 		)
 		if err != nil {
@@ -87,7 +87,7 @@ func GetCompany(ctx *gin.Context) {
 		&company.Country, &company.CountryID, &company.CityID,
 		&company.ImageURL, &company.Entity, &company.Featured,
 		&company.Rating, &company.Partner, &company.SuccessfulOps,
-		&company.CreatedAt, &company.UpdatedAt, &company.Active,
+		&company.CreatedAt, &company.UpdatedAt, &company.Active, &company.Deleted,
 		&driversJSON, &vehiclesJSON,
 	)
 
@@ -110,34 +110,59 @@ func CreateCompany(ctx *gin.Context) {
 		return
 	}
 
-	const query = `
-        INSERT INTO tbl_company (
-            user_id, company_name, address, country, phone, 
-            email, image_url, created_at, updated_at, active, deleted
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW(), 1, 0)
-        RETURNING id;
-    `
+	userID := ctx.MustGet("id").(int)
+	roleID := ctx.MustGet("roleID").(int)
+	role := ctx.MustGet("role")
+	if !(role == "admin" || role == "system") {
+		company.UserID = userID
+		company.RoleID = roleID
+	}
 
-	var id int
+	var companyID int
 	err := db.DB.QueryRow(
 		context.Background(),
-		query,
+		queries.CreateCompany,
 		company.UserID,
-		company.Name,
+		company.RoleID,
+		company.CompanyName,
+		company.FirstName,
+		company.LastName,
+		company.PatronymicName,
+		company.Phone,
+		company.Phone2,
+		company.Phone3,
+		company.Email,
+		company.Email2,
+		company.Email3,
+		company.Meta,
+		company.Meta2,
+		company.Meta3,
 		company.Address,
 		company.Country,
-		company.Phone,
-		company.Email,
-		company.LogoURL,
-	).Scan(&id)
+		company.CountryID,
+		company.CityID,
+		company.ImageURL,
+		company.Entity,
+	).Scan(&companyID)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating company", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
+	_, err = db.DB.Exec(
+		context.Background(),
+		queries.UpdateUserCompany,
+		companyID,
+		company.UserID,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating user company", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created!", gin.H{"id": companyID}))
 }
 
 func UpdateCompany(ctx *gin.Context) {
@@ -149,31 +174,49 @@ func UpdateCompany(ctx *gin.Context) {
 		return
 	}
 
-	const query = `
-        UPDATE tbl_company
-        SET 
-            company_name = COALESCE($2, company_name),
-            address = COALESCE($3, address),
-            country = COALESCE($4, country),
-            phone = COALESCE($5, phone),
-            email = COALESCE($6, email),
-            image_url = COALESCE($7, image_url),
-            updated_at = NOW()
-        WHERE id = $1 AND deleted = 0
-        RETURNING id;
-    `
+	stmt := queries.UpdateCompany
+
+	userID := ctx.MustGet("id").(int)
+	roleID := ctx.MustGet("roleID").(int)
+	role := ctx.MustGet("role")
+	if !(role == "admin" || role == "system") {
+		company.UserID = &userID
+		company.RoleID = &roleID
+		stmt += ` WHERE (id = $1 AND user_id = $21) AND (active = 1 AND deleted = 0)`
+	} else {
+		stmt += ` WHERE id = $1`
+	}
+
+	stmt += ` RETURNING id;`
 
 	var updatedID int
 	err := db.DB.QueryRow(
 		context.Background(),
-		query,
+		stmt,
 		id,
-		company.Name,
+		company.CompanyName,
+		company.FirstName,
+		company.LastName,
+		company.PatronymicName,
+		company.Phone,
+		company.Phone2,
+		company.Phone3,
+		company.Email,
+		company.Email2,
+		company.Email3,
+		company.Meta,
+		company.Meta2,
+		company.Meta3,
 		company.Address,
 		company.Country,
-		company.Phone,
-		company.Email,
-		company.LogoURL,
+		company.CountryID,
+		company.CityID,
+		company.ImageURL,
+		company.Entity,
+		company.UserID,
+		company.RoleID,
+		company.Active,
+		company.Deleted,
 	).Scan(&updatedID)
 
 	if err != nil {
@@ -181,58 +224,16 @@ func UpdateCompany(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
 }
 
-//
-//func CreateCompany(ctx *gin.Context) {
-//	var company dto.CompanyCreate
-//
-//	if err := ctx.ShouldBindJSON(&company); err != nil {
-//		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
-//		return
-//	}
-//
-//	var id int
-//	err := db.DB.QueryRow(
-//		context.Background(),
-//		queries.CreateCompany,
-//		company.UserID, company.Name, company.Address, company.Phone, company.Email, company.LogoURL,
-//	).Scan(&id)
-//
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating company", err.Error()))
-//		return
-//	}
-//
-//	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created!", gin.H{"id": id}))
-//}
-//
-//func UpdateCompany(ctx *gin.Context) {
-//	id := ctx.Param("id")
-//	var company dto.CompanyUpdate
-//
-//	if err := ctx.ShouldBindJSON(&company); err != nil {
-//		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
-//		return
-//	}
-//
-//	var updatedID int
-//	err := db.DB.QueryRow(
-//		context.Background(),
-//		queries.UpdateCompany,
-//		id, company.Name, company.Address, company.Phone, company.Email, company.LogoURL,
-//	).Scan(&updatedID)
-//
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating company", err.Error()))
-//		return
-//	}
-//
-//	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{"id": updatedID}))
-//}
-
 func DeleteCompany(ctx *gin.Context) {
+	role := ctx.MustGet("role")
+	if !(role == "admin" || role == "system") {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Operation can't be done by user", ""))
+		return
+	}
+
 	id := ctx.Param("id")
 
 	_, err := db.DB.Exec(
@@ -246,5 +247,5 @@ func DeleteCompany(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
 }

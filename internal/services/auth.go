@@ -55,8 +55,8 @@ func UserLogin(ctx *gin.Context) {
 		}
 	}
 
-	accessToken, _ := utils.CreateToken(user.ID, user.RoleID)
-	refreshToken, exp := utils.CreateToken(user.ID, user.RoleID)
+	accessToken, _ := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	refreshToken, exp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(user.ID, refreshToken, "create")
 	if err != nil {
 		log.Println(err.Error())
@@ -83,7 +83,6 @@ func UserGetMe(ctx *gin.Context) {
 		return
 	}
 
-	fmt.Println(userID)
 	user := repositories.GetUserById(userID)
 	if user.ID == 0 {
 		response := utils.FormatErrorResponse("User not found", "")
@@ -333,8 +332,9 @@ func Register(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
-	accessToken, _ := utils.CreateToken(userID, user.RoleID)
-	refreshToken, exp := utils.CreateToken(userID, user.RoleID)
+
+	accessToken, _ := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(userID, refreshToken, "create")
 	if err != nil {
 		log.Println(err.Error())

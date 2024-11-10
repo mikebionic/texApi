@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"texApi/internal/services"
+	"texApi/pkg/middlewares"
 )
 
 func Company(router *gin.Engine) {
@@ -11,8 +12,8 @@ func Company(router *gin.Engine) {
 	//GET /texapp/company?page=1&per_page=10
 	group.GET("/", services.GetCompanyList)
 	group.GET("/:id", services.GetCompany)
-	group.POST("/", services.CreateCompany)
-	group.PUT("/:id", services.UpdateCompany)
-	group.DELETE("/:id", services.DeleteCompany)
+	group.POST("/", middlewares.Guard, services.CreateCompany)
+	group.PUT("/:id", middlewares.Guard, services.UpdateCompany)
+	group.DELETE("/:id", middlewares.Guard, services.DeleteCompany)
 
 }
