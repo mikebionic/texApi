@@ -118,7 +118,7 @@ func CreateOffer(ctx *gin.Context) {
 	}
 
 	companyID := ctx.MustGet("companyID").(int)
-	userID := ctx.MustGet("userID").(int)
+	userID := ctx.MustGet("id").(int)
 	offer.CompanyID = companyID
 	offer.UserID = userID
 

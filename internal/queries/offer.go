@@ -118,7 +118,7 @@ SET
     active = COALESCE($27, active),
     deleted = COALESCE($28, deleted),
     updated_at = NOW()
-WHERE (id = $1 AND company_id = $2) AND (active = 1 AND deleted = 0)
+WHERE (id = $1 AND company_id = $29) AND (active = 1 AND deleted = 0)
 RETURNING id;
 `
 

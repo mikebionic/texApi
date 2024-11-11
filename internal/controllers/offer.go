@@ -12,7 +12,7 @@ func Offer(router *gin.Engine) {
 
 	group.GET("/", services.GetOfferList)
 	group.GET("/:id", services.GetOffer)
-	group.POST("/", services.CreateOffer)
-	group.PUT("/:id", services.UpdateOffer)
-	group.DELETE("/:id", services.DeleteOffer)
+	group.POST("/", middlewares.Guard, services.CreateOffer)
+	group.PUT("/:id", middlewares.Guard, services.UpdateOffer)
+	group.DELETE("/:id", middlewares.Guard, services.DeleteOffer)
 }
