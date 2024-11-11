@@ -40,6 +40,7 @@ func InitApp() *gin.Engine {
 	controllers.Vehicle(router)
 	controllers.Offer(router)
 	controllers.Bid(router)
+	controllers.PackagingType(router)
 	countryLib.CountryLib(router)
 
 	return router
