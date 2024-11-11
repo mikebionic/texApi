@@ -5,9 +5,11 @@ dev:
 db:
 	@echo "Initializing texApi database..."
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
-				-f ./schemas/0.0.5_drop_db.sql
+		-f ./schemas/0.0.5_drop_db.sql
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
     	-f ./schemas/0.1.1_create_vehicle.sql \
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+    	-f ./schemas/0.1.2_create_country_city.sql \
     @PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
 		-f ./schemas/0.4.1_create_landing.sql
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
@@ -16,8 +18,6 @@ db:
 		-f ./schemas/0.5.1_create_core.sql
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
 		-f ./schemas/0.5.2_logisticops.sql
-	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
-    	-f ./schemas/_dump/0.1.2_create_country_city.sql
 
 	@echo "Has been successfully created"
 build:
