@@ -15,7 +15,10 @@ db:
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
 		-f ./schemas/0.5.1_create_core.sql
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
-			-f ./schemas/0.5.2_logisticops.sql
+		-f ./schemas/0.5.2_logisticops.sql
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+    	-f ./schemas/_dump/0.1.2_create_country_city.sql
+
 	@echo "Has been successfully created"
 build:
 	@echo "Building the app, please wait..."

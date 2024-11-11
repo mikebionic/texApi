@@ -158,7 +158,7 @@ func GetVehicleList(ctx *gin.Context) {
 	}
 
 	// Prepare response
-	response := dto.PaginatedResponse{
+	response := utils.PaginatedResponse{
 		Total:   totalCount,
 		Page:    page,
 		PerPage: perPage,

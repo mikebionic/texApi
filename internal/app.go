@@ -9,6 +9,7 @@ import (
 	"os"
 	"texApi/config"
 	"texApi/internal/controllers"
+	"texApi/pkg/countryLib"
 	"texApi/pkg/middlewares"
 )
 
@@ -39,6 +40,7 @@ func InitApp() *gin.Engine {
 	controllers.Vehicle(router)
 	controllers.Offer(router)
 	controllers.Bid(router)
+	countryLib.CountryLib(router)
 
 	return router
 }

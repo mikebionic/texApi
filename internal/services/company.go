@@ -58,7 +58,7 @@ func GetCompanyList(ctx *gin.Context) {
 		companies = append(companies, company)
 	}
 
-	response := dto.PaginatedResponse{
+	response := utils.PaginatedResponse{
 		Total:   totalCount,
 		Page:    page,
 		PerPage: perPage,
