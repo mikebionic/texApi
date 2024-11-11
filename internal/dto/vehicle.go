@@ -20,7 +20,7 @@ type VehicleCreate struct {
 	Mileage            int       `json:"mileage"`
 	Numberplate        string    `json:"numberplate"`
 	TrailerNumberplate string    `json:"trailer_numberplate"`
-	GpsActive          int       `json:"gps_active"`
+	Gps                int       `json:"gps"`
 	Photo1URL          string    `json:"photo1_url"`
 	Photo2URL          string    `json:"photo2_url"`
 	Photo3URL          string    `json:"photo3_url"`
@@ -46,7 +46,7 @@ type VehicleUpdate struct {
 	Mileage            *int    `json:"mileage,omitempty"`
 	Numberplate        *string `json:"numberplate,omitempty"`
 	TrailerNumberplate *string `json:"trailer_numberplate,omitempty"`
-	GpsActive          *int    `json:"gps_active,omitempty"`
+	Gps                *int    `json:"gps,omitempty"`
 	Photo1URL          *string `json:"photo1_url,omitempty"`
 	Photo2URL          *string `json:"photo2_url,omitempty"`
 	Photo3URL          *string `json:"photo3_url,omitempty"`
@@ -67,7 +67,7 @@ type Vehicle struct {
 	Mileage            int    `json:"mileage"`
 	Numberplate        string `json:"numberplate"`
 	TrailerNumberplate string `json:"trailer_numberplate"`
-	GpsActive          int    `json:"gps_active"`
+	Gps                int    `json:"gps"`
 	Photo1URL          string `json:"photo1_url"`
 	Photo2URL          string `json:"photo2_url"`
 	Photo3URL          string `json:"photo3_url"`
