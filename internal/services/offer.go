@@ -40,7 +40,7 @@ func GetOfferList(ctx *gin.Context) {
 
 		err := rows.Scan(
 			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
-			&offer.OfferState, &offer.CostPerKm, &offer.Currency, &offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
+			&offer.OfferState, &offer.OfferRole, &offer.CostPerKm, &offer.Currency, &offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
 			&offer.FromAddress, &offer.ToAddress, &offer.SenderContact, &offer.RecipientContact, &offer.DeliverContact,
 			&offer.ViewCount, &offer.ValidityStart, &offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
 			&offer.Note, &offer.Tax, &offer.Trade, &offer.PaymentMethod, &offer.Meta, &offer.Meta2, &offer.Meta3,
@@ -89,7 +89,7 @@ func GetOffer(ctx *gin.Context) {
 		id,
 	).Scan(
 		&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
-		&offer.OfferState, &offer.CostPerKm, &offer.Currency, &offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
+		&offer.OfferState, &offer.OfferRole, &offer.CostPerKm, &offer.Currency, &offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
 		&offer.FromAddress, &offer.ToAddress, &offer.SenderContact, &offer.RecipientContact, &offer.DeliverContact,
 		&offer.ViewCount, &offer.ValidityStart, &offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
 		&offer.Note, &offer.Tax, &offer.Trade, &offer.PaymentMethod, &offer.Meta, &offer.Meta2, &offer.Meta3,
@@ -119,8 +119,10 @@ func CreateOffer(ctx *gin.Context) {
 
 	companyID := ctx.MustGet("companyID").(int)
 	userID := ctx.MustGet("id").(int)
+	role := ctx.MustGet("role").(string)
 	offer.CompanyID = companyID
 	offer.UserID = userID
+	offer.OfferRole = role
 
 	var id int
 	err := db.DB.QueryRow(
@@ -130,6 +132,7 @@ func CreateOffer(ctx *gin.Context) {
 		offer.FromCountry, offer.FromRegion, offer.ToCountry, offer.ToRegion, offer.FromAddress, offer.ToAddress,
 		offer.SenderContact, offer.RecipientContact, offer.DeliverContact, offer.ValidityStart, offer.ValidityEnd,
 		offer.DeliveryStart, offer.DeliveryEnd, offer.Note, offer.Tax, offer.Trade, offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3,
+		offer.OfferRole,
 	).Scan(&id)
 
 	if err != nil {

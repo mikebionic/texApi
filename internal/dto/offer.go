@@ -11,6 +11,7 @@ type Offer struct {
 	VehicleID        int       `json:"vehicle_id"`
 	CargoID          int       `json:"cargo_id"`
 	OfferState       string    `json:"offer_state"`
+	OfferRole        string    `json:"offer_role"`
 	CostPerKm        float64   `json:"cost_per_km"`
 	Currency         string    `json:"currency"`
 	FromCountry      string    `json:"from_country"`
@@ -57,6 +58,7 @@ type OfferCreate struct {
 	DriverID         int     `json:"driver_id,omitempty"`
 	VehicleID        int     `json:"vehicle_id,omitempty"`
 	CargoID          int     `json:"cargo_id,omitempty"`
+	OfferRole        string  `json:"offer_role"`
 	CostPerKm        float64 `json:"cost_per_km"`
 	Currency         string  `json:"currency"`
 	FromCountry      string  `json:"from_country"`
@@ -85,6 +87,8 @@ type OfferUpdate struct {
 	DriverID         *int     `json:"driver_id,omitempty"`
 	VehicleID        *int     `json:"vehicle_id,omitempty"`
 	CargoID          *int     `json:"cargo_id,omitempty"`
+	OfferState       *string  `json:"offer_state"`
+	OfferRole        *string  `json:"offer_role"`
 	CostPerKm        *float64 `json:"cost_per_km,omitempty"`
 	Currency         *string  `json:"currency,omitempty"`
 	FromCountry      *string  `json:"from_country,omitempty"`

@@ -40,7 +40,7 @@ LEFT JOIN tbl_driver d ON od.driver_id = d.id
 LEFT JOIN tbl_vehicle v ON od.vehicle_id = v.id
 LEFT JOIN tbl_cargo c2 ON od.cargo_id = c2.id
 GROUP BY 
-    od.id, od.uuid, od.user_id, od.company_id, od.driver_id, od.vehicle_id, od.cargo_id, od.offer_state, od.cost_per_km, od.currency, od.from_country, od.from_region, od.to_country, od.to_region, od.from_address, od.to_address, od.sender_contact, od.recipient_contact, od.deliver_contact, od.view_count, od.validity_start, od.validity_end, od.delivery_start, od.delivery_end, od.note, od.tax, od.trade, od.payment_method, od.meta, od.meta2, od.meta3, od.featured, od.partner, od.created_at, od.updated_at, od.active, od.deleted, od.total_count,
+    od.id, od.uuid, od.user_id, od.company_id, od.driver_id, od.vehicle_id, od.cargo_id, od.offer_state, od.offer_role, od.cost_per_km, od.currency, od.from_country, od.from_region, od.to_country, od.to_region, od.from_address, od.to_address, od.sender_contact, od.recipient_contact, od.deliver_contact, od.view_count, od.validity_start, od.validity_end, od.delivery_start, od.delivery_end, od.note, od.tax, od.trade, od.payment_method, od.meta, od.meta2, od.meta3, od.featured, od.partner, od.created_at, od.updated_at, od.active, od.deleted, od.total_count,
     c.id, c.company_name, c.country,
     d.id, d.first_name, d.last_name, d.image_url,
     v.id, v.vehicle_type, v.numberplate,
@@ -82,8 +82,8 @@ WHERE o.id = $1 AND o.deleted = 0;
 
 const CreateOffer = `
 INSERT INTO tbl_offer (
-    user_id, company_id, driver_id, vehicle_id, cargo_id, cost_per_km, currency, from_country, from_region, to_country, to_region, from_address, to_address, sender_contact, recipient_contact, deliver_contact, validity_start, validity_end, delivery_start, delivery_end, note, tax, trade, payment_method, meta, meta2, meta3
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+    user_id, company_id, driver_id, vehicle_id, cargo_id, cost_per_km, currency, from_country, from_region, to_country, to_region, from_address, to_address, sender_contact, recipient_contact, deliver_contact, validity_start, validity_end, delivery_start, delivery_end, note, tax, trade, payment_method, meta, meta2, meta3, offer_role
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27,$28)
 RETURNING id;
 `
 
