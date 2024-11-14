@@ -18,6 +18,7 @@ CREATE TABLE
         uuid UUID DEFAULT gen_random_uuid (),
         user_id INT REFERENCES tbl_user (id) ON DELETE CASCADE,
         company_id INT REFERENCES tbl_company (id) ON DELETE CASCADE,
+        exec_company_id INT NOT NULL DEFAULT 0,
         driver_id INT NOT NULL DEFAULT 0,
         vehicle_id INT NOT NULL DEFAULT 0,
         cargo_id INT NOT NULL DEFAULT 0,
@@ -119,34 +120,34 @@ INSERT INTO tbl_offer (
     payment_method, meta, meta2, meta3, featured, partner,offer_role
 )
 VALUES
-    (1, 1, 1, 1, 1, 'pending', 400.25, 'USD', 'Germany', 'Berlin',
+    (1, 1, 1, 1, 1, 'enabled', 400.25, 'USD', 'Germany', 'Berlin',
      'Italy', 'Rome', 'Berlin Address', 'Rome Address', 'Sender Contact',
-     'Recipient Contact', 'Delivery Contact', 10, '2024-11-01', '2024-11-10',
-     '2024-11-02', '2024-11-09', 'Urgent transport needed from Berlin to Rome.', 0, 0,
+     'Recipient Contact', 'Delivery Contact', 10, '2024-11-01', '2025-11-10',
+     '2024-11-02', '2025-11-12', 'Urgent transport needed from Berlin to Rome.', 0, 0,
      'cash', '', '', '', 0, 0,'carrier'),
 
     (2, 2, 2, 2, 2, 'pending', 350.50, 'EUR', 'France', 'Paris',
      'Spain', 'Barcelona', 'Paris Address', 'Barcelona Address', 'Sender Contact',
-     'Recipient Contact', 'Delivery Contact', 15, '2024-11-05', '2024-11-12',
-     '2024-11-06', '2024-11-11', 'Looking for reliable transport for goods from Paris to Barcelona.', 0, 0,
+     'Recipient Contact', 'Delivery Contact', 15, '2024-11-05', '2025-11-12',
+     '2024-11-06', '2025-11-11', 'Looking for reliable transport for goods from Paris to Barcelona.', 0, 0,
      'transfer', '', '', '', 0, 0,'sender'),
 
-    (3, 3, 3, 3, 3, 'pending', 299.75, 'GBP', 'UK', 'London',
+    (3, 3, 3, 3, 3, 'enabled', 299.75, 'GBP', 'UK', 'London',
      'Netherlands', 'Amsterdam', 'London Address', 'Amsterdam Address', 'Sender Contact',
-     'Recipient Contact', 'Delivery Contact', 20, '2024-11-07', '2024-11-14',
-     '2024-11-08', '2024-11-13', 'Request for timely delivery from London to Amsterdam.', 0, 0,
+     'Recipient Contact', 'Delivery Contact', 20, '2024-11-07', '2025-11-14',
+     '2024-11-08', '2025-11-13', 'Request for timely delivery from London to Amsterdam.', 0, 0,
      'card', '', '', '', 0, 0,'sender'),
 
-    (1, 1, 4, 4, 4, 'pending', 100.00, 'PLN', 'Poland', 'Warsaw',
+    (1, 1, 4, 4, 4, 'enabled', 100.00, 'PLN', 'Poland', 'Warsaw',
      'Hungary', 'Budapest', 'Warsaw Address', 'Budapest Address', 'Sender Contact',
-     'Recipient Contact', 'Delivery Contact', 5, '2024-11-10', '2024-11-17',
-     '2024-11-11', '2024-11-16', 'Need cargo transport from Warsaw to Budapest.', 0, 0,
+     'Recipient Contact', 'Delivery Contact', 5, '2024-11-10', '2025-11-17',
+     '2024-11-11', '2025-11-16', 'Need cargo transport from Warsaw to Budapest.', 0, 0,
      'terminal', '', '', '', 0, 0,'carrier'),
 
-    (2, 2, 5, 5, 5, 'pending', 99.99, 'EUR', 'Belgium', 'Brussels',
+    (2, 2, 5, 5, 5, 'enabled', 99.99, 'EUR', 'Belgium', 'Brussels',
      'Austria', 'Vienna', 'Brussels Address', 'Vienna Address', 'Sender Contact',
-     'Recipient Contact', 'Delivery Contact', 8, '2024-11-12', '2024-11-20',
-     '2024-11-13', '2024-11-19', 'Looking for a driver to transport goods from Brussels to Vienna.', 0, 0,
+     'Recipient Contact', 'Delivery Contact', 8, '2024-11-12', '2025-11-20',
+     '2024-11-13', '2025-11-19', 'Looking for a driver to transport goods from Brussels to Vienna.', 0, 0,
      'online', '', '', '', 0, 0,'sender');
 -- Insert into tbl_response
 INSERT INTO tbl_response (

@@ -1,6 +1,6 @@
 package queries
 
-const GetOfferList = `
+const GetMyOfferList = `
 WITH offer_data AS (
     SELECT 
         o.*,
@@ -47,6 +47,16 @@ GROUP BY
     c2.id, c2.name, c2.description, c2.info;
 `
 
+const GetOfferList = `
+    SELECT 
+        o.*,
+        COUNT(*) OVER() as total_count
+    FROM tbl_offer o
+    WHERE 
+        o.validity_end > CURRENT_TIMESTAMP
+        AND o.delivery_end > CURRENT_TIMESTAMP
+`
+
 const GetOfferByID = `
 SELECT 
     o.*,
@@ -82,8 +92,8 @@ WHERE o.id = $1 AND o.deleted = 0;
 
 const CreateOffer = `
 INSERT INTO tbl_offer (
-    user_id, company_id, driver_id, vehicle_id, cargo_id, cost_per_km, currency, from_country, from_region, to_country, to_region, from_address, to_address, sender_contact, recipient_contact, deliver_contact, validity_start, validity_end, delivery_start, delivery_end, note, tax, trade, payment_method, meta, meta2, meta3, offer_role
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27,$28)
+    user_id, company_id, driver_id, vehicle_id, cargo_id, cost_per_km, currency, from_country, from_region, to_country, to_region, from_address, to_address, sender_contact, recipient_contact, deliver_contact, validity_start, validity_end, delivery_start, delivery_end, note, tax, trade, payment_method, meta, meta2, meta3, offer_role, exec_company_id
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27,$28, $29)
 RETURNING id;
 `
 
@@ -117,8 +127,9 @@ SET
     meta3 = COALESCE($26, meta3),
     active = COALESCE($27, active),
     deleted = COALESCE($28, deleted),
+    exec_company_id = COALESCE($29, exec_company_id),
     updated_at = NOW()
-WHERE (id = $1 AND company_id = $29) AND (active = 1 AND deleted = 0)
+WHERE (id = $1 AND company_id = $30) AND (active = 1 AND deleted = 0)
 RETURNING id;
 `
 

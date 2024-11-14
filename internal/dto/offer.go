@@ -7,6 +7,7 @@ type Offer struct {
 	UUID             string    `json:"uuid"`
 	UserID           int       `json:"user_id"`
 	CompanyID        int       `json:"company_id"`
+	ExecCompanyID    int       `json:"exec_company_id"`
 	DriverID         int       `json:"driver_id"`
 	VehicleID        int       `json:"vehicle_id"`
 	CargoID          int       `json:"cargo_id"`
@@ -41,6 +42,7 @@ type Offer struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 	Active           int       `json:"active"`
 	Deleted          int       `json:"deleted"`
+	TotalCount       int       `json:"total_count"`
 }
 
 type OfferDetails struct {
@@ -49,46 +51,16 @@ type OfferDetails struct {
 	Company         *CompanyBasic `json:"company,omitempty"`
 	AssignedDriver  *Driver       `json:"assigned_driver,omitempty"`
 	AssignedVehicle *VehicleBasic `json:"assigned_vehicle,omitempty"`
-	//Cargo           *Cargo        `json:"cargo,omitempty"`
-}
-
-type OfferCreate struct {
-	UserID           int     `json:"user_id"`
-	CompanyID        int     `json:"company_id"`
-	DriverID         int     `json:"driver_id,omitempty"`
-	VehicleID        int     `json:"vehicle_id,omitempty"`
-	CargoID          int     `json:"cargo_id,omitempty"`
-	OfferRole        string  `json:"offer_role"`
-	CostPerKm        float64 `json:"cost_per_km"`
-	Currency         string  `json:"currency"`
-	FromCountry      string  `json:"from_country"`
-	FromRegion       string  `json:"from_region"`
-	ToCountry        string  `json:"to_country"`
-	ToRegion         string  `json:"to_region"`
-	FromAddress      string  `json:"from_address"`
-	ToAddress        string  `json:"to_address"`
-	SenderContact    string  `json:"sender_contact"`
-	RecipientContact string  `json:"recipient_contact"`
-	DeliverContact   string  `json:"deliver_contact"`
-	ValidityStart    string  `json:"validity_start"`
-	ValidityEnd      string  `json:"validity_end"`
-	DeliveryStart    string  `json:"delivery_start"`
-	DeliveryEnd      string  `json:"delivery_end"`
-	Note             string  `json:"note"`
-	Tax              int     `json:"tax"`
-	Trade            int     `json:"trade"`
-	PaymentMethod    string  `json:"payment_method"`
-	Meta             string  `json:"meta"`
-	Meta2            string  `json:"meta2"`
-	Meta3            string  `json:"meta3"`
+	Cargo           *Cargo        `json:"cargo,omitempty"`
 }
 
 type OfferUpdate struct {
 	DriverID         *int     `json:"driver_id,omitempty"`
+	ExecCompanyID    *int     `json:"exec_company_id,omitempty"`
 	VehicleID        *int     `json:"vehicle_id,omitempty"`
 	CargoID          *int     `json:"cargo_id,omitempty"`
-	OfferState       *string  `json:"offer_state"`
-	OfferRole        *string  `json:"offer_role"`
+	OfferState       *string  `json:"offer_state,omitempty"`
+	OfferRole        *string  `json:"offer_role,omitempty"`
 	CostPerKm        *float64 `json:"cost_per_km,omitempty"`
 	Currency         *string  `json:"currency,omitempty"`
 	FromCountry      *string  `json:"from_country,omitempty"`

@@ -11,6 +11,7 @@ func Offer(router *gin.Engine) {
 	group.Use(middlewares.Guard)
 
 	group.GET("/", services.GetOfferList)
+	group.GET("/my/", services.GetMyOfferList)
 	group.GET("/:id", services.GetOffer)
 	group.POST("/", middlewares.Guard, services.CreateOffer)
 	group.PUT("/:id", middlewares.Guard, services.UpdateOffer)
