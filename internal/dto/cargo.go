@@ -11,6 +11,7 @@ type Cargo struct {
 	Info            string    `json:"info"`
 	Qty             int       `json:"qty"`
 	Weight          int       `json:"weight"`
+	WeightType      string    `json:"weight_type"`
 	Meta            string    `json:"meta"`
 	Meta2           string    `json:"meta2"`
 	Meta3           string    `json:"meta3"`
@@ -38,6 +39,7 @@ type CargoUpdate struct {
 	Info            *string `json:"info,omitempty"`
 	Qty             *int    `json:"qty,omitempty"`
 	Weight          *int    `json:"weight,omitempty"`
+	WeightType      *string `json:"weight_type"`
 	Meta            *string `json:"meta,omitempty"`
 	Meta2           *string `json:"meta2,omitempty"`
 	Meta3           *string `json:"meta3,omitempty"`

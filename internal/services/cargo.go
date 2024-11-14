@@ -23,23 +23,18 @@ func GetCargoList(ctx *gin.Context) {
 	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
-		companyID = ctx.MustGet("companyID").(int)
-		stmt += ` WHERE c.company_id = $3 AND c.deleted = 0`
+		stmt += ` WHERE (c.company_id = $3 OR $3 = 0) AND c.deleted = 0`
 	} else {
 		stmt += ` WHERE (c.company_id = $3 OR $3 = 0)`
 	}
 	stmt += ` ORDER BY c.id DESC LIMIT $1 OFFSET $2;`
 
-	type CargoWithTotal struct {
-		Cargos     []dto.Cargo `json:"cargos"`
-		TotalCount int         `json:"total_count"`
-	}
-	res := CargoWithTotal{}
+	var cargos []dto.Cargo
 
 	err := pgxscan.Select(
 		context.Background(),
 		db.DB,
-		&res,
+		&cargos,
 		stmt,
 		perPage,
 		offset,
@@ -51,11 +46,15 @@ func GetCargoList(ctx *gin.Context) {
 		return
 	}
 
+	var totalCount int
+	if len(cargos) > 0 {
+		totalCount = cargos[0].TotalCount
+	}
 	response := utils.PaginatedResponse{
-		Total:   res.TotalCount,
+		Total:   totalCount,
 		Page:    page,
 		PerPage: perPage,
-		Data:    res.Cargos,
+		Data:    cargos,
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Cargo list", response))
@@ -69,8 +68,7 @@ func GetCargo(ctx *gin.Context) {
 	stmt := queries.GetCargoByID
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
-		cargo.CompanyID = ctx.MustGet("companyID").(int)
-		stmt += `  AND c.company_id == $3 AND c.deleted = 0;`
+		stmt += ` AND c.deleted = 0;`
 	}
 
 	err := db.DB.QueryRow(
@@ -114,7 +112,7 @@ func CreateCargo(ctx *gin.Context) {
 		cargo.CompanyID, cargo.Name, cargo.Description, cargo.Info, cargo.Qty,
 		cargo.Weight, cargo.Meta, cargo.Meta2, cargo.Meta3, cargo.VehicleTypeID,
 		cargo.PackagingTypeID, cargo.GPS, cargo.Photo1URL, cargo.Photo2URL,
-		cargo.Photo3URL, cargo.Docs1URL, cargo.Docs2URL, cargo.Docs3URL, cargo.Note,
+		cargo.Photo3URL, cargo.Docs1URL, cargo.Docs2URL, cargo.Docs3URL, cargo.Note, cargo.WeightType,
 	).Scan(&id)
 
 	if err != nil {
@@ -136,19 +134,20 @@ func UpdateCargo(ctx *gin.Context) {
 
 	stmt := queries.UpdateCargo
 
+	// TODO: only admin can make active or restore from deleted
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
 		companyID := ctx.MustGet("companyID").(int)
-		stmt += fmt.Sprintf(` WHERE c.company_id =%d AND c.deleted = 0`, companyID)
+		stmt += fmt.Sprintf(` AND company_id =%d AND deleted = 0`, companyID)
 	}
-	_, err := db.DB.Exec(
+	result, err := db.DB.Exec(
 		context.Background(),
 		stmt,
 		id, cargo.Name, cargo.Description, cargo.Info, cargo.Qty,
 		cargo.Weight, cargo.Meta, cargo.Meta2, cargo.Meta3, cargo.VehicleTypeID,
 		cargo.PackagingTypeID, cargo.GPS, cargo.Photo1URL, cargo.Photo2URL,
 		cargo.Photo3URL, cargo.Docs1URL, cargo.Docs2URL, cargo.Docs3URL, cargo.Note,
-		cargo.Active, cargo.Deleted,
+		cargo.Active, cargo.Deleted, cargo.WeightType,
 	)
 
 	if err != nil {
@@ -156,7 +155,13 @@ func UpdateCargo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated cargo!", nil))
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Cargo not found or no changes were made", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully updated cargo!", id))
 }
 
 func DeleteCargo(ctx *gin.Context) {
@@ -167,10 +172,10 @@ func DeleteCargo(ctx *gin.Context) {
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
 		companyID := ctx.MustGet("companyID").(int)
-		stmt += fmt.Sprintf(` WHERE c.company_id = %d`, companyID)
+		stmt += fmt.Sprintf(` AND company_id = %d`, companyID)
 	}
 
-	_, err := db.DB.Exec(
+	result, err := db.DB.Exec(
 		context.Background(),
 		stmt,
 		id,
@@ -181,5 +186,11 @@ func DeleteCargo(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted cargo!", gin.H{"id": id}))
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Cargo not found or no changes were made", ""))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully deleted cargo!", gin.H{"id": id}))
 }

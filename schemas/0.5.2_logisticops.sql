@@ -1,4 +1,15 @@
 CREATE TYPE payment_method_t AS ENUM ('cash', 'transfer', 'card', 'terminal', 'online', 'coupon');
+CREATE TYPE weight_type_t AS ENUM ('kg', 'g', 'lbs', 'oz', 'st', 't', 'tn');
+CREATE TYPE response_state_t AS ENUM ('pending', 'accepted', 'declined');
+
+-- ('kg', 'kg', 1)
+-- ('grams', 'g', 0.001)
+-- ('pounds', 'lbs', 0.453592)
+-- ('ounces', 'oz', 0.0283495)
+-- ('stones', 'st', 6.35029)
+-- ('tonne', 't', 1000)
+-- ('tons', 'tn', 907.18474)
+-- ('lbs', 'lbs', 0.453592)
 
 -- Мои заявки
 CREATE TABLE
@@ -43,6 +54,7 @@ CREATE TABLE
         deleted INT NOT NULL DEFAULT 0
     );
 
+
 CREATE TABLE
     tbl_cargo (
         id SERIAL PRIMARY KEY,
@@ -53,6 +65,7 @@ CREATE TABLE
         info VARCHAR(1000) NOT NULL DEFAULT '',
         qty INT NOT NULL DEFAULT 0,
         weight INT NOT NULL DEFAULT 0,
+        weight_type weight_type_t NOT NULL DEFAULT 'kg',
         meta TEXT NOT NULL DEFAULT '',
         meta2 TEXT NOT NULL DEFAULT '',
         meta3 TEXT NOT NULL DEFAULT '',
@@ -73,7 +86,6 @@ CREATE TABLE
     );
 
 -- Мои отклики
-CREATE TYPE response_state_t AS ENUM ('pending', 'accepted', 'declined');
 
 CREATE TABLE
     tbl_response (

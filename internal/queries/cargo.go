@@ -18,8 +18,8 @@ const CreateCargo = `
 INSERT INTO tbl_cargo (
     company_id, name, description, info, qty, weight, meta, meta2, meta3, 
     vehicle_type_id, packaging_type_id, gps, photo1_url, photo2_url, photo3_url, 
-    docs1_url, docs2_url, docs3_url, note
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+    docs1_url, docs2_url, docs3_url, note, weight_type
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
 RETURNING id;
 `
 
@@ -46,8 +46,9 @@ SET
     note = COALESCE($19, note),
     active = COALESCE($20, active),
     deleted = COALESCE($21, deleted),
+    weight_type = COALESCE($22, weight_type),
     updated_at = NOW()
-WHERE id = $1;
+WHERE id = $1 
 `
 
 const DeleteCargo = `
