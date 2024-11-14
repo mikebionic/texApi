@@ -11,14 +11,15 @@ import (
 var SocketClients = make(map[string]*websocket.Conn)
 
 type Config struct {
-	API_HOST          string
-	API_SERVER_URL    string
-	API_PORT          string
-	API_SECRET        string
-	API_DEBUG         bool
-	UPLOAD_PATH       string
-	ENCRYPT_PASSWORDS bool
-	SESSION_MAX_AGE   int
+	API_HOST           string
+	API_SERVER_URL     string
+	API_PRODUCTION_URL string
+	API_PORT           string
+	API_SECRET         string
+	API_DEBUG          bool
+	UPLOAD_PATH        string
+	ENCRYPT_PASSWORDS  bool
+	SESSION_MAX_AGE    int
 
 	DB_HOST     string
 	DB_PORT     string
@@ -31,8 +32,9 @@ type Config struct {
 	REFRESH_KEY  string
 	REFRESH_TIME time.Duration
 
-	GoogleClientID     string
-	GoogleClientSecret string
+	GLE_KEY      string
+	GLE_SECRET   string
+	GLE_CALLBACK string
 
 	SMTP_HOST     string
 	SMTP_PORT     string
@@ -47,10 +49,11 @@ func InitConfig() {
 	godotenv.Load()
 	ENV.API_HOST = os.Getenv("API_HOST")
 	ENV.API_SERVER_URL = os.Getenv("API_SERVER_URL")
+	ENV.API_PRODUCTION_URL = os.Getenv("API_PRODUCTION_URL")
 	ENV.API_PORT = os.Getenv("API_PORT")
 	ENV.API_DEBUG = os.Getenv("DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
-	ENV.SESSION_MAX_AGE = 86400 * 30
+	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
 	ENV.ENCRYPT_PASSWORDS = os.Getenv("ENCRYPT_PASSWORDS") == "true"
 
@@ -68,8 +71,9 @@ func InitConfig() {
 	RT, _ := time.ParseDuration(os.Getenv(("REFRESH_TIME")))
 	ENV.REFRESH_TIME = RT
 
-	ENV.GoogleClientID = os.Getenv("GoogleClientID")
-	ENV.GoogleClientSecret = os.Getenv("GoogleClientSecret")
+	ENV.GLE_KEY = os.Getenv("GLE_KEY")
+	ENV.GLE_SECRET = os.Getenv("GLE_SECRET")
+	ENV.GLE_CALLBACK = os.Getenv("GLE_CALLBACK")
 
 	ENV.SMTP_HOST = os.Getenv("SMTP_HOST")
 	ENV.SMTP_PORT = os.Getenv("SMTP_PORT")

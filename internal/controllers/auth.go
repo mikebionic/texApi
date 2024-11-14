@@ -22,8 +22,6 @@ func Auth(router *gin.Engine) {
 	group.POST("/password/update/", services.UpdatePasswordOTP)
 	group.POST("/refresh-token/", services.RefreshToken)
 
-	group.GET("/oauth/:provider/callback/", services.GetOAuthCallbackFunction)
-	group.GET("/oauth/logout/:provider/", services.OAuthLogout)
-	group.GET("/oauth/:provider/", services.OAuthProvider)
-	group.GET("/oauth/testfront/", services.OAuthFront)
+	group.GET("/:provider", services.BeginOAuth)
+	group.GET("/:provider/callback", services.CompleteOAuth)
 }
