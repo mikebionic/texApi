@@ -6,7 +6,7 @@ WITH offer_data AS (
         o.*,
         COUNT(*) OVER() as total_count
     FROM tbl_offer o
-    WHERE o.deleted = 0 AND o.company_id = $1
+    WHERE o.deleted = 0 AND o.company_id = $1 AND o.offer_state = $4
     ORDER BY o.id
     LIMIT $2 OFFSET $3
 )
@@ -40,7 +40,16 @@ LEFT JOIN tbl_driver d ON od.driver_id = d.id
 LEFT JOIN tbl_vehicle v ON od.vehicle_id = v.id
 LEFT JOIN tbl_cargo c2 ON od.cargo_id = c2.id
 GROUP BY 
-    od.id, od.uuid, od.user_id, od.company_id, od.driver_id, od.vehicle_id, od.cargo_id, od.offer_state, od.offer_role, od.cost_per_km, od.currency, od.from_country, od.from_region, od.to_country, od.to_region, od.from_address, od.to_address, od.sender_contact, od.recipient_contact, od.deliver_contact, od.view_count, od.validity_start, od.validity_end, od.delivery_start, od.delivery_end, od.note, od.tax, od.trade, od.payment_method, od.meta, od.meta2, od.meta3, od.featured, od.partner, od.created_at, od.updated_at, od.active, od.deleted, od.total_count,
+    od.id, od.uuid, od.user_id, od.company_id, od.exec_company_id,
+	od.driver_id, od.vehicle_id, od.cargo_id, od.offer_state, 
+	od.offer_role, od.cost_per_km, od.currency, od.from_country,
+	od.from_region, od.to_country, od.to_region, od.from_address, 
+	od.to_address, od.sender_contact, od.recipient_contact, 
+	od.deliver_contact, od.view_count, od.validity_start, 
+	od.validity_end, od.delivery_start, od.delivery_end, od.note, 
+	od.tax, od.trade, od.payment_method, od.meta, od.meta2, 
+	od.meta3, od.featured, od.partner, od.created_at, od.updated_at, 
+	od.active, od.deleted, od.total_count, 
     c.id, c.company_name, c.country,
     d.id, d.first_name, d.last_name, d.image_url,
     v.id, v.vehicle_type, v.numberplate,

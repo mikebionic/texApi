@@ -18,11 +18,8 @@ func GetMyOfferList(ctx *gin.Context) {
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
-	var companyID int
-	role := ctx.MustGet("role")
-	if !(role == "admin" || role == "system") {
-		companyID = ctx.MustGet("companyID").(int)
-	}
+	companyID := ctx.MustGet("companyID").(int)
+	offerState := ctx.GetHeader("OfferState")
 
 	rows, err := db.DB.Query(
 		context.Background(),
@@ -30,6 +27,7 @@ func GetMyOfferList(ctx *gin.Context) {
 		companyID,
 		perPage,
 		offset,
+		offerState,
 	)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
@@ -45,7 +43,7 @@ func GetMyOfferList(ctx *gin.Context) {
 		var companyJSON, driverJSON, vehicleJSON, cargoJSON []byte
 
 		err := rows.Scan(
-			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
+			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
 			&offer.OfferState, &offer.OfferRole, &offer.CostPerKm, &offer.Currency, &offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
 			&offer.FromAddress, &offer.ToAddress, &offer.SenderContact, &offer.RecipientContact, &offer.DeliverContact,
 			&offer.ViewCount, &offer.ValidityStart, &offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
