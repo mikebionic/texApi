@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Offer(router *gin.Engine) {
-	group := router.Group("texapp/offer/")
+	group := router.Group(config.ENV.API_PREFIX + "/offer/")
 	group.Use(middlewares.Guard)
 
 	group.GET("/", services.GetOfferList)

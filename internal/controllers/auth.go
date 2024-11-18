@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
 
@@ -8,7 +9,7 @@ import (
 )
 
 func Auth(router *gin.Engine) {
-	group := router.Group("texapp/auth/")
+	group := router.Group(config.ENV.API_PREFIX + "/auth/")
 
 	group.GET("/login/", services.UserLogin)
 	group.GET("/profile/", middlewares.Guard, services.UserGetMe)

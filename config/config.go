@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -12,16 +13,19 @@ import (
 var SocketClients = make(map[string]*websocket.Conn)
 
 type Config struct {
-	API_HOST              string
-	API_SERVER_URL        string
-	API_PREFIX            string
-	API_PORT              string
-	API_SECRET            string
-	API_DEBUG             bool
+	API_HOST       string
+	API_SERVER_URL string
+	API_PREFIX     string
+	API_PORT       string
+	API_SECRET     string
+	API_DEBUG      bool
+
 	UPLOAD_PATH           string
 	MAX_FILE_UPLOAD_COUNT int
-	ENCRYPT_PASSWORDS     bool
-	SESSION_MAX_AGE       int
+	STATIC_URL            string
+
+	ENCRYPT_PASSWORDS bool
+	SESSION_MAX_AGE   int
 
 	DB_HOST     string
 	DB_PORT     string
@@ -56,8 +60,11 @@ func InitConfig() {
 	ENV.API_DEBUG = os.Getenv("DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
+
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
 	ENV.MAX_FILE_UPLOAD_COUNT, _ = strconv.Atoi(os.Getenv("MAX_FILE_UPLOAD_COUNT"))
+	ENV.STATIC_URL = fmt.Sprintf("/%s/uploads/", ENV.API_PREFIX)
+
 	ENV.ENCRYPT_PASSWORDS = os.Getenv("ENCRYPT_PASSWORDS") == "true"
 
 	ENV.DB_HOST = os.Getenv("DB_HOST")

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,7 @@ func InitApp() *gin.Engine {
 	router.Use(sessions.Sessions("texsession", store))
 
 	router.Use(middlewares.Cors)
-	router.Static("/texapp/uploads", config.ENV.UPLOAD_PATH)
+	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
 
 	log.SetOutput(gin.DefaultWriter)
 	controllers.Content(router)
@@ -43,6 +44,7 @@ func InitApp() *gin.Engine {
 	controllers.PackagingType(router)
 	countryLib.CountryLib(router)
 	controllers.Cargo(router)
+	controllers.Media(router)
 
 	return router
 }

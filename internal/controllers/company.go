@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Company(router *gin.Engine) {
-	group := router.Group("texapp/company/")
+	group := router.Group(config.ENV.API_PREFIX + "/company/")
 
 	group.GET("/", services.GetCompanyList)
 	group.GET("/:id", services.GetCompany)

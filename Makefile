@@ -30,3 +30,7 @@ build-cross:
 	@GOOS=darwin GOARCH=arm64 go build -o ./bin/texApi-macos cmd/tex/main.go
 	@GOOS=windows GOARCH=amd64 go build -o ./bin/texApi-windows cmd/tex/main.go
 	@echo "Done."
+
+upload-dir:
+	@mkdir -p $(UPLOAD_PATH) || (echo "Error: Failed to create directory $(UPLOAD_PATH)" && exit 1)
+	@echo "Directory $(UPLOAD_PATH) created"

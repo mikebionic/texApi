@@ -7,10 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 	"texApi/config"
+	"time"
 )
 
 var extensions map[string]bool = map[string]bool{
@@ -56,15 +56,13 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 	form, _ := ctx.MultipartForm()
 
 	if form == nil {
-		ctx.JSON(http.StatusBadRequest, FormatErrorResponse("Must load minimum 1 file", ""))
-		return nil, errors.New("Didn't upload the files")
+		return nil, errors.New("didn't upload the files")
 	}
 
 	files := form.File["files"]
 
 	if len(files) == 0 {
-		ctx.JSON(http.StatusBadRequest, FormatErrorResponse("Must load minimum 1 file", ""))
-		return nil, errors.New("Must load minimum 1 file")
+		return nil, errors.New("must load minimum 1 file")
 	}
 
 	var filePaths []string
@@ -76,22 +74,16 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 		extension := splitedFileName[len(splitedFileName)-1]
 
 		extensionExists := extensions[extension]
-
 		if extensionExists == false {
-			ctx.JSON(http.StatusBadRequest, FormatErrorResponse("This file is forbidden", ""))
-			return nil, errors.New(
-				fmt.Sprintf("Trying to upload %v file", extension),
-			)
+			return nil, errors.New(fmt.Sprintf("This file is forbidden: %s", extension))
 		}
 
 		fileCount += 1
-
 		if fileCount > config.ENV.MAX_FILE_UPLOAD_COUNT {
-			ctx.JSON(http.StatusBadRequest, FormatErrorResponse("Trying to upload too many files", ""))
-			return nil, errors.New(fmt.Sprintf("Trying to upload %v files", fileCount))
+			return nil, errors.New("trying to upload too many files")
 		}
 
-		fileNames = append(fileNames, uuid.NewString()+"."+extension)
+		fileNames = append(fileNames, strings.ReplaceAll(splitedFileName[0]+"-"+uuid.NewString()+"."+extension, " ", "-"))
 	}
 
 	for index, file := range files {
@@ -99,14 +91,33 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, readerFile)
-		os.WriteFile(
-			config.ENV.UPLOAD_PATH+"files/"+fileNames[index],
+		dir, err := CreateTodayDir(config.ENV.UPLOAD_PATH)
+		if err != nil {
+			return nil, err
+		}
+		err = os.WriteFile(
+			dir+fileNames[index],
 			buf.Bytes(),
 			os.ModePerm,
 		)
+		if err != nil {
+			return nil, err
+		}
 
-		filePaths = append(filePaths, "/uploads/files/"+fileNames[index])
+		filePaths = append(filePaths, config.ENV.STATIC_URL+strings.ReplaceAll(dir, config.ENV.UPLOAD_PATH, "")+fileNames[index])
 	}
 
 	return filePaths, nil
+}
+
+func CreateTodayDir(absPath string) (directory string, err error) {
+	currentDate := time.Now().Format("2006-01-02")
+	directory = absPath + currentDate + "/"
+	if _, err = os.Stat(directory); os.IsNotExist(err) {
+		err = os.Mkdir(directory, os.ModePerm)
+		if err != nil {
+			return
+		}
+	}
+	return
 }

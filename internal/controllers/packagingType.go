@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func PackagingType(router *gin.Engine) {
-	group := router.Group("texapp/packaging-type/")
+	group := router.Group(config.ENV.API_PREFIX + "/packaging-type/")
 
 	group.GET("/", services.GetPackagingTypes)
 	group.GET("/:id", services.GetPackagingType)
