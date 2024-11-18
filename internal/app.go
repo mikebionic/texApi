@@ -31,6 +31,7 @@ func InitApp() *gin.Engine {
 
 	router.Use(middlewares.Cors)
 	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
+	router.Static(fmt.Sprintf("/%s/assets/", config.ENV.API_PREFIX), "assets/")
 
 	log.SetOutput(gin.DefaultWriter)
 	controllers.Content(router)

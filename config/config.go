@@ -89,5 +89,8 @@ func InitConfig() {
 	ENV.SMTP_PORT = os.Getenv("SMTP_PORT")
 	ENV.SMTP_MAIL = os.Getenv("SMTP_MAIL")
 	ENV.SMTP_PASSWORD = os.Getenv("SMTP_PASSWORD")
-	ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
+	ENV.APP_LOGO_URL = fmt.Sprintf("%s/%s/assets/logo.svg", ENV.API_SERVER_URL, ENV.API_PREFIX)
+	if len(os.Getenv("APP_LOGO_URL")) > 8 {
+		ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
+	}
 }
