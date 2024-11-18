@@ -73,7 +73,7 @@ CREATE TABLE tbl_company
     country         VARCHAR(200) NOT NULL DEFAULT '',
     country_id      INT          NOT NULL DEFAULT 0,
     city_id         INT          NOT NULL DEFAULT 0,
-    image_url       VARCHAR(200)          DEFAULT '',
+    image_url       VARCHAR(200) NOT NULL DEFAULT '',
     entity          entity_t     NOT NULL DEFAULT 'individual',
     featured        INT          NOT NULL DEFAULT 0,
     rating          INT          NOT NULL DEFAULT 0,
@@ -81,8 +81,8 @@ CREATE TABLE tbl_company
     successful_ops  INT          NOT NULL DEFAULT 0,
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active          INT                   DEFAULT 1,
-    deleted         INT                   DEFAULT 0
+    active          INT          NOT NULL DEFAULT 1,
+    deleted         INT          NOT NULL DEFAULT 0
 );
 
 
@@ -106,8 +106,8 @@ CREATE TABLE tbl_driver
     meta3           TEXT         NOT NULL DEFAULT '',
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active          INT                   DEFAULT 1,
-    deleted         INT                   DEFAULT 0
+    active          INT          NOT NULL DEFAULT 1,
+    deleted         INT          NOT NULL DEFAULT 0
 );
 
 

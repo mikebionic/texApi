@@ -85,6 +85,7 @@ func GetOfferList(ctx *gin.Context) {
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
+	// TODO MAKE DELETED SEPARATED
 	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
 	stmt := queries.GetOfferList
 	role := ctx.MustGet("role").(string)
@@ -167,6 +168,7 @@ func CreateOffer(ctx *gin.Context) {
 		return
 	}
 
+	// TODO MAKE ADMIN STUFFF HERE
 	companyID := ctx.MustGet("companyID").(int)
 	userID := ctx.MustGet("id").(int)
 	role := ctx.MustGet("role").(string)

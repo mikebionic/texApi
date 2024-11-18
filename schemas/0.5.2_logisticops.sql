@@ -1,6 +1,7 @@
 CREATE TYPE payment_method_t AS ENUM ('cash', 'transfer', 'card', 'terminal', 'online', 'coupon');
 CREATE TYPE weight_type_t AS ENUM ('kg', 'g', 'lbs', 'oz', 'st', 't', 'tn');
 CREATE TYPE response_state_t AS ENUM ('pending', 'accepted', 'declined');
+CREATE TYPE currency_t AS ENUM ('USD', 'TMT');
 
 -- ('kg', 'kg', 1)
 -- ('grams', 'g', 0.001)
@@ -25,7 +26,7 @@ CREATE TABLE
         offer_state state_t NOT NULL DEFAULT 'pending',
         offer_role role_t NOT NULL DEFAULT 'unknown',
         cost_per_km DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
-        currency VARCHAR(5) NOT NULL DEFAULT 'USD',
+        currency currency_t NOT NULL DEFAULT 'USD',
         from_country VARCHAR(100) NOT NULL DEFAULT '',
         from_region VARCHAR(100) NOT NULL DEFAULT '',
         to_country VARCHAR(100) NOT NULL DEFAULT '',
@@ -94,6 +95,7 @@ CREATE TABLE
         uuid UUID DEFAULT gen_random_uuid (),
         company_id INT REFERENCES tbl_company (id) ON DELETE CASCADE DEFAULT 0,
         offer_id INT REFERENCES tbl_offer (id) ON DELETE CASCADE DEFAULT 0,
+--         tut nado obyasnit mekanu
         response_company_id INT REFERENCES tbl_company (id) ON DELETE CASCADE DEFAULT 0,
         state response_state_t NOT NULL DEFAULT 'pending',
         title VARCHAR(200) NOT NULL DEFAULT '',
