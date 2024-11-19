@@ -61,6 +61,7 @@ type OfferDetails struct {
 
 type OfferUpdate struct {
 	DriverID         *int     `json:"driver_id,omitempty"`
+	CompanyID        *int     `json:"company_id,omitempty"`
 	ExecCompanyID    *int     `json:"exec_company_id,omitempty"`
 	VehicleID        *int     `json:"vehicle_id,omitempty"`
 	CargoID          *int     `json:"cargo_id,omitempty"`

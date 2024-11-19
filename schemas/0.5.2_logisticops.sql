@@ -81,7 +81,7 @@ CREATE TABLE
         partner INT NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        active INT NOT NULL DEFAULT 0,
+        active INT NOT NULL DEFAULT 1,
         deleted INT NOT NULL DEFAULT 0
     );
 
@@ -112,7 +112,7 @@ CREATE TABLE
         note TEXT NOT NULL DEFAULT '',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        active INT NOT NULL DEFAULT 0,
+        active INT NOT NULL DEFAULT 1,
         deleted INT NOT NULL DEFAULT 0
     );
 
