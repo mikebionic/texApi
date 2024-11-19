@@ -83,21 +83,60 @@ type VehicleBrand struct {
 }
 
 type VehicleType struct {
-	ID          int    `json:"id"`
-	TypeName    string `json:"type_name"`
-	Description string `json:"description"`
-	Deleted     int    `json:"deleted"`
+	ID      int    `json:"id"`
+	TitleEn string `json:"title_en"`
+	DescEn  string `json:"desc_en"`
+	TitleRu string `json:"title_ru"`
+	DescRu  string `json:"desc_ru"`
+	TitleTk string `json:"title_tk"`
+	DescTk  string `json:"desc_tk"`
+	TitleDe string `json:"title_de"`
+	DescDe  string `json:"desc_de"`
+	TitleAr string `json:"title_ar"`
+	DescAr  string `json:"desc_ar"`
+	TitleEs string `json:"title_es"`
+	DescEs  string `json:"desc_es"`
+	TitleFr string `json:"title_fr"`
+	DescFr  string `json:"desc_fr"`
+	TitleZh string `json:"title_zh"`
+	DescZh  string `json:"desc_zh"`
+	TitleJa string `json:"title_ja"`
+	DescJa  string `json:"desc_ja"`
+	Deleted int    `json:"deleted"`
+}
+
+type VehicleTypeUpdate struct {
+	TitleEn *string `json:"title_en,omitempty"`
+	DescEn  *string `json:"desc_en,omitempty"`
+	TitleRu *string `json:"title_ru,omitempty"`
+	DescRu  *string `json:"desc_ru,omitempty"`
+	TitleTk *string `json:"title_tk,omitempty"`
+	DescTk  *string `json:"desc_tk,omitempty"`
+	TitleDe *string `json:"title_de,omitempty"`
+	DescDe  *string `json:"desc_de,omitempty"`
+	TitleAr *string `json:"title_ar,omitempty"`
+	DescAr  *string `json:"desc_ar,omitempty"`
+	TitleEs *string `json:"title_es,omitempty"`
+	DescEs  *string `json:"desc_es,omitempty"`
+	TitleFr *string `json:"title_fr,omitempty"`
+	DescFr  *string `json:"desc_fr,omitempty"`
+	TitleZh *string `json:"title_zh,omitempty"`
+	DescZh  *string `json:"desc_zh,omitempty"`
+	TitleJa *string `json:"title_ja,omitempty"`
+	DescJa  *string `json:"desc_ja,omitempty"`
 }
 
 type VehicleModel struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Year          int    `json:"year"`
-	Brand         string `json:"brand"`
-	VehicleTypeID int    `json:"vehicle_type_id"`
-	VehicleType   string `json:"vehicle_type"`
-	Feature       string `json:"feature"`
-	Deleted       int    `json:"deleted"`
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Year           int    `json:"year"`
+	Brand          string `json:"brand"`
+	VehicleBrandID int    `json:"vehicle_brand_id"`
+	VehicleBrand   string `json:"vehicle_brand"`
+	VehicleTypeID  int    `json:"vehicle_type_id"`
+	VehicleType    string `json:"vehicle_type"`
+	Feature        string `json:"feature"`
+	Deleted        int    `json:"deleted"`
 }
 
 type VehicleBrandUpdate struct {
@@ -106,17 +145,12 @@ type VehicleBrandUpdate struct {
 	FoundedYear *int    `json:"founded_year,omitempty"`
 }
 
-type VehicleTypeUpdate struct {
-	TypeName    *string `json:"type_name,omitempty"`
-	Description *string `json:"description,omitempty"`
-}
-
 type VehicleModelUpdate struct {
-	Name          *string `json:"name,omitempty"`
-	Year          *int    `json:"year,omitempty"`
-	Brand         *string `json:"brand,omitempty"`
-	VehicleTypeID *int    `json:"vehicle_type_id,omitempty"`
-	Feature       *string `json:"feature,omitempty"`
+	Name           *string `json:"name,omitempty"`
+	Year           *int    `json:"year,omitempty"`
+	VehicleBrandID *string `json:"vehicle_brand_id,omitempty"`
+	VehicleTypeID  *int    `json:"vehicle_type_id,omitempty"`
+	Feature        *string `json:"feature,omitempty"`
 }
 
 type VehicleBasic struct {

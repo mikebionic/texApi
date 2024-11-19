@@ -30,21 +30,78 @@ WHERE id = $1;
 
 // Vehicle Type queries
 var GetVehicleType = `
-SELECT id, type_name, description, deleted
+SELECT id,
+    title_en,
+	desc_en,
+	title_ru,
+	desc_ru,
+	title_tk,
+	desc_tk,
+	title_de,
+	desc_de,
+	title_ar,
+	desc_ar,
+	title_es,
+	desc_es,
+	title_fr,
+	desc_fr,
+	title_zh,
+	desc_zh,
+	title_ja,
+	desc_ja,
+	deleted
 FROM tbl_vehicle_type 
 WHERE deleted = 0
 `
 
 var CreateVehicleType = `
-INSERT INTO tbl_vehicle_type (type_name, description)
-VALUES ($1, $2)
+INSERT INTO tbl_vehicle_type (
+    title_en,
+    desc_en,
+    title_ru,
+    desc_ru,
+    title_tk,
+    desc_tk,
+    title_de,
+    desc_de,
+    title_ar,
+    desc_ar,
+    title_es,
+    desc_es,
+    title_fr,
+    desc_fr,
+    title_zh,
+    desc_zh,
+    title_ja,
+    desc_ja
+)
+VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+)
 RETURNING id;
 `
 
 var UpdateVehicleType = `
 UPDATE tbl_vehicle_type
-SET type_name = COALESCE($2, type_name),
-    description = COALESCE($3, description)
+SET 
+    title_en = COALESCE($2, title_en),
+    desc_en = COALESCE($3, desc_en),
+    title_ru = COALESCE($4, title_ru),
+    desc_ru = COALESCE($5, desc_ru),
+    title_tk = COALESCE($6, title_tk),
+    desc_tk = COALESCE($7, desc_tk),
+    title_de = COALESCE($8, title_de),
+    desc_de = COALESCE($9, desc_de),
+    title_ar = COALESCE($10, title_ar),
+    desc_ar = COALESCE($11, desc_ar),
+    title_es = COALESCE($12, title_es),
+    desc_es = COALESCE($13, desc_es),
+    title_fr = COALESCE($14, title_fr),
+    desc_fr = COALESCE($15, desc_fr),
+    title_zh = COALESCE($16, title_zh),
+    desc_zh = COALESCE($17, desc_zh),
+    title_ja = COALESCE($18, title_ja),
+    desc_ja = COALESCE($19, desc_ja)
 WHERE id = $1 AND deleted = 0
 RETURNING id;
 `
@@ -57,15 +114,18 @@ WHERE id = $1;
 
 // Vehicle Model queries
 var GetVehicleModel = `
-SELECT m.id, m.name, m.year, m.brand, m.vehicle_type_id, 
-       t.type_name as vehicle_type, m.feature, m.deleted
+SELECT m.id, m.name, m.year, m.vehicle_brand_id, m.vehicle_type_id,
+       b.name AS vehicle_brand, -- Update this alias
+       t.title_en AS vehicle_type, m.feature, m.deleted
 FROM tbl_vehicle_model m
 LEFT JOIN tbl_vehicle_type t ON t.id = m.vehicle_type_id
+LEFT JOIN tbl_vehicle_brand b ON b.id = m.vehicle_brand_id
 WHERE m.deleted = 0
+
 `
 
 var CreateVehicleModel = `
-INSERT INTO tbl_vehicle_model (name, year, brand, vehicle_type_id, feature)
+INSERT INTO tbl_vehicle_model (name, year, vehicle_brand_id, vehicle_type_id, feature)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 `
@@ -74,7 +134,7 @@ var UpdateVehicleModel = `
 UPDATE tbl_vehicle_model
 SET name = COALESCE($2, name),
     year = COALESCE($3, year),
-    brand = COALESCE($4, brand),
+    vehicle_brand_id = COALESCE($4, vehicle_brand_id),
     vehicle_type_id = COALESCE($5, vehicle_type_id),
     feature = COALESCE($6, feature)
 WHERE id = $1 AND deleted = 0
