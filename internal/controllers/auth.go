@@ -14,7 +14,7 @@ func Auth(router *gin.Engine) {
 	group.GET("/login/", services.UserLogin)
 	group.GET("/profile/", middlewares.Guard, services.UserGetMe)
 	group.POST("/profile/update/", middlewares.Guard, services.ProfileUpdate)
-	group.GET("/logout/", services.Logout)
+	group.GET("/logout/", middlewares.Guard, services.Logout)
 
 	group.POST("/register-request/", services.RegisterRequest)
 	group.POST("/validate-otp/", services.ValidateOTP)

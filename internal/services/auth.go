@@ -15,7 +15,6 @@ import (
 	"texApi/pkg/utils"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/markbates/goth/gothic"
 	"golang.org/x/crypto/bcrypt"
@@ -55,8 +54,7 @@ func UserLogin(ctx *gin.Context) {
 		}
 	}
 
-	accessToken, _ := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
-	refreshToken, exp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, exp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(user.ID, refreshToken, "create")
 	if err != nil {
 		response := utils.FormatErrorResponse("Error creating token", err.Error())
@@ -94,49 +92,53 @@ func UserGetMe(ctx *gin.Context) {
 }
 
 func Logout(ctx *gin.Context) {
-	//// TODO: Delete token from DB
-	session := sessions.Default(ctx)
-	session.Clear()
-	session.Save()
-	response := utils.FormatResponse("Logged out successfully", nil)
-	ctx.JSON(http.StatusOK, response)
+	id := ctx.MustGet("id").(int)
+	_, err := repositories.RemoveUserToken(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Couldn't logout", err.Error()))
+		return
+	}
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Logged out successfully", id))
 }
 
-// TODO: this should refresh by checking db as well or ensure that exp calculated and even then check that token is the same or ensure token is not empty
 func RefreshToken(ctx *gin.Context) {
-	var refreshToken dto.RefreshTokenForm
+	var payload dto.RefreshTokenForm
 
-	validationError := ctx.BindJSON(&refreshToken)
+	validationError := ctx.BindJSON(&payload)
 	if validationError != nil {
-		ctx.JSON(400, validationError.Error())
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid body", validationError.Error()))
 		return
 	}
 
 	claims := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(
-		refreshToken.RefreshToken, claims, func(
-			t *jwt.Token,
-		) (interface{}, error) {
+		payload.RefreshToken, claims, func(t *jwt.Token) (interface{}, error) {
 			return []byte(config.ENV.REFRESH_KEY), nil
 		},
 	)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, utils.FormatResponse("Error occured", err.Error()))
+		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Error occurred", err.Error()))
 		return
 	}
 
-	prepareToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":     int(claims["id"].(float64)),
-		"roleID": claims["roleID"].(int),
-		"exp":    time.Now().Add(config.ENV.ACCESS_TIME).Unix(),
-	})
-	finalToken, _ := prepareToken.SignedString([]byte(config.ENV.ACCESS_KEY))
+	idFloat, _ := claims["id"].(float64)
+	id := int(idFloat)
+	user := repositories.GetUserById(id)
 
-	response := utils.FormatResponse("Token updated", gin.H{
-		"access_token":  finalToken,
-		"refresh_token": refreshToken,
+	err = repositories.ManageToken(user.ID, payload.RefreshToken, "validate")
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("User/Token is invalid", err.Error()))
+		return
+	}
+
+	accessToken, _, exp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	response := utils.FormatResponse("Login successful", gin.H{
+		"access_token":  accessToken,
+		"refresh_token": payload.RefreshToken,
+		"exp":           exp,
+		"user":          user,
 	})
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Success", response))
+	ctx.JSON(http.StatusCreated, response)
 }
 
 func ForgotPassword(ctx *gin.Context) {
@@ -151,7 +153,7 @@ func ForgotPassword(ctx *gin.Context) {
 	user, _ := repositories.GetUser(credentials, credType)
 	if user.ID == 0 {
 		response := utils.FormatErrorResponse(fmt.Sprintf("A user with this %s not found", credType), "")
-		ctx.JSON(http.StatusOK, response)
+		ctx.JSON(http.StatusNotFound, response)
 		return
 	}
 
@@ -331,8 +333,7 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, _ := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
-	refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(userID, refreshToken, "create")
 	if err != nil {
 		response := utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error())
@@ -427,8 +428,7 @@ func CompleteOAuth(ctx *gin.Context) {
 		userID = dbUser.ID
 	}
 
-	accessToken, _ := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
-	refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(userID, refreshToken, "create")
 	if err != nil {
 		response := utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error())

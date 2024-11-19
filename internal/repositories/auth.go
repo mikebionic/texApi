@@ -146,6 +146,15 @@ func UpdateUser(user dto.CreateUser, userID int) (int, error) {
 	return id, nil
 }
 
+func RemoveUserToken(id int) (uID int, err error) {
+	err = db.DB.QueryRow(
+		context.Background(),
+		`UPDATE tbl_user SET refresh_token = '' WHERE id = $1 RETURNING id;`,
+		id,
+	).Scan(&uID)
+	return
+}
+
 func ProfileUpdate(user dto.ProfileUpdate, userID int) (int, error) {
 	var id int
 	err := db.DB.QueryRow(
