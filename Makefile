@@ -2,20 +2,24 @@ include .env
 
 dev:
 	@go run cmd/tex/main.go
+
 db:
 	@echo "Initializing texApi database..."
 	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
-				-f ./schemas/0.0.5_drop_db.sql
-	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+		-f ./schemas/0.0.5_drop_db.sql
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) \
     	-f ./schemas/0.1.1_create_vehicle.sql \
-    @PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+    @PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) \
 		-f ./schemas/0.4.1_create_landing.sql
-	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) \
 		-f ./schemas/0.4.2_insert_landing.sql
-	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) \
 		-f ./schemas/0.5.1_create_core.sql
-	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d db_tex \
-			-f ./schemas/0.5.2_logisticops.sql
+	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d $(DB_NAME) \
+		-f ./schemas/0.5.2_logisticops.sql
+
+
+
 	@echo "Has been successfully created"
 build:
 	@echo "Building the app, please wait..."
@@ -27,3 +31,13 @@ build-cross:
 	@GOOS=darwin GOARCH=arm64 go build -o ./bin/texApi-macos cmd/tex/main.go
 	@GOOS=windows GOARCH=amd64 go build -o ./bin/texApi-windows cmd/tex/main.go
 	@echo "Done."
+
+upload-dir:
+	@mkdir -p $(UPLOAD_PATH) || (echo "Error: Failed to create directory $(UPLOAD_PATH)" && exit 1)
+	@echo "Directory $(UPLOAD_PATH) created"
+
+init-sys:
+	@mkdir -p ~/tex_backend/app/
+	@cp -r ~/tex_backend/texApi/assets/ ~/tex_backend/app/
+	@cp ~/tex_backend/texApi/.env.example ~/tex_backend/app/.env
+	@sudo cp scripts/texApi.service /etc/systemd/system/texApi.service

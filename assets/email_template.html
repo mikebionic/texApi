@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        .otp-code {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .description {
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 150px;
+            padding: 10px;
+            margin-bottom: 30px;
+            background-color: dodgerblue;
+            border-radius: 5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <img src="{{ .LogoURL }}" alt="Logo" class="logo">
+    <h2>{{ .Title }}</h2>
+    <p class="description">{{ .Description }}</p>
+    <div class="otp-code">{{ .OTP }}</div>
+    <p>If you haven't made this request, simply ignore this email.</p>
+</div>
+</body>
+</html>

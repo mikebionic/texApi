@@ -21,7 +21,7 @@ func NewGoogleAuth() {
 	gothic.Store = store
 
 	goth.UseProviders(
-		google.New(config.ENV.GoogleClientID, config.ENV.GoogleClientSecret, fmt.Sprintf("%s/texapp/auth/oauth/google/callback/", config.ENV.API_SERVER_URL)))
+		google.New(config.ENV.GLE_KEY, config.ENV.GLE_SECRET, fmt.Sprintf("%s/%s/%s", config.ENV.API_SERVER_URL, config.ENV.API_PREFIX, config.ENV.GLE_CALLBACK)))
 }
 
 func setupSMTPConfig() {

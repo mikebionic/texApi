@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/georgysavva/scany/v2/pgxscan"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
 	"texApi/pkg/utils"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/gin-gonic/gin"
 )
 
 func CreateVehicle(ctx *gin.Context) {
@@ -34,7 +35,7 @@ func CreateVehicle(ctx *gin.Context) {
 		queries.CreateVehicle,
 		vehicle.CompanyID, vehicle.VehicleType, vehicle.VehicleBrandID,
 		vehicle.VehicleModelID, vehicle.YearOfIssue, vehicle.Mileage,
-		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GpsActive,
+		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.Gps,
 		vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL,
 		vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
 	).Scan(&id)
@@ -74,7 +75,7 @@ func UpdateVehicle(ctx *gin.Context) {
 		stmt,
 		id, vehicle.VehicleType, vehicle.VehicleBrandID,
 		vehicle.VehicleModelID, vehicle.YearOfIssue, vehicle.Mileage,
-		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.GpsActive,
+		vehicle.Numberplate, vehicle.TrailerNumberplate, vehicle.Gps,
 		vehicle.Photo1URL, vehicle.Photo2URL, vehicle.Photo3URL,
 		vehicle.Docs1URL, vehicle.Docs2URL, vehicle.Docs3URL,
 		vehicle.Active, vehicle.CompanyID, vehicle.Deleted,
@@ -139,7 +140,7 @@ func GetVehicleList(ctx *gin.Context) {
 			&vehicle.ID, &vehicle.UUID, &vehicle.CompanyID, &vehicle.VehicleType,
 			&vehicle.VehicleBrandID, &vehicle.VehicleModelID, &vehicle.YearOfIssue,
 			&vehicle.Mileage, &vehicle.Numberplate, &vehicle.TrailerNumberplate,
-			&vehicle.GpsActive, &vehicle.Photo1URL, &vehicle.Photo2URL,
+			&vehicle.Gps, &vehicle.Photo1URL, &vehicle.Photo2URL,
 			&vehicle.Photo3URL, &vehicle.Docs1URL, &vehicle.Docs2URL,
 			&vehicle.Docs3URL, &vehicle.ViewCount, &vehicle.CreatedAt,
 			&vehicle.UpdatedAt, &vehicle.Active, &vehicle.Deleted, &totalCount,
@@ -158,7 +159,7 @@ func GetVehicleList(ctx *gin.Context) {
 	}
 
 	// Prepare response
-	response := dto.PaginatedResponse{
+	response := utils.PaginatedResponse{
 		Total:   totalCount,
 		Page:    page,
 		PerPage: perPage,
@@ -181,7 +182,7 @@ func GetVehicle(ctx *gin.Context) {
 		&vehicle.ID, &vehicle.UUID, &vehicle.CompanyID, &vehicle.VehicleType,
 		&vehicle.VehicleBrandID, &vehicle.VehicleModelID, &vehicle.YearOfIssue,
 		&vehicle.Mileage, &vehicle.Numberplate, &vehicle.TrailerNumberplate,
-		&vehicle.GpsActive, &vehicle.Photo1URL, &vehicle.Photo2URL,
+		&vehicle.Gps, &vehicle.Photo1URL, &vehicle.Photo2URL,
 		&vehicle.Photo3URL, &vehicle.Docs1URL, &vehicle.Docs2URL,
 		&vehicle.Docs3URL, &vehicle.ViewCount, &vehicle.Meta, &vehicle.Meta2, &vehicle.Meta3,
 		&vehicle.CreatedAt, &vehicle.UpdatedAt, &vehicle.Active, &vehicle.Deleted,

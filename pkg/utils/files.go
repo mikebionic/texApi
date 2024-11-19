@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"io"
 	"os"
 	"strings"
 	"texApi/config"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"time"
 )
 
 var extensions map[string]bool = map[string]bool{
@@ -20,6 +20,10 @@ var extensions map[string]bool = map[string]bool{
 	"svg":  true,
 	"webp": true,
 	"mp4":  true,
+	"webm": true,
+	"pdf":  true,
+	"docx": true,
+	"pptx": true,
 }
 
 func WriteImage(ctx *gin.Context, dir string) string {
@@ -52,51 +56,34 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 	form, _ := ctx.MultipartForm()
 
 	if form == nil {
-		ctx.JSON(400, gin.H{"message": "Must load minimum 1 file"})
-		return nil, errors.New("Didn't upload the files")
+		return nil, errors.New("didn't upload the files")
 	}
 
 	files := form.File["files"]
 
 	if len(files) == 0 {
-		ctx.JSON(400, gin.H{"message": "Must load minimum 1 file"})
-		return nil, errors.New("Must load minimum 1 file")
+		return nil, errors.New("must load minimum 1 file")
 	}
 
 	var filePaths []string
 	var fileNames []string
-	var video = 0
-	var images = 0
+	var fileCount = 0
 
 	for _, file := range files {
 		splitedFileName := strings.Split(file.Filename, ".")
 		extension := splitedFileName[len(splitedFileName)-1]
 
 		extensionExists := extensions[extension]
-
 		if extensionExists == false {
-			ctx.JSON(400, gin.H{"message": "This file is forbidden"})
-			return nil, errors.New(
-				fmt.Sprintf("Trying to upload %v file", extension),
-			)
+			return nil, errors.New(fmt.Sprintf("This file is forbidden: %s", extension))
 		}
 
-		if extension == "mp4" {
-			video += 1
-		} else {
-			images += 1
+		fileCount += 1
+		if fileCount > config.ENV.MAX_FILE_UPLOAD_COUNT {
+			return nil, errors.New("trying to upload too many files")
 		}
 
-		if video > 1 || images > 5 {
-			ctx.JSON(400, gin.H{"message": "Only 5 images and 1 video"})
-			return nil, errors.New(
-				fmt.Sprintf(
-					"Trying to upload %v video and %v images", video, images,
-				),
-			)
-		}
-
-		fileNames = append(fileNames, uuid.NewString()+"."+extension)
+		fileNames = append(fileNames, strings.ReplaceAll(splitedFileName[0]+"-"+uuid.NewString()+"."+extension, " ", "-"))
 	}
 
 	for index, file := range files {
@@ -104,14 +91,33 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, readerFile)
-		os.WriteFile(
-			config.ENV.UPLOAD_PATH+"orders/"+fileNames[index],
+		dir, err := CreateTodayDir(config.ENV.UPLOAD_PATH)
+		if err != nil {
+			return nil, err
+		}
+		err = os.WriteFile(
+			dir+fileNames[index],
 			buf.Bytes(),
 			os.ModePerm,
 		)
+		if err != nil {
+			return nil, err
+		}
 
-		filePaths = append(filePaths, "/uploads/orders/"+fileNames[index])
+		filePaths = append(filePaths, config.ENV.STATIC_URL+strings.ReplaceAll(dir, config.ENV.UPLOAD_PATH, "")+fileNames[index])
 	}
 
 	return filePaths, nil
+}
+
+func CreateTodayDir(absPath string) (directory string, err error) {
+	currentDate := time.Now().Format("2006-01-02")
+	directory = absPath + currentDate + "/"
+	if _, err = os.Stat(directory); os.IsNotExist(err) {
+		err = os.Mkdir(directory, os.ModePerm)
+		if err != nil {
+			return
+		}
+	}
+	return
 }

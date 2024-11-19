@@ -10,6 +10,15 @@
 
 ## Google auth workflow
 
+How to create OAuth and get required keys.
+```text
+go to console.cloud.google.com
+go to App -> credentials -> create OAuth credential
+Write type, name, add authorized URI's
+copy data of ClientID and Secret to .env
+```
+
+Following text is legacy:
 + Client Registration: First, we need to register our application with Google. We should provide our application name, redirection URLs, etc. After registering, Google will provide us with a unique Client ID and Client Secret.
 + User Sign-In: When the user clicks the ‘Sign in with Google’ button on our website, they are redirected to Google’s authorization server.
 + Authorization Code: After the user is authenticated successfully, Google’s server will send a request to our application (to the URL we provided while registering our application with Google) along with an authorization code. Our application controller will receive the request from Google.

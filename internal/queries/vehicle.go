@@ -101,7 +101,7 @@ SELECT
     vd.id, vd.uuid, vd.company_id, vd.vehicle_type,
     vd.vehicle_brand_id, vd.vehicle_model_id, vd.year_of_issue,
     vd.mileage, vd.numberplate, vd.trailer_numberplate,
-    vd.gps_active, vd.photo1_url, vd.photo2_url,
+    vd.gps, vd.photo1_url, vd.photo2_url,
     vd.photo3_url, vd.docs1_url, vd.docs2_url,
     vd.docs3_url, vd.view_count, vd.created_at,
     vd.updated_at, vd.active, vd.deleted, vd.total_count,
@@ -131,7 +131,7 @@ GROUP BY
     vd.id, vd.uuid, vd.company_id, vd.vehicle_type,
     vd.vehicle_brand_id, vd.vehicle_model_id, vd.year_of_issue,
     vd.mileage, vd.numberplate, vd.trailer_numberplate,
-    vd.gps_active, vd.photo1_url, vd.photo2_url,
+    vd.gps, vd.photo1_url, vd.photo2_url,
     vd.photo3_url, vd.docs1_url, vd.docs2_url,
     vd.docs3_url, vd.view_count, vd.created_at,
     vd.updated_at, vd.active, vd.deleted, vd.total_count,
@@ -145,7 +145,7 @@ const CreateVehicle = `
 INSERT INTO tbl_vehicle (
     company_id, vehicle_type, vehicle_brand_id, vehicle_model_id,
     year_of_issue, mileage, numberplate, trailer_numberplate,
-    gps_active, photo1_url, photo2_url, photo3_url,
+    gps, photo1_url, photo2_url, photo3_url,
     docs1_url, docs2_url, docs3_url, created_at, updated_at,
     active, deleted, uuid
 ) VALUES (
@@ -165,7 +165,7 @@ SET
     mileage = COALESCE($6, mileage),
     numberplate = COALESCE($7, numberplate),
     trailer_numberplate = COALESCE($8, trailer_numberplate),
-    gps_active = COALESCE($9, gps_active),
+    gps = COALESCE($9, gps),
     photo1_url = COALESCE($10, photo1_url),
     photo2_url = COALESCE($11, photo2_url),
     photo3_url = COALESCE($12, photo3_url),

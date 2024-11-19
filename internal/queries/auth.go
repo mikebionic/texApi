@@ -35,7 +35,8 @@ var CreateUser = `
         username,
         password,
         email,
-        phone,
+		phone,
+		role,
         role_id,
         company_id,
         verified,
@@ -46,8 +47,9 @@ var CreateUser = `
         oauth_access_token,
         oauth_access_token_secret,
         oauth_refresh_token,
-        oauth_id_token
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+        oauth_id_token,
+    	refresh_token
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) 
     RETURNING id
 `
 

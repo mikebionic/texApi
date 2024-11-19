@@ -48,7 +48,10 @@ type CreateUser struct {
 	OauthAccessToken       string `json:"oauth_access_token,omitempty"`
 	OauthAccessTokenSecret string `json:"oauth_access_token_secret,omitempty"`
 	OauthRefreshToken      string `json:"oauth_refresh_token,omitempty"`
+	OauthExpiresAt         string `json:"oauth_expires_at,omitempty"`
 	OauthIDToken           string `json:"oauth_id_token,omitempty"`
+	RefreshToken           string `json:"refresh_token,omitempty"`
+	VerifyTime             string `json:"verify_time"`
 }
 
 type ProfileUpdate struct {

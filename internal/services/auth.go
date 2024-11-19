@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"html/template"
+	"github.com/huandu/xstrings"
 	"log"
 	"net/http"
 	"strconv"
@@ -59,7 +59,6 @@ func UserLogin(ctx *gin.Context) {
 	refreshToken, exp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(user.ID, refreshToken, "create")
 	if err != nil {
-		log.Println(err.Error())
 		response := utils.FormatErrorResponse("Error creating token", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
@@ -196,7 +195,6 @@ func UpdatePasswordOTP(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error parsing time", err.Error()))
 		return
 	}
-	fmt.Println(currentUser.OTPKey)
 	expirationTime := parsedTime.Add(15 * time.Minute)
 	if time.Now().After(expirationTime) || promptOTP != currentUser.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired or wrong token!", ""))
@@ -228,7 +226,7 @@ func RegisterRequest(ctx *gin.Context) {
 	}
 	credentials := ctx.GetHeader("Credentials")
 	credType := ctx.GetHeader("CredType")
-	if roleID == 0 || credentials == "" || credType == "" {
+	if roleID < 3 || credentials == "" || credType == "" {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, missing required params", ""))
 		return
 	}
@@ -297,7 +295,7 @@ func Register(ctx *gin.Context) {
 
 	currentUser, err := repositories.GetUser(credentials, credType)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("User Not Verified!", err.Error()))
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Unable to create user!", err.Error()))
 		return
 	}
 
@@ -337,7 +335,6 @@ func Register(ctx *gin.Context) {
 	refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
 	err = repositories.ManageToken(userID, refreshToken, "create")
 	if err != nil {
-		log.Println(err.Error())
 		response := utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
@@ -383,93 +380,66 @@ func ProfileUpdate(ctx *gin.Context) {
 	return
 }
 
-func GetOAuthCallbackFunction(ctx *gin.Context) {
-	provider := ctx.Param("provider")
-	ctx.Set("provider", provider)
-	user, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request)
-	if err != nil {
-		response := utils.FormatErrorResponse("Unauthorized", err.Error())
-		ctx.JSON(http.StatusUnauthorized, response)
-		return
-	}
-
-	dbuser, err := repositories.GetUser(user.Email, "email")
-	if err != nil {
-		response := utils.FormatErrorResponse("Unauthorized", err.Error())
-		ctx.JSON(http.StatusUnauthorized, response)
-		return
-	}
-
-	if dbuser.ID == 0 {
-		// Handle user registration here if needed
-	} else {
-		session := sessions.Default(ctx)
-		session.Set("userID", dbuser.ID)
-		session.Set("role", dbuser.RoleID)
-		session.Save()
-	}
-
-	http.Redirect(ctx.Writer, ctx.Request, "http://localhost:7000/texapp/auth/oauth/testfront/", http.StatusFound)
-}
-
-func OAuthLogout(ctx *gin.Context) {
-	gothic.Logout(ctx.Writer, ctx.Request)
-	ctx.Redirect(http.StatusTemporaryRedirect, "/")
-}
-
-func OAuthProvider(ctx *gin.Context) {
+func BeginOAuth(ctx *gin.Context) {
 	provider := ctx.Param("provider")
 	ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "provider", provider))
-	res := ctx.Writer
-	req := ctx.Request
-
-	if gothUser, err := gothic.CompleteUserAuth(res, req); err == nil {
-		tmpl, err := template.New("user").Parse(userTemplate)
-		if err != nil {
-			log.Println("Error parsing template:", err)
-			ctx.String(http.StatusInternalServerError, "Template parsing error")
-			return
-		}
-		tmpl.Execute(res, gothUser)
-	} else {
-		gothic.BeginAuthHandler(res, req)
-	}
+	gothic.BeginAuthHandler(ctx.Writer, ctx.Request)
 }
 
-func OAuthFront(ctx *gin.Context) {
-	providers := []string{"google", "github", "facebook"}
-	providersMap := map[string]string{
-		"google":   "Google",
-		"github":   "GitHub",
-		"facebook": "Facebook",
-	}
+func CompleteOAuth(ctx *gin.Context) {
+	roleID, _ := strconv.Atoi(ctx.GetHeader("RoleID"))
+	role := ctx.GetHeader("Role")
+	fmt.Println(role, roleID)
 
-	tmpl, err := template.New("index").Parse(indexTemplate)
+	if roleID < 3 {
+		roleID = 3
+	}
+	if !(role == "sender" || role == "carrier") {
+		role = "sender"
+	}
+	authUser, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request)
 	if err != nil {
-		log.Println("Error parsing template:", err)
-		ctx.String(http.StatusInternalServerError, "Template parsing error")
+		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", err.Error()))
 		return
 	}
-	tmpl.Execute(ctx.Writer, gin.H{
-		"Providers":    providers,
-		"ProvidersMap": providersMap,
+
+	var userID int
+	var user dto.CreateUser
+	dbUser, _ := repositories.GetUser(user.Email, "email")
+	if dbUser.ID == 0 {
+		user.Role = role
+		user.RoleID = roleID
+		user.Email = authUser.Email
+		user.Username = fmt.Sprintf("%s%s%s%s", authUser.Name, authUser.FirstName, authUser.LastName, authUser.UserID)
+		user.Password = xstrings.Shuffle(fmt.Sprintf("%s%s", authUser.UserID, authUser.Email))
+		user.OauthIDToken = authUser.UserID
+		user.OauthProvider = authUser.Provider
+		user.Verified = 1
+		user.Active = 1
+		user.Phone = ""
+
+		userID, err = repositories.CreateUser(user)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Error adding user", err.Error()))
+			return
+		}
+	} else {
+		userID = dbUser.ID
+	}
+
+	accessToken, _ := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	refreshToken, exp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	err = repositories.ManageToken(userID, refreshToken, "create")
+	if err != nil {
+		response := utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error())
+		ctx.JSON(http.StatusInternalServerError, response)
+		return
+	}
+	response := utils.FormatResponse("User created successfully", gin.H{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"exp":           exp,
 	})
+	ctx.JSON(http.StatusOK, response)
+	return
 }
-
-var indexTemplate = `{{range $key,$value:=.Providers}}
-    <p><a href="/texapp/auth/oauth/{{$value}}">Log in with {{index $.ProvidersMap $value}}</a></p>
-{{end}}`
-
-var userTemplate = `
-<p><a href="/texapp/auth/oauth/logout/{{.Provider}}">logout</a></p>
-<p>Name: {{.Name}} [{{.LastName}}, {{.FirstName}}]</p>
-<p>Email: {{.Email}}</p>
-<p>NickName: {{.NickName}}</p>
-<p>Location: {{.Location}}</p>
-<p>AvatarURL: {{.AvatarURL}} <img src="{{.AvatarURL}}"></p>
-<p>Description: {{.Description}}</p>
-<p>UserID: {{.UserID}}</p>
-<p>AccessToken: {{.AccessToken}}</p>
-<p>ExpiresAt: {{.ExpiresAt}}</p>
-<p>RefreshToken: {{.RefreshToken}}</p>
-`

@@ -1,6 +1,6 @@
 CREATE TYPE entity_t AS ENUM ('individual', 'legal');
 CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','unknown');
-CREATE TYPE state_t AS ENUM ('enabled', 'disabled', 'deleted');
+CREATE TYPE state_t AS ENUM ('enabled', 'disabled', 'deleted', 'pending', 'archived', 'working');
 
 
 CREATE TABLE tbl_role (
@@ -73,7 +73,7 @@ CREATE TABLE tbl_company
     country         VARCHAR(200) NOT NULL DEFAULT '',
     country_id      INT          NOT NULL DEFAULT 0,
     city_id         INT          NOT NULL DEFAULT 0,
-    image_url       VARCHAR(200)          DEFAULT '',
+    image_url       VARCHAR(200) NOT NULL DEFAULT '',
     entity          entity_t     NOT NULL DEFAULT 'individual',
     featured        INT          NOT NULL DEFAULT 0,
     rating          INT          NOT NULL DEFAULT 0,
@@ -81,8 +81,8 @@ CREATE TABLE tbl_company
     successful_ops  INT          NOT NULL DEFAULT 0,
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active          INT                   DEFAULT 1,
-    deleted         INT                   DEFAULT 0
+    active          INT          NOT NULL DEFAULT 1,
+    deleted         INT          NOT NULL DEFAULT 0
 );
 
 
@@ -106,15 +106,106 @@ CREATE TABLE tbl_driver
     meta3           TEXT         NOT NULL DEFAULT '',
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active          INT                   DEFAULT 1,
-    deleted         INT                   DEFAULT 0
+    active          INT          NOT NULL DEFAULT 1,
+    deleted         INT          NOT NULL DEFAULT 0
 );
+
+
+
+
+-- CREATE TABLE tbl_vehicle_types
+-- (
+--     id     INT PRIMARY KEY,
+--     name_ru     VARCHAR(255)   NOT NULL DEFAULT '',
+--     name_en     VARCHAR(255)   NOT NULL DEFAULT '',
+--     name_tk     VARCHAR(255)   NOT NULL DEFAULT '',
+--     category_ru VARCHAR(255)   NOT NULL DEFAULT '',
+--     category_en VARCHAR(255)   NOT NULL DEFAULT '',
+--     category_tk VARCHAR(255)   NOT NULL DEFAULT '',
+--     capacity            DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+--     fuel_type           VARCHAR(50)    NOT NULL DEFAULT '',
+--     max_speed           DECIMAL(5, 2)  NOT NULL DEFAULT 0.0,
+--     description_ru      TEXT           NOT NULL DEFAULT '',
+--     description_en      TEXT           NOT NULL DEFAULT '',
+--     description_tk      TEXT           NOT NULL DEFAULT '',
+--     active              INT            NOT NULL DEFAULT 0,
+--     deleted             INT            NOT NULL DEFAULT 0
+-- );
+--
+-- INSERT INTO tbl_vehicle_types (name_ru, name_en, category_ru, category_en, capacity, fuel_type, max_speed, description_ru, description_en)
+-- VALUES
+--     ('Бортовой грузовик', 'Box Truck', 'Грузовик', 'Truck', 5.00, 'Дизель', 90.00, 'Стандартный грузовик с закрытым кузовом для транспортировки товаров.', 'Standard box truck used for road transport of goods'),
+--     ('Плоский грузовик', 'Flatbed Truck',  'Грузовик', 'Truck', 15.00, 'Дизель', 85.00, 'Грузовик с открытым плоским кузовом для транспортировки крупногабаритных и тяжёлых предметов.', 'Truck with an open flatbed for transporting oversized or heavy items'),
+--     ('Рефрижераторный грузовик', 'Refrigerated Truck', 'Грузовик', 'Truck', 3.00, 'Дизель', 80.00, 'Грузовик с холодильной установкой для транспортировки товаров, требующих контроля температуры.', 'Truck with refrigeration unit for transporting perishable goods at controlled temperatures'),
+--     ('Топливозаправщик', 'Tanker Truck', 'Грузовик', 'Truck', 20.00, 'Дизель', 70.00, 'Грузовик, предназначенный для транспортировки жидкостей, таких как топливо, химикаты или молоко.', 'Truck designed to transport liquids such as fuel, chemicals, or milk'),
+--     ('Контейнеровоз', 'Container Truck', 'Грузовик', 'Truck', 30.00, 'Дизель', 80.00, 'Грузовик, предназначенный для транспортировки контейнеров.', 'Truck designed to carry standardized shipping containers'),
+--     ('Грузовой фургон', 'Van Truck', 'Грузовик', 'Truck', 2.00, 'Дизель', 100.00, 'Малый фургон для доставки товаров в городских условиях.', 'Small delivery van used for urban parcel delivery'),
+--     ('Грузовой корабль', 'Cargo Ship', 'Корабль', 'Ship', 150000.00, 'Дизель', 30.00, 'Большой грузовой корабль, предназначенный для транспортировки контейнеров, генеральных грузов или товаров массового потребления.', 'Large cargo ship designed to carry containers, bulk goods, or general cargo over long distances'),
+--     ('Контейнеровоз', 'Container Ship', 'Корабль', 'Ship', 50000.00, 'Дизель', 30.00, 'Грузовой корабль для транспортировки стандартизированных контейнеров.', 'Large container ship that transports standardized containers across seas'),
+--     ('Сухогруз', 'Bulk Carrier', 'Корабль', 'Ship', 200000.00, 'Дизель', 25.00, 'Корабль, предназначенный для транспортировки сыпучих товаров, таких как уголь, зерно или руда.', 'Ship designed to carry bulk goods like coal, grain, or ore'),
+--     ('Танкер', 'Tanker Ship', 'Корабль', 'Ship', 100000.00, 'Дизель', 25.00, 'Корабль, предназначенный для транспортировки жидких грузов, таких как нефть или химические вещества.', 'Ship designed to carry liquid cargo, such as oil, chemicals, or liquefied natural gas (LNG)'),
+--     ('Ро-Ро судно', 'Roll-on/Roll-off Ship (Ro-Ro)', 'Корабль', 'Ship', 30000.00, 'Дизель', 35.00, 'Корабль, предназначенный для транспортировки колесных грузов, таких как автомобили и грузовики.', 'Ship designed for transporting wheeled cargo, such as cars and trucks'),
+--     ('Грузовой самолет', 'Cargo Plane', 'Авиаперевозки', 'Air Freight', 20.00, 'Керосин', 600.00, 'Грузовой самолет, предназначенный для перевозки товаров, обычно высокоценного или срочного груза.', 'Cargo plane designed to carry freight, typically high-value or time-sensitive goods'),
+--     ('Грузовой фургон (самолет)', 'Cargo Van', 'Авиаперевозки', 'Air Freight', 2.00, 'Керосин', 500.00, 'Малый самолет для региональной доставки товаров.', 'Smaller air cargo plane used for regional deliveries'),
+--     ('Дрон', 'Drones', 'Авиаперевозки', 'Air Freight', 0.01, 'Электричество', 60.00, 'Малые беспилотные летательные аппараты для перевозки легких грузов на короткие расстояния.', 'Small unmanned aerial vehicles (UAVs) used for lightweight, short-distance deliveries'),
+--     ('Рефрижераторный вагон', 'Refrigerated Railcar', 'Железнодорожный транспорт', 'Rail', 50.00, 'Электричество', 100.00, 'Железнодорожный вагон с холодильной установкой для перевозки скоропортящихся товаров.', 'Railcar with temperature control for transporting perishable goods by rail'),
+--     ('Платформа', 'Flatcar', 'Железнодорожный транспорт', 'Rail', 100.00, 'Электричество', 110.00, 'Открытый железнодорожный вагон для перевозки крупногабаритных и тяжёлых грузов.', 'Open railcar used for transporting large or heavy loads that don’t require weather protection'),
+--     ('Цистерна', 'Tank Car', 'Железнодорожный транспорт', 'Rail', 60.00, 'Электричество', 90.00, 'Железнодорожный вагон для перевозки жидких товаров, таких как химикаты, нефть или топливо.', 'Railcar designed for transporting liquids like chemicals, oil, or fuel');
+
+
+CREATE TABLE tbl_packaging_type
+(
+    id             SERIAL PRIMARY KEY,
+    name_ru        VARCHAR(255)   NOT NULL DEFAULT '',
+    name_en        VARCHAR(255)   NOT NULL DEFAULT '',
+    name_tk        VARCHAR(255)   NOT NULL DEFAULT '',
+    category_ru    VARCHAR(255)   NOT NULL DEFAULT '',
+    category_en    VARCHAR(255)   NOT NULL DEFAULT '',
+    category_tk    VARCHAR(255)   NOT NULL DEFAULT '',
+    material       VARCHAR(255)   NOT NULL DEFAULT '',
+    dimensions     VARCHAR(255)   NOT NULL DEFAULT '',
+    weight         DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+    description_ru TEXT           NOT NULL DEFAULT '',
+    description_en TEXT           NOT NULL DEFAULT '',
+    description_tk TEXT           NOT NULL DEFAULT '',
+    active         INT            NOT NULL DEFAULT 0,
+    deleted        INT            NOT NULL DEFAULT 0
+);
+
+INSERT INTO tbl_packaging_type (name_ru, name_en, category_ru, category_en, material, dimensions, weight, description_ru, description_en)
+VALUES
+    ('Картонная коробка', 'Cardboard Box', 'Вторичная упаковка', 'Secondary Packaging', 'Картон', '30x30x30 см', 1.50, 'Общепринятая упаковка для товаров, таких как электроника, книги и мелкие предметы.', 'Common packaging for electronics, books, and small items'),
+    ('Деревянный ящик', 'Wooden Crate', 'Третичная упаковка', 'Tertiary Packaging', 'Дерево', '120x120x120 см', 15.00, 'Мощная деревянная упаковка для перевозки крупногабаритного оборудования или материалов.', 'Heavy-duty wooden crates for large machinery or equipment'),
+    ('Пленка Shrink', 'Shrink Wrap', 'Вторичная упаковка', 'Secondary Packaging', 'Пластик', 'N/A', 0.10, 'Пластиковая пленка, которая оборачивает товары, создавая защиту для транспортировки.', 'Plastic film used to wrap around goods for secure transport'),
+    ('Палета', 'Pallet', 'Третичная упаковка', 'Tertiary Packaging', 'Дерево', '120x80 см', 25.00, 'Палета для укладки товаров для транспортировки с использованием погрузчика.', 'Pallet used to stack goods for easier transport with a forklift'),
+    ('Тетра Пак', 'Tetra Pak', 'Первичная упаковка', 'Primary Packaging', 'Картон', '200x150x100 мм', 0.25, 'Упаковка для жидких продуктов, таких как молоко или сок.', 'Packaging used for liquid products like milk or juice'),
+    ('Картонная коробка с клапаном', 'Flap Carton Box', 'Вторичная упаковка', 'Secondary Packaging', 'Картон', '40x40x40 см', 3.00, 'Коробка с клапаном для упаковки средних товаров.', 'Flap carton box used for medium-sized goods packaging'),
+    ('Гофрированный картон', 'Corrugated Cardboard', 'Вторичная упаковка', 'Secondary Packaging', 'Картон', 'N/A', 0.50, 'Гофрированный картон, использующийся для упаковки хрупких товаров.', 'Corrugated cardboard used for packing fragile goods'),
+    ('Картонный контейнер', 'Cardboard Container', 'Третичная упаковка', 'Tertiary Packaging', 'Картон', '120x80 см', 10.00, 'Контейнеры из картона для транспортировки больших объемов товаров.', 'Cardboard containers used for bulk goods transport'),
+    ('Мешок', 'Bag', 'Первичная упаковка', 'Primary Packaging', 'Пластик', '30x40 см', 0.15, 'Мешки для упаковки сыпучих товаров, таких как зерно, уголь и порошки.', 'Bags used for packaging bulk goods such as grain, coal, and powders'),
+    ('Пластиковая бутылка', 'Plastic Bottle', 'Первичная упаковка', 'Primary Packaging', 'Пластик', '1 литр', 0.25, 'Пластиковая бутылка для напитков и жидких продуктов.', 'Plastic bottle used for beverages and liquid products'),
+    ('Пластиковый контейнер', 'Plastic Container', 'Первичная упаковка', 'Primary Packaging', 'Пластик', '500 мл', 0.20, 'Пластиковый контейнер для упаковки продуктов питания или бытовых товаров.', 'Plastic container used for food or household goods'),
+    ('Металлическая банка', 'Metal Can', 'Первичная упаковка', 'Primary Packaging', 'Металл', '500 мл', 0.30, 'Металлическая банка для упаковки напитков или консервированных продуктов.', 'Metal can used for packaging beverages or canned food'),
+    ('Стеклянная бутылка', 'Glass Bottle', 'Первичная упаковка', 'Primary Packaging', 'Стекло', '1 литр', 0.45, 'Стеклянная бутылка для упаковки напитков, таких как соки и вино.', 'Glass bottle used for packaging beverages like juices and wine'),
+    ('Вакуумная упаковка', 'Vacuum Packaging', 'Первичная упаковка', 'Primary Packaging', 'Пластик', 'N/A', 0.30, 'Упаковка, в которой удален воздух, используемая для хранения продуктов или товаров.', 'Packaging where air is removed, used for storing food or goods'),
+    ('Упаковка с регулируемой атмосферой', 'Modified Atmosphere Packaging (MAP)', 'Первичная упаковка', 'Primary Packaging', 'Пластик', 'N/A', 0.50, 'Упаковка с контролируемым составом воздуха для продления срока хранения продуктов.', 'Packaging with controlled air composition for extended product shelf life'),
+    ('Стретч-пленка', 'Stretch Film', 'Вторичная упаковка', 'Secondary Packaging', 'Пластик', 'N/A', 0.10, 'Пленка, обвивающая паллеты для их закрепления и защиты в процессе транспортировки.', 'Film used to wrap around pallets for securing and protecting goods during transport'),
+    ('Пластиковая пленка', 'Plastic Wrap', 'Вторичная упаковка', 'Secondary Packaging', 'Пластик', 'N/A', 0.05, 'Пленка для упаковки продуктов или товаров в небольших количествах.', 'Film used for wrapping small quantities of products or goods'),
+    ('Обертка для продукции', 'Product Wrap', 'Вторичная упаковка', 'Secondary Packaging', 'Пластик', 'N/A', 0.10, 'Пленка или бумага, используемая для упаковки отдельных единиц продукции.', 'Plastic or paper wrap used for individual product packaging'),
+    ('Деревянный контейнер', 'Wooden Container', 'Третичная упаковка', 'Tertiary Packaging', 'Дерево', '150x120x100 см', 20.00, 'Деревянный контейнер для транспортировки крупногабаритных и тяжёлых товаров.', 'Wooden container used for transporting oversized and heavy goods'),
+    ('Металлический контейнер', 'Metal Container', 'Третичная упаковка', 'Tertiary Packaging', 'Металл', '200x150x150 см', 30.00, 'Металлические контейнеры для транспортировки опасных грузов или химикатов.', 'Metal containers used for transporting hazardous goods or chemicals'),
+    ('Изотермическая упаковка', 'Isothermal Packaging', 'Первичная упаковка', 'Primary Packaging', 'Пластик/Термопласт', '30x30x30 см', 0.80, 'Упаковка, поддерживающая температуру для чувствительных к температуре продуктов, таких как медикаменты или еда.', 'Packaging that maintains temperature for temperature-sensitive products like medications or food'),
+    ('Пакет с клапаном', 'Valve Bag', 'Первичная упаковка', 'Primary Packaging', 'Пластик', '50x50 см', 0.50, 'Мешок с клапаном для упаковки порошков или сыпучих товаров, таких как цемент или химикаты.', 'Bag with a valve for packaging powders or bulk goods like cement or chemicals'),
+    ('Картонная коробка для электроники', 'Electronics Cardboard Box', 'Вторичная упаковка', 'Secondary Packaging', 'Картон', '25x25x25 см', 1.00, 'Коробка, используемая для упаковки электроники, такой как телевизоры или компьютеры.', 'Cardboard box used for packaging electronics like televisions or computers');
+
+
 
 CREATE TABLE tbl_vehicle
 (
     id                  SERIAL PRIMARY KEY,
     uuid                UUID                                                    DEFAULT gen_random_uuid(),
     company_id          INT          NOT NULL REFERENCES tbl_company (id) ON DELETE CASCADE,
+    vehicle_type_id     INT          NOT NULL                                   DEFAULT 0,
     vehicle_type        VARCHAR(100) NOT NULL                                   DEFAULT '',
     vehicle_brand_id    INT REFERENCES tbl_vehicle_brand (id) ON DELETE CASCADE DEFAULT 1,
     vehicle_model_id    INT REFERENCES tbl_vehicle_model (id) ON DELETE CASCADE DEFAULT 1,
@@ -122,7 +213,7 @@ CREATE TABLE tbl_vehicle
     mileage             INT          NOT NULL                                   DEFAULT 0,
     numberplate         VARCHAR(20)  NOT NULL                                   DEFAULT '',
     trailer_numberplate VARCHAR(20)  NOT NULL                                   DEFAULT '',
-    gps_active          INT          NOT NULL                                   DEFAULT 0,
+    gps                 INT          NOT NULL                                   DEFAULT 0,
     photo1_url          VARCHAR(200) NOT NULL                                   DEFAULT '',
     photo2_url          VARCHAR(200) NOT NULL                                   DEFAULT '',
     photo3_url          VARCHAR(200) NOT NULL                                   DEFAULT '',
@@ -220,7 +311,7 @@ INSERT INTO tbl_driver (company_id, first_name, last_name, patronymic_name, phon
 
 -- Insert mock data into tbl_vehicle (Each company has multiple vehicles)
 -- Drivers can have multiple vehicles, or vehicles can be unassigned.
-INSERT INTO tbl_vehicle (company_id, vehicle_type, vehicle_brand_id, vehicle_model_id, year_of_issue, mileage, numberplate, trailer_numberplate, gps_active, photo1_url, photo2_url, photo3_url, docs1_url, docs2_url, docs3_url, active, deleted) VALUES
+INSERT INTO tbl_vehicle (company_id, vehicle_type, vehicle_brand_id, vehicle_model_id, year_of_issue, mileage, numberplate, trailer_numberplate, gps, photo1_url, photo2_url, photo3_url, docs1_url, docs2_url, docs3_url, active, deleted) VALUES
 (1, 'Truck', 4,12, '2019', 1023954, 'ABC123', 'TRAIL123', 1, 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104405751076482_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104406528835478_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104404137616440_big--24102810295850812600.jpg', 'http://example.com/vehicle1_docs1.pdf', '', '', 1, 0),
 (1, 'Van', 3, 45, '2020', 1022234,'XYZ456', 'TRAIL456', 1, 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426654848855287_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426656178478265_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426657288003993_big--24102015102897570700.jpg', 'http://example.com/vehicle2_docs1.pdf', '', '', 1, 0),
 (2, 'Truck', 5, 66, '2018', 23954, 'LMN789', 'TRAIL789', 0, 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826471689124800_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472190064857_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472610252577_big--24072415525385274700.jpg', 'http://example.com/vehicle3_docs1.pdf', '', '', 1, 0),

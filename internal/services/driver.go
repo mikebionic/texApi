@@ -57,7 +57,7 @@ func GetDriverList(ctx *gin.Context) {
 		drivers = append(drivers, driver)
 	}
 
-	response := dto.PaginatedResponse{
+	response := utils.PaginatedResponse{
 		Total:   totalCount,
 		Page:    page,
 		PerPage: perPage,

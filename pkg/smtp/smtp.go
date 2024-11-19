@@ -44,7 +44,7 @@ func SendOTPEmail(recipient, otp string) error {
 		LogoURL:     DefaultConfig.LogoURL,
 	}
 
-	emailBody, err := parseTemplate("pkg/smtp/email_template.html", emailData)
+	emailBody, err := parseTemplate("assets/email_template.html", emailData)
 	if err != nil {
 		return err
 	}

@@ -1,13 +1,15 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Driver(router *gin.Engine) {
-	group := router.Group("texapp/driver/")
+	group := router.Group(config.ENV.API_PREFIX + "/driver/")
 
 	group.GET("/", services.GetDriverList)
 	group.GET("/:id", services.GetDriver)
