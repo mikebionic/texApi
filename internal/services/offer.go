@@ -201,27 +201,39 @@ func CreateOffer(ctx *gin.Context) {
 }
 
 func UpdateOffer(ctx *gin.Context) {
-	id := ctx.Param("id")
+	offerID, _ := strconv.Atoi(ctx.Param("id"))
 	var offer dto.OfferUpdate
-
 	stmt := queries.UpdateOffer
 
-	companyID := ctx.MustGet("companyID").(int)
 	if err := ctx.ShouldBindJSON(&offer); err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
 		return
 	}
 
+	role := ctx.MustGet("role").(string)
+	if !(role == "admin" || role == "system") {
+		*offer.CompanyID = ctx.MustGet("companyID").(int)
+		offer.OfferState = nil
+		offer.OfferRole = nil
+		stmt += ` AND active = 1 AND deleted = 0`
+	}
+	stmt += ` RETURNING id;`
+
 	var updatedID int
 	err := db.DB.QueryRow(
 		context.Background(),
 		stmt,
-		id, offer.DriverID, offer.VehicleID, offer.CargoID, offer.CostPerKm, offer.Currency,
+		offerID,
+		offer.DriverID, offer.VehicleID, offer.CargoID, offer.CostPerKm, offer.Currency,
 		offer.FromCountryID, offer.FromCityID, offer.ToCountryID, offer.ToCityID,
-		offer.FromCountry, offer.FromRegion, offer.ToCountry, offer.ToRegion, offer.FromAddress, offer.ToAddress,
-		offer.SenderContact, offer.RecipientContact, offer.DeliverContact, offer.ValidityStart, offer.ValidityEnd,
-		offer.DeliveryStart, offer.DeliveryEnd, offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
-		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3, offer.Active, offer.Deleted, offer.ExecCompanyID, companyID,
+		offer.FromCountry, offer.FromRegion, offer.ToCountry, offer.ToRegion,
+		offer.FromAddress, offer.ToAddress,
+		offer.SenderContact, offer.RecipientContact, offer.DeliverContact,
+		offer.ValidityStart, offer.ValidityEnd, offer.DeliveryStart, offer.DeliveryEnd,
+		offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
+		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3,
+		offer.Active, offer.Deleted, offer.ExecCompanyID,
+		offer.OfferState, offer.OfferRole, offer.CompanyID,
 	).Scan(&updatedID)
 
 	if err != nil {

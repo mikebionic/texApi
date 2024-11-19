@@ -100,6 +100,7 @@ LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
 LEFT JOIN tbl_cargo c2 ON o.cargo_id = c2.id
 WHERE o.id = $1 AND o.deleted = 0;
 `
+
 const CreateOffer = `
 INSERT INTO tbl_offer (
     user_id,
@@ -137,9 +138,10 @@ INSERT INTO tbl_offer (
     meta3,
     offer_role,
     exec_company_id
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
 RETURNING id;
 `
+
 const UpdateOffer = `
 UPDATE tbl_offer
 SET
@@ -152,7 +154,6 @@ SET
     from_city_id = COALESCE($8, from_city_id),
     to_country_id = COALESCE($9, to_country_id),
     to_city_id = COALESCE($10, to_city_id),
-    
     from_country = COALESCE($11, from_country),
     from_region = COALESCE($12, from_region),
     to_country = COALESCE($13, to_country),
@@ -178,9 +179,10 @@ SET
     active = COALESCE($33, active),
     deleted = COALESCE($34, deleted),
     exec_company_id = COALESCE($35, exec_company_id),
+    offer_state = COALESCE($36, offer_state),
+    offer_role = COALESCE($37, offer_role),
     updated_at = NOW()
-WHERE (id = $1 AND company_id = $36) AND (active = 1 AND deleted = 0)
-RETURNING id;
+WHERE id = $1 AND company_id = $38
 `
 
 const DeleteOffer = `
