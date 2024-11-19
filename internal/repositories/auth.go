@@ -32,9 +32,7 @@ func GetUser(username, loginMethod string) (dto.User, error) {
 		username,
 	)
 	if err != nil {
-		fmt.Println(err)
 		return user, err
-		//fmt.Errorf("error fetching user")
 	}
 
 	if user.ID == 0 {
@@ -96,6 +94,7 @@ func CreateUser(user dto.CreateUser) (int, error) {
 		user.Password,
 		user.Email,
 		user.Phone,
+		user.Role,
 		user.RoleID,
 		user.CompanyID,
 		user.Verified,
@@ -107,6 +106,7 @@ func CreateUser(user dto.CreateUser) (int, error) {
 		user.OauthAccessTokenSecret,
 		user.OauthRefreshToken,
 		user.OauthIDToken,
+		user.RefreshToken,
 	).Scan(&id)
 	if err != nil {
 		return 0, err

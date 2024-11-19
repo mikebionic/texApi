@@ -8,13 +8,6 @@ type CompanyDetails struct {
 	Vehicles []Vehicle `json:"vehicles,omitempty"`
 }
 
-type PaginatedResponse struct {
-	Total   int         `json:"total"`
-	Page    int         `json:"page"`
-	PerPage int         `json:"per_page"`
-	Data    interface{} `json:"data"`
-}
-
 type CompanyCreate struct {
 	ID             int       `json:"id"`
 	UUID           string    `json:"uuid"`

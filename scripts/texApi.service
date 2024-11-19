@@ -5,10 +5,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=ubuntu
-Group=ubuntu
-WorkingDirectory=/home/ubuntu/tex_backend/app/texApp_service
-ExecStart=/home/ubuntu/tex_backend/app/texApp_service/tex
+User=fedora
+Group=fedora
+WorkingDirectory=/home/fedora/tex_backend/app/
+ExecStart=/home/fedora/tex_backend/app/texApi
 Restart=always
 
 [Install]

@@ -1,24 +1,21 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
+	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Offer(router *gin.Engine) {
-	group := router.Group("texapp/request/")
+	group := router.Group(config.ENV.API_PREFIX + "/offer/")
+	group.Use(middlewares.Guard)
 
-	//user as a company
-	group.POST("/", services.CreateOffer)
-	group.PUT("/:id", services.UpdateOffer)
-
-	//user's companies
-	group.GET("/company/", services.GetCompanyOffers)
-
-	// TODO: Implement pagination
-	// Everyone see this in BIDS section
-	group.GET("/", services.GetOffers)
-
-	//Only user's created ones, or admin
-	group.DELETE("/:id", services.DeleteOffer)
+	group.GET("/", services.GetOfferList)
+	group.GET("/my/", services.GetMyOfferList)
+	group.GET("/:id", services.GetOffer)
+	group.POST("/", middlewares.Guard, services.CreateOffer)
+	group.PUT("/:id", middlewares.Guard, services.UpdateOffer)
+	group.DELETE("/:id", middlewares.Guard, services.DeleteOffer)
 }

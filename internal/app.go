@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -9,7 +11,7 @@ import (
 	"os"
 	"texApi/config"
 	"texApi/internal/controllers"
-	"texApi/pkg/middlewares"
+	"time"
 )
 
 func InitApp() *gin.Engine {
@@ -27,8 +29,18 @@ func InitApp() *gin.Engine {
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("texsession", store))
 
-	router.Use(middlewares.Cors)
-	router.Static("/texapp/uploads", config.ENV.UPLOAD_PATH)
+	//router.Use(middlewares.Cors)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		ExposeHeaders:    []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
+	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
+	router.Static(fmt.Sprintf("/%s/assets/", config.ENV.API_PREFIX), "assets/")
 
 	log.SetOutput(gin.DefaultWriter)
 	controllers.Content(router)
@@ -39,6 +51,9 @@ func InitApp() *gin.Engine {
 	controllers.Vehicle(router)
 	controllers.Offer(router)
 	controllers.Bid(router)
+	controllers.PackagingType(router)
+	controllers.Cargo(router)
+	controllers.Media(router)
 
 	return router
 }

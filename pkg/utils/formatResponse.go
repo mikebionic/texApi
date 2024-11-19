@@ -7,6 +7,13 @@ type UniversalResponse struct {
 	ErrorMsg string      `json:"errorMsg"`
 }
 
+type PaginatedResponse struct {
+	Total   int         `json:"total"`
+	Page    int         `json:"page"`
+	PerPage int         `json:"per_page"`
+	Data    interface{} `json:"data"`
+}
+
 func FormatResponse(message string, data interface{}) UniversalResponse {
 	return UniversalResponse{
 		Message:  message,

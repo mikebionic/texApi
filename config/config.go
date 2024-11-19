@@ -1,7 +1,9 @@
 package config
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -11,12 +13,17 @@ import (
 var SocketClients = make(map[string]*websocket.Conn)
 
 type Config struct {
-	API_HOST          string
-	API_SERVER_URL    string
-	API_PORT          string
-	API_SECRET        string
-	API_DEBUG         bool
-	UPLOAD_PATH       string
+	API_HOST       string
+	API_SERVER_URL string
+	API_PREFIX     string
+	API_PORT       string
+	API_SECRET     string
+	API_DEBUG      bool
+
+	UPLOAD_PATH           string
+	MAX_FILE_UPLOAD_COUNT int
+	STATIC_URL            string
+
 	ENCRYPT_PASSWORDS bool
 	SESSION_MAX_AGE   int
 
@@ -31,8 +38,9 @@ type Config struct {
 	REFRESH_KEY  string
 	REFRESH_TIME time.Duration
 
-	GoogleClientID     string
-	GoogleClientSecret string
+	GLE_KEY      string
+	GLE_SECRET   string
+	GLE_CALLBACK string
 
 	SMTP_HOST     string
 	SMTP_PORT     string
@@ -47,11 +55,16 @@ func InitConfig() {
 	godotenv.Load()
 	ENV.API_HOST = os.Getenv("API_HOST")
 	ENV.API_SERVER_URL = os.Getenv("API_SERVER_URL")
+	ENV.API_PREFIX = os.Getenv("API_PREFIX")
 	ENV.API_PORT = os.Getenv("API_PORT")
 	ENV.API_DEBUG = os.Getenv("DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
-	ENV.SESSION_MAX_AGE = 86400 * 30
+	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
+
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
+	ENV.MAX_FILE_UPLOAD_COUNT, _ = strconv.Atoi(os.Getenv("MAX_FILE_UPLOAD_COUNT"))
+	ENV.STATIC_URL = fmt.Sprintf("/%s/uploads/", ENV.API_PREFIX)
+
 	ENV.ENCRYPT_PASSWORDS = os.Getenv("ENCRYPT_PASSWORDS") == "true"
 
 	ENV.DB_HOST = os.Getenv("DB_HOST")
@@ -68,12 +81,16 @@ func InitConfig() {
 	RT, _ := time.ParseDuration(os.Getenv(("REFRESH_TIME")))
 	ENV.REFRESH_TIME = RT
 
-	ENV.GoogleClientID = os.Getenv("GoogleClientID")
-	ENV.GoogleClientSecret = os.Getenv("GoogleClientSecret")
+	ENV.GLE_KEY = os.Getenv("GLE_KEY")
+	ENV.GLE_SECRET = os.Getenv("GLE_SECRET")
+	ENV.GLE_CALLBACK = os.Getenv("GLE_CALLBACK")
 
 	ENV.SMTP_HOST = os.Getenv("SMTP_HOST")
 	ENV.SMTP_PORT = os.Getenv("SMTP_PORT")
 	ENV.SMTP_MAIL = os.Getenv("SMTP_MAIL")
 	ENV.SMTP_PASSWORD = os.Getenv("SMTP_PASSWORD")
-	ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
+	ENV.APP_LOGO_URL = fmt.Sprintf("%s/%s/assets/logo.svg", ENV.API_SERVER_URL, ENV.API_PREFIX)
+	if len(os.Getenv("APP_LOGO_URL")) > 8 {
+		ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
+	}
 }

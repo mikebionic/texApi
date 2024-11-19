@@ -1,12 +1,14 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
+	"texApi/config"
 	"texApi/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Bid(router *gin.Engine) {
-	group := router.Group("texapp/bid/")
+	group := router.Group(config.ENV.API_PREFIX + "/bid/")
 
 	group.GET("/request/", services.GetRequestBids)
 	group.GET("/user/", services.GetUserBids)
