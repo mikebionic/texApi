@@ -15,6 +15,7 @@ func Vehicle(router *gin.Engine) {
 	group.POST("/", middlewares.Guard, services.CreateVehicle)
 	group.PUT("/:id", middlewares.Guard, services.UpdateVehicle)
 	group.DELETE("/:id", middlewares.Guard, services.DeleteVehicle)
+	group.GET("/filter/", services.GetFilteredVehicles)
 
 	//// TODO: These all probably should be manageable only by admin
 	// Vehicle Brand routes
