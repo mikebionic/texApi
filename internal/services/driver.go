@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
@@ -37,39 +39,6 @@ func GetDriverList(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver list", response))
 }
-
-// GetDriverList - Refactored to use pgxscan
-//func GetDriverList(ctx *gin.Context) {
-//	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-//	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
-//	offset := (page - 1) * perPage
-//
-//	var drivers []dto.DriverDetails
-//	var totalCount int
-//
-//	query := queries.GetDriverList
-//
-//	err := pgxscan.Select(context.Background(), db.DB, &drivers, query, perPage, offset)
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
-//		return
-//	}
-//
-//	err = pgxscan.Get(context.Background(), db.DB, &totalCount, "SELECT COUNT(*) FROM tbl_driver WHERE deleted = 0")
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error fetching total count", err.Error()))
-//		return
-//	}
-//
-//	response := utils.PaginatedResponse{
-//		Total:   totalCount,
-//		Page:    page,
-//		PerPage: perPage,
-//		Data:    drivers,
-//	}
-//
-//	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver list", response))
-//}
 
 func GetDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -164,93 +133,155 @@ func DeleteDriver(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted driver!", gin.H{"id": id}))
 }
 
-//
-//
-//// TODO: Filter bu company ID
-//func GetDriverList(ctx *gin.Context) {
-//	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-//	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
-//	offset := (page - 1) * perPage
-//
-//	rows, err := db.DB.Query(
-//		context.Background(),
-//		queries.GetDriverList,
-//		perPage,
-//		offset,
-//	)
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
-//		return
-//	}
-//	defer rows.Close()
-//
-//	var drivers []dto.DriverDetails
-//	var totalCount int
-//
-//	for rows.Next() {
-//		var driver dto.DriverDetails
-//		var companyJSON, vehiclesJSON []byte
-//
-//		err := rows.Scan(
-//			&driver.ID, &driver.UUID, &driver.CompanyID, &driver.FirstName,
-//			&driver.LastName, &driver.PatronymicName, &driver.Phone,
-//			&driver.Email, &driver.Featured, &driver.Rating,
-//			&driver.Partner, &driver.SuccessfulOps, &driver.ImageURL,
-//			&driver.Meta, &driver.Meta2, &driver.Meta3, &driver.CreatedAt,
-//			&driver.UpdatedAt, &driver.Active, &driver.Deleted,
-//			&totalCount, &companyJSON, &vehiclesJSON,
-//		)
-//
-//		if err != nil {
-//			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
-//			return
-//		}
-//
-//		json.Unmarshal(companyJSON, &driver.Company)
-//		json.Unmarshal(vehiclesJSON, &driver.AssignedVehicles)
-//		drivers = append(drivers, driver)
-//	}
-//
-//	response := utils.PaginatedResponse{
-//		Total:   totalCount,
-//		Page:    page,
-//		PerPage: perPage,
-//		Data:    drivers,
-//	}
-//
-//	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver list", response))
-//}
-//
-//func GetDriver(ctx *gin.Context) {
-//	id := ctx.Param("id")
-//
-//	var driver dto.DriverDetails
-//	var companyJSON, vehiclesJSON []byte
-//
-//	err := db.DB.QueryRow(
-//		context.Background(),
-//		queries.GetDriverByID,
-//		id,
-//	).Scan(
-//		&driver.ID, &driver.UUID, &driver.CompanyID, &driver.FirstName,
-//		&driver.LastName, &driver.PatronymicName, &driver.Phone,
-//		&driver.Email, &driver.Featured, &driver.Rating,
-//		&driver.Partner, &driver.SuccessfulOps, &driver.ImageURL,
-//		&driver.Meta, &driver.Meta2, &driver.Meta3,
-//		&driver.CreatedAt, &driver.UpdatedAt, &driver.Active, &driver.Deleted,
-//		&companyJSON, &vehiclesJSON,
-//	)
-//
-//	if err != nil {
-//		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Driver not found", err.Error()))
-//		return
-//	}
-//
-//	json.Unmarshal(companyJSON, &driver.Company)
-//	json.Unmarshal(vehiclesJSON, &driver.AssignedVehicles)
-//
-//	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver details", driver))
-//}
+func GetFilteredDriverList(ctx *gin.Context) {
+
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	companyID := ctx.DefaultQuery("company_id", "")
+	firstName := ctx.DefaultQuery("first_name", "")
+	lastName := ctx.DefaultQuery("last_name", "")
+	phone := ctx.DefaultQuery("phone", "")
+	email := ctx.DefaultQuery("email", "")
+	available := ctx.DefaultQuery("available", "")
+	orderBy := ctx.DefaultQuery("order_by", "date-new")
+
+	var whereClauses []string
+	var args []interface{}
+	argIndex := 1
+
+	if companyID != "" {
+		whereClauses = append(whereClauses, "d.company_id = $"+strconv.Itoa(argIndex))
+		args = append(args, companyID)
+		argIndex++
+	}
+	if firstName != "" {
+		whereClauses = append(whereClauses, "d.first_name ILIKE $"+strconv.Itoa(argIndex))
+		args = append(args, "%"+firstName+"%")
+		argIndex++
+	}
+	if lastName != "" {
+		whereClauses = append(whereClauses, "d.last_name ILIKE $"+strconv.Itoa(argIndex))
+		args = append(args, "%"+lastName+"%")
+		argIndex++
+	}
+	if phone != "" {
+		whereClauses = append(whereClauses, "d.phone ILIKE $"+strconv.Itoa(argIndex))
+		args = append(args, "%"+phone+"%")
+		argIndex++
+	}
+	if email != "" {
+		whereClauses = append(whereClauses, "d.email ILIKE $"+strconv.Itoa(argIndex))
+		args = append(args, "%"+email+"%")
+		argIndex++
+	}
+	if available != "" {
+		whereClauses = append(whereClauses, "d.available = $"+strconv.Itoa(argIndex))
+		args = append(args, available)
+		argIndex++
+	}
+
+	whereClause := "d.deleted = 0"
+	if len(whereClauses) > 0 {
+		whereClause += " AND " + strings.Join(whereClauses, " AND ")
+	}
+
+	var orderByClause string
+	switch orderBy {
+	case "date-old":
+		orderByClause = "d.created_at ASC"
+	case "date-new":
+		orderByClause = "d.created_at DESC"
+	case "id":
+		orderByClause = "d.id ASC"
+	case "rating":
+		orderByClause = "d.rating DESC"
+	case "successful_ops":
+		orderByClause = "d.successful_ops DESC"
+	case "view_count":
+		orderByClause = "d.view_count DESC"
+	default:
+		orderByClause = "d.created_at DESC"
+	}
+
+	query := `
+		SELECT 
+			d.*, 
+			COUNT(*) OVER() as total_count,
+			json_build_object(
+				'id', c.id,
+				'company_name', c.company_name,
+				'country', c.country
+			) as company,
+			COALESCE((
+				SELECT json_agg(
+					json_build_object(
+						'id', v.id,
+						'vehicle_type', v.vehicle_type,
+						'numberplate', v.numberplate
+					)
+				)
+				FROM tbl_vehicle v
+				WHERE v.company_id = d.company_id AND v.deleted = 0
+			), '[]') as assigned_vehicles
+		FROM tbl_driver d
+		LEFT JOIN tbl_company c ON d.company_id = c.id
+		WHERE ` + whereClause + `
+		ORDER BY ` + orderByClause + `
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := db.DB.Query(
+		context.Background(),
+		query,
+		append([]interface{}{perPage, offset}, args...)...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+	defer rows.Close()
+
+	var drivers []dto.DriverDetails
+	var totalCount int
+
+	for rows.Next() {
+		var driver dto.DriverDetails
+		var companyJSON, vehiclesJSON []byte
+
+		err := rows.Scan(
+			&driver.ID, &driver.UUID, &driver.CompanyID, &driver.FirstName,
+			&driver.LastName, &driver.PatronymicName, &driver.Phone,
+			&driver.Email, &driver.Featured, &driver.Rating,
+			&driver.Partner, &driver.SuccessfulOps, &driver.ImageURL,
+			&driver.Meta, &driver.Meta2, &driver.Meta3, &driver.CreatedAt,
+			&driver.UpdatedAt, &driver.Active, &driver.Deleted,
+			&totalCount, &companyJSON, &vehiclesJSON,
+		)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
+			return
+		}
+
+		json.Unmarshal(companyJSON, &driver.Company)
+		json.Unmarshal(vehiclesJSON, &driver.AssignedVehicles)
+		drivers = append(drivers, driver)
+	}
+
+	// Prepare the response
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    drivers,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Filtered driver list", response))
+}
+
 //
 //func CreateDriver(ctx *gin.Context) {
 //	var driver dto.DriverCreate

@@ -61,6 +61,46 @@ LEFT JOIN tbl_company c ON d.company_id = c.id
 WHERE d.id = $1 AND d.deleted = 0;
 `
 
+const GetFilteredDriverList = `
+WITH driver_data AS (
+    SELECT 
+        d.*, 
+        COUNT(*) OVER() as total_count
+    FROM tbl_driver d
+    WHERE :whereClause
+    ORDER BY :orderBy
+    LIMIT $1 OFFSET $2
+)
+SELECT 
+    dd.*, 
+    json_build_object(
+        'id', c.id,
+        'company_name', c.company_name,
+        'country', c.country
+    ) as company,
+    COALESCE(
+        (
+            SELECT json_agg(
+                json_build_object(
+                    'id', v.id,
+                    'vehicle_type', v.vehicle_type,
+                    'numberplate', v.numberplate
+                )
+            )
+            FROM tbl_vehicle v
+            WHERE v.company_id = dd.company_id AND v.deleted = 0
+        ),
+        '[]'
+    ) as assigned_vehicles
+FROM driver_data dd
+LEFT JOIN tbl_company c ON dd.company_id = c.id
+GROUP BY 
+    dd.id, dd.uuid, dd.company_id, dd.first_name, dd.last_name, dd.patronymic_name, 
+    dd.phone, dd.email, dd.featured, dd.rating, dd.partner, dd.successful_ops, 
+    dd.image_url, dd.meta, dd.meta2, dd.meta3, dd.created_at, dd.updated_at, dd.active, dd.deleted, dd.total_count, 
+    c.id, c.company_name, c.country;
+`
+
 const CreateDriver = `
 INSERT INTO tbl_driver (
     company_id, first_name, last_name, patronymic_name,
