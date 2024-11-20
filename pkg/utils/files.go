@@ -104,7 +104,7 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 			return nil, err
 		}
 
-		filePaths = append(filePaths, config.ENV.STATIC_URL+strings.ReplaceAll(dir, config.ENV.UPLOAD_PATH, "")+fileNames[index])
+		filePaths = append(filePaths, config.ENV.API_SERVER_URL+config.ENV.STATIC_URL+strings.ReplaceAll(dir, config.ENV.UPLOAD_PATH, "")+fileNames[index])
 	}
 
 	return filePaths, nil
