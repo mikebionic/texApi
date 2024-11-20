@@ -16,5 +16,6 @@ func Driver(router *gin.Engine) {
 	group.POST("/", middlewares.Guard, services.CreateDriver)
 	group.PUT("/:id", middlewares.Guard, services.UpdateDriver)
 	group.DELETE("/:id", middlewares.Guard, services.DeleteDriver)
+	group.GET("/filter/", services.GetFilteredDriverList)
 
 }
