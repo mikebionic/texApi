@@ -104,6 +104,8 @@ CREATE TABLE tbl_driver
     meta            TEXT         NOT NULL DEFAULT '',
     meta2           TEXT         NOT NULL DEFAULT '',
     meta3           TEXT         NOT NULL DEFAULT '',
+    available       INT          NOT NULL DEFAULT 1,
+    view_count      INT          NOT NULL DEFAULT 0,
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     active          INT          NOT NULL DEFAULT 1,
@@ -112,45 +114,6 @@ CREATE TABLE tbl_driver
 
 
 
-
--- CREATE TABLE tbl_vehicle_types
--- (
---     id     INT PRIMARY KEY,
---     name_ru     VARCHAR(255)   NOT NULL DEFAULT '',
---     name_en     VARCHAR(255)   NOT NULL DEFAULT '',
---     name_tk     VARCHAR(255)   NOT NULL DEFAULT '',
---     category_ru VARCHAR(255)   NOT NULL DEFAULT '',
---     category_en VARCHAR(255)   NOT NULL DEFAULT '',
---     category_tk VARCHAR(255)   NOT NULL DEFAULT '',
---     capacity            DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
---     fuel_type           VARCHAR(50)    NOT NULL DEFAULT '',
---     max_speed           DECIMAL(5, 2)  NOT NULL DEFAULT 0.0,
---     description_ru      TEXT           NOT NULL DEFAULT '',
---     description_en      TEXT           NOT NULL DEFAULT '',
---     description_tk      TEXT           NOT NULL DEFAULT '',
---     active              INT            NOT NULL DEFAULT 0,
---     deleted             INT            NOT NULL DEFAULT 0
--- );
---
--- INSERT INTO tbl_vehicle_types (name_ru, name_en, category_ru, category_en, capacity, fuel_type, max_speed, description_ru, description_en)
--- VALUES
---     ('Бортовой грузовик', 'Box Truck', 'Грузовик', 'Truck', 5.00, 'Дизель', 90.00, 'Стандартный грузовик с закрытым кузовом для транспортировки товаров.', 'Standard box truck used for road transport of goods'),
---     ('Плоский грузовик', 'Flatbed Truck',  'Грузовик', 'Truck', 15.00, 'Дизель', 85.00, 'Грузовик с открытым плоским кузовом для транспортировки крупногабаритных и тяжёлых предметов.', 'Truck with an open flatbed for transporting oversized or heavy items'),
---     ('Рефрижераторный грузовик', 'Refrigerated Truck', 'Грузовик', 'Truck', 3.00, 'Дизель', 80.00, 'Грузовик с холодильной установкой для транспортировки товаров, требующих контроля температуры.', 'Truck with refrigeration unit for transporting perishable goods at controlled temperatures'),
---     ('Топливозаправщик', 'Tanker Truck', 'Грузовик', 'Truck', 20.00, 'Дизель', 70.00, 'Грузовик, предназначенный для транспортировки жидкостей, таких как топливо, химикаты или молоко.', 'Truck designed to transport liquids such as fuel, chemicals, or milk'),
---     ('Контейнеровоз', 'Container Truck', 'Грузовик', 'Truck', 30.00, 'Дизель', 80.00, 'Грузовик, предназначенный для транспортировки контейнеров.', 'Truck designed to carry standardized shipping containers'),
---     ('Грузовой фургон', 'Van Truck', 'Грузовик', 'Truck', 2.00, 'Дизель', 100.00, 'Малый фургон для доставки товаров в городских условиях.', 'Small delivery van used for urban parcel delivery'),
---     ('Грузовой корабль', 'Cargo Ship', 'Корабль', 'Ship', 150000.00, 'Дизель', 30.00, 'Большой грузовой корабль, предназначенный для транспортировки контейнеров, генеральных грузов или товаров массового потребления.', 'Large cargo ship designed to carry containers, bulk goods, or general cargo over long distances'),
---     ('Контейнеровоз', 'Container Ship', 'Корабль', 'Ship', 50000.00, 'Дизель', 30.00, 'Грузовой корабль для транспортировки стандартизированных контейнеров.', 'Large container ship that transports standardized containers across seas'),
---     ('Сухогруз', 'Bulk Carrier', 'Корабль', 'Ship', 200000.00, 'Дизель', 25.00, 'Корабль, предназначенный для транспортировки сыпучих товаров, таких как уголь, зерно или руда.', 'Ship designed to carry bulk goods like coal, grain, or ore'),
---     ('Танкер', 'Tanker Ship', 'Корабль', 'Ship', 100000.00, 'Дизель', 25.00, 'Корабль, предназначенный для транспортировки жидких грузов, таких как нефть или химические вещества.', 'Ship designed to carry liquid cargo, such as oil, chemicals, or liquefied natural gas (LNG)'),
---     ('Ро-Ро судно', 'Roll-on/Roll-off Ship (Ro-Ro)', 'Корабль', 'Ship', 30000.00, 'Дизель', 35.00, 'Корабль, предназначенный для транспортировки колесных грузов, таких как автомобили и грузовики.', 'Ship designed for transporting wheeled cargo, such as cars and trucks'),
---     ('Грузовой самолет', 'Cargo Plane', 'Авиаперевозки', 'Air Freight', 20.00, 'Керосин', 600.00, 'Грузовой самолет, предназначенный для перевозки товаров, обычно высокоценного или срочного груза.', 'Cargo plane designed to carry freight, typically high-value or time-sensitive goods'),
---     ('Грузовой фургон (самолет)', 'Cargo Van', 'Авиаперевозки', 'Air Freight', 2.00, 'Керосин', 500.00, 'Малый самолет для региональной доставки товаров.', 'Smaller air cargo plane used for regional deliveries'),
---     ('Дрон', 'Drones', 'Авиаперевозки', 'Air Freight', 0.01, 'Электричество', 60.00, 'Малые беспилотные летательные аппараты для перевозки легких грузов на короткие расстояния.', 'Small unmanned aerial vehicles (UAVs) used for lightweight, short-distance deliveries'),
---     ('Рефрижераторный вагон', 'Refrigerated Railcar', 'Железнодорожный транспорт', 'Rail', 50.00, 'Электричество', 100.00, 'Железнодорожный вагон с холодильной установкой для перевозки скоропортящихся товаров.', 'Railcar with temperature control for transporting perishable goods by rail'),
---     ('Платформа', 'Flatcar', 'Железнодорожный транспорт', 'Rail', 100.00, 'Электричество', 110.00, 'Открытый железнодорожный вагон для перевозки крупногабаритных и тяжёлых грузов.', 'Open railcar used for transporting large or heavy loads that don’t require weather protection'),
---     ('Цистерна', 'Tank Car', 'Железнодорожный транспорт', 'Rail', 60.00, 'Электричество', 90.00, 'Железнодорожный вагон для перевозки жидких товаров, таких как химикаты, нефть или топливо.', 'Railcar designed for transporting liquids like chemicals, oil, or fuel');
 
 
 CREATE TABLE tbl_packaging_type
@@ -205,8 +168,7 @@ CREATE TABLE tbl_vehicle
     id                  SERIAL PRIMARY KEY,
     uuid                UUID                                                    DEFAULT gen_random_uuid(),
     company_id          INT          NOT NULL REFERENCES tbl_company (id) ON DELETE CASCADE,
-    vehicle_type_id     INT          NOT NULL                                   DEFAULT 0,
-    vehicle_type        VARCHAR(100) NOT NULL                                   DEFAULT '',
+    vehicle_type_id     INT REFERENCES tbl_vehicle_type (id) ON DELETE CASCADE  DEFAULT 1,
     vehicle_brand_id    INT REFERENCES tbl_vehicle_brand (id) ON DELETE CASCADE DEFAULT 1,
     vehicle_model_id    INT REFERENCES tbl_vehicle_model (id) ON DELETE CASCADE DEFAULT 1,
     year_of_issue       VARCHAR(10)  NOT NULL                                   DEFAULT '',
@@ -224,10 +186,11 @@ CREATE TABLE tbl_vehicle
     meta                TEXT         NOT NULL                                   DEFAULT '',
     meta2               TEXT         NOT NULL                                   DEFAULT '',
     meta3               TEXT         NOT NULL                                   DEFAULT '',
-    created_at          TIMESTAMP                                               DEFAULT CURRENT_TIMESTAMP,
-    updated_at          TIMESTAMP                                               DEFAULT CURRENT_TIMESTAMP,
-    active              INT                                                     DEFAULT 1,
-    deleted             INT                                                     DEFAULT 0
+    available           INT          NOT NULL                                   DEFAULT 1,
+    created_at          TIMESTAMP    NOT NULL                                   DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP    NOT NULL                                   DEFAULT CURRENT_TIMESTAMP,
+    active              INT          NOT NULL                                   DEFAULT 1,
+    deleted             INT          NOT NULL                                   DEFAULT 0
 );
 
 
@@ -309,12 +272,10 @@ INSERT INTO tbl_driver (company_id, first_name, last_name, patronymic_name, phon
 (3, 'Anna', 'Taylor', 'Thompson', '+4455667788', 'anna.taylor@speedydeliveries.com', 'http://example.com/avatar6.png', 1, 0);
 
 
--- Insert mock data into tbl_vehicle (Each company has multiple vehicles)
--- Drivers can have multiple vehicles, or vehicles can be unassigned.
-INSERT INTO tbl_vehicle (company_id, vehicle_type, vehicle_brand_id, vehicle_model_id, year_of_issue, mileage, numberplate, trailer_numberplate, gps, photo1_url, photo2_url, photo3_url, docs1_url, docs2_url, docs3_url, active, deleted) VALUES
-(1, 'Truck', 4,12, '2019', 1023954, 'ABC123', 'TRAIL123', 1, 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104405751076482_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104406528835478_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104404137616440_big--24102810295850812600.jpg', 'http://example.com/vehicle1_docs1.pdf', '', '', 1, 0),
-(1, 'Van', 3, 45, '2020', 1022234,'XYZ456', 'TRAIL456', 1, 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426654848855287_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426656178478265_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426657288003993_big--24102015102897570700.jpg', 'http://example.com/vehicle2_docs1.pdf', '', '', 1, 0),
-(2, 'Truck', 5, 66, '2018', 23954, 'LMN789', 'TRAIL789', 0, 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826471689124800_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472190064857_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472610252577_big--24072415525385274700.jpg', 'http://example.com/vehicle3_docs1.pdf', '', '', 1, 0),
-(2, 'Truck', 11, 88, '2017', 96954,'GHI321', '', 1, 'http://example.com/vehicle4_photo1.png', '', '', 'http://example.com/vehicle4_docs1.pdf', '', '', 1, 0),
-(3, 'Truck', 10, 52, '2021', 403954, 'JKL654', 'TRAIL654', 1, 'http://example.com/vehicle5_photo1.png', 'http://example.com/vehicle5_photo2.png', '', 'http://example.com/vehicle5_docs1.pdf', '', '', 1, 0),
-(3, 'Van', 1, 5, '2022',  53954, 'MNO987', '', 0, 'http://example.com/vehicle6_photo1.png', '', '', 'http://example.com/vehicle6_docs1.pdf', '', '', 1, 0);
+INSERT INTO tbl_vehicle (company_id, vehicle_type_id, vehicle_brand_id, vehicle_model_id, year_of_issue, mileage, numberplate, trailer_numberplate, gps, photo1_url, photo2_url, photo3_url, docs1_url, docs2_url, docs3_url, active, deleted) VALUES
+(1, 1, 4,12, '2019', 1023954, 'ABC123', 'TRAIL123', 1, 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104405751076482_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104406528835478_big--24102810295850812600.jpg', 'https://img.linemedia.com/img/s/dump-truck-Volvo-FH16-750-6x4-Retarder-Full-Steel---1730104404137616440_big--24102810295850812600.jpg', 'http://example.com/vehicle1_docs1.pdf', '', '', 1, 0),
+(1, 5, 3, 45, '2020', 1022234,'XYZ456', 'TRAIL456', 1, 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426654848855287_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426656178478265_big--24102015102897570700.jpg', 'https://img.linemedia.com/img/s/coach-bus-Mercedes-Benz-Sprinter-518---1729426657288003993_big--24102015102897570700.jpg', 'http://example.com/vehicle2_docs1.pdf', '', '', 1, 0),
+(2, 2, 5, 66, '2018', 23954, 'LMN789', 'TRAIL789', 0, 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826471689124800_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472190064857_big--24072415525385274700.jpg', 'https://img.linemedia.com/img/s/forestry-equipment-wood-chipper-Jenz-MAN-TGS-33-500-HEM-583-R-Palfinger-Epsilon-S110F101---1721826472610252577_big--24072415525385274700.jpg', 'http://example.com/vehicle3_docs1.pdf', '', '', 1, 0),
+(2, 2, 11, 88, '2017', 96954,'GHI321', '', 1, 'http://example.com/vehicle4_photo1.png', '', '', 'http://example.com/vehicle4_docs1.pdf', '', '', 1, 0),
+(3, 2, 10, 52, '2021', 403954, 'JKL654', 'TRAIL654', 1, 'http://example.com/vehicle5_photo1.png', 'http://example.com/vehicle5_photo2.png', '', 'http://example.com/vehicle5_docs1.pdf', '', '', 1, 0),
+(3, 5, 1, 5, '2022',  53954, 'MNO987', '', 0, 'http://example.com/vehicle6_photo1.png', '', '', 'http://example.com/vehicle6_docs1.pdf', '', '', 1, 0);

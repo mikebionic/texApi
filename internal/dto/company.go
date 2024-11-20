@@ -4,8 +4,8 @@ import "time"
 
 type CompanyDetails struct {
 	CompanyCreate
-	Drivers  []Driver  `json:"drivers,omitempty"`
-	Vehicles []Vehicle `json:"vehicles,omitempty"`
+	Drivers  []DriverShort  `json:"drivers,omitempty"`
+	Vehicles []VehicleShort `json:"vehicles,omitempty"`
 }
 
 type CompanyCreate struct {

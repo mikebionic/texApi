@@ -54,7 +54,7 @@ type Offer struct {
 type OfferDetails struct {
 	Offer
 	Company         *CompanyBasic `json:"company,omitempty"`
-	AssignedDriver  *Driver       `json:"assigned_driver,omitempty"`
+	AssignedDriver  *DriverShort  `json:"assigned_driver,omitempty"`
 	AssignedVehicle *VehicleBasic `json:"assigned_vehicle,omitempty"`
 	Cargo           *Cargo        `json:"cargo,omitempty"`
 }

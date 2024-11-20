@@ -158,13 +158,14 @@ WITH vehicle_data AS (
     LIMIT $1 OFFSET $2
 )
 SELECT 
-    vd.id, vd.uuid, vd.company_id, vd.vehicle_type,
+    vd.id, vd.uuid, vd.company_id, vd.vehicle_type_id,
     vd.vehicle_brand_id, vd.vehicle_model_id, vd.year_of_issue,
     vd.mileage, vd.numberplate, vd.trailer_numberplate,
     vd.gps, vd.photo1_url, vd.photo2_url,
     vd.photo3_url, vd.docs1_url, vd.docs2_url,
     vd.docs3_url, vd.view_count, vd.created_at,
     vd.updated_at, vd.active, vd.deleted, vd.total_count,
+    vd.meta, vd.meta2, vd.meta3, vd.available,
     json_build_object(
         'id', c.id,
         'company_name', c.company_name,
@@ -180,24 +181,26 @@ SELECT
         'id', vm.id,
         'name', vm.name,
         'year', vm.year,
-        'vehicle_type', t.type_name
+        'vehicle_type', t.title_en
     ) AS model
 FROM vehicle_data vd
 LEFT JOIN tbl_company c ON vd.company_id = c.id
 LEFT JOIN tbl_vehicle_brand vb ON vd.vehicle_brand_id = vb.id
 LEFT JOIN tbl_vehicle_model vm ON vd.vehicle_model_id = vm.id
-LEFT JOIN tbl_vehicle_type t ON t.id = vm.vehicle_type_id  -- Adding the join to vehicle type table
+LEFT JOIN tbl_vehicle_type t ON t.id = vm.vehicle_type_id
 GROUP BY 
-    vd.id, vd.uuid, vd.company_id, vd.vehicle_type,
+    vd.id, vd.uuid, vd.company_id, vd.vehicle_type_id,
     vd.vehicle_brand_id, vd.vehicle_model_id, vd.year_of_issue,
     vd.mileage, vd.numberplate, vd.trailer_numberplate,
     vd.gps, vd.photo1_url, vd.photo2_url,
     vd.photo3_url, vd.docs1_url, vd.docs2_url,
     vd.docs3_url, vd.view_count, vd.created_at,
     vd.updated_at, vd.active, vd.deleted, vd.total_count,
+    vd.meta, vd.meta2, vd.meta3, vd.available,
     c.id, c.company_name, c.country,
     vb.id, vb.name, vb.country, vb.founded_year,
-    vm.id, vm.name, vm.year, t.type_name;
+    vm.id, vm.name, vm.year, t.title_en;
+
 
 `
 
@@ -206,11 +209,11 @@ INSERT INTO tbl_vehicle (
     company_id, vehicle_type, vehicle_brand_id, vehicle_model_id,
     year_of_issue, mileage, numberplate, trailer_numberplate,
     gps, photo1_url, photo2_url, photo3_url,
-    docs1_url, docs2_url, docs3_url, created_at, updated_at,
-    active, deleted, uuid
+    docs1_url, docs2_url, docs3_url,
+	view_count,	meta, meta2, meta3,	available
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-    $13, $14, $15, NOW(), NOW(), 1, 0, gen_random_uuid()
+    $13, $14, $15, $16, $17, $18, $19 $20 
 )
 RETURNING id;
 `
@@ -235,6 +238,11 @@ SET
     active = COALESCE($16, active),
     company_id = COALESCE($17, company_id),
     deleted = COALESCE($18, deleted),
+	view_count = COALESCE($19, view_count),
+	meta = COALESCE($20, meta),
+	meta2 = COALESCE($21, meta2),
+	meta3 = COALESCE($22, meta3),
+	available = COALESCE($23, available),
     updated_at = NOW()
 `
 
