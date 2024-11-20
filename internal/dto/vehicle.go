@@ -13,7 +13,7 @@ type VehicleCreate struct {
 	ID                 int       `json:"id"`
 	UUID               string    `json:"uuid"`
 	CompanyID          int       `json:"company_id"`
-	VehicleType        string    `json:"vehicle_type"`
+	VehicleTypeID      int       `json:"vehicle_type_id"`
 	VehicleBrandID     int       `json:"vehicle_brand_id"`
 	VehicleModelID     int       `json:"vehicle_model_id"`
 	YearOfIssue        string    `json:"year_of_issue"`
@@ -31,15 +31,17 @@ type VehicleCreate struct {
 	Meta               string    `json:"meta"`
 	Meta2              string    `json:"meta2"`
 	Meta3              string    `json:"meta3"`
+	Available          int       `json:"available"`
 	CreatedAt          time.Time `json:"created_at"`
 	UpdatedAt          time.Time `json:"updated_at"`
 	Active             int       `json:"active"`
 	Deleted            int       `json:"deleted"`
+	TotalCount         int       `json:"total_count"`
 }
 
 type VehicleUpdate struct {
 	CompanyID          *int    `json:"company_id,omitempty"`
-	VehicleType        *string `json:"vehicle_type,omitempty"`
+	VehicleTypeID      *int    `json:"vehicle_type_id,omitempty"`
 	VehicleBrandID     *int    `json:"vehicle_brand_id,omitempty"`
 	VehicleModelID     *int    `json:"vehicle_model_id,omitempty"`
 	YearOfIssue        *string `json:"year_of_issue,omitempty"`
@@ -53,14 +55,19 @@ type VehicleUpdate struct {
 	Docs1URL           *string `json:"docs1_url,omitempty"`
 	Docs2URL           *string `json:"docs2_url,omitempty"`
 	Docs3URL           *string `json:"docs3_url,omitempty"`
+	ViewCount          *int    `json:"view_count"`
+	Meta               *string `json:"meta"`
+	Meta2              *string `json:"meta2"`
+	Meta3              *string `json:"meta3"`
+	Available          *int    `json:"available"`
 	Active             *int    `json:"active,omitempty"`
 	Deleted            *int    `json:"deleted,omitempty"`
 }
 
-type Vehicle struct {
+type VehicleShort struct {
 	ID                 int    `json:"id"`
 	UUID               string `json:"uuid"`
-	VehicleType        string `json:"vehicle_type"`
+	VehicleTypeID      int    `json:"vehicle_type_id"`
 	VehicleBrandID     int    `json:"vehicle_brand_id"`
 	VehicleModelID     int    `json:"vehicle_model_id"`
 	YearOfIssue        string `json:"year_of_issue"`
@@ -154,7 +161,8 @@ type VehicleModelUpdate struct {
 }
 
 type VehicleBasic struct {
-	ID          int    `json:"id"`
-	VehicleType string `json:"vehicle_type"`
-	Numberplate string `json:"numberplate"`
+	ID             int    `json:"id"`
+	VehicleTypeID  int    `json:"vehicle_type_id"`
+	VehicleBrandID int    `json:"vehicle_brand_id"`
+	Numberplate    string `json:"numberplate"`
 }
