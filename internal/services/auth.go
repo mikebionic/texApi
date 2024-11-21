@@ -319,6 +319,12 @@ func Register(ctx *gin.Context) {
 	user.Verified = currentUser.Verified
 	user.Active = currentUser.Active
 	user.RoleID = currentUser.RoleID
+	if currentUser.RoleID > 3 {
+		user.Role = "carrier"
+	} else if currentUser.RoleID == 3 {
+		user.Role = "sender"
+	}
+
 	if credType == "email" {
 		user.Email = currentUser.Email
 		user.Phone = ""
