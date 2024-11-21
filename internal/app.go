@@ -31,19 +31,18 @@ func InitApp() *gin.Engine {
 
 	//router.Use(middlewares.Cors)
 	router.Use(cors.New(cors.Config{
-		AllowAllOrigins:        true,
-		AllowMethods:           []string{"*"},
-		AllowHeaders:           []string{"*"},
-		ExposeHeaders:          []string{"*"},
-		AllowCredentials:       true,
-		MaxAge:                 12 * time.Hour,
-		AllowBrowserExtensions: true,
-		AllowPrivateNetwork:    true,
-		AllowWebSockets:        true,
-		AllowWildcard:          true,
-		AllowFiles:             true,
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:    []string{"*"},
+		MaxAge:          12 * time.Hour,
 	}))
-
+	router.Use(func(ctx *gin.Context) {
+		if ctx.Request.Method == "OPTIONS" {
+			ctx.AbortWithStatus(204)
+			return
+		}
+		ctx.Next()
+	})
 	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
 	router.Static(fmt.Sprintf("/%s/assets/", config.ENV.API_PREFIX), "assets/")
 
