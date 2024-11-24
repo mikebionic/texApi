@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -134,7 +135,6 @@ func DeleteDriver(ctx *gin.Context) {
 }
 
 func GetFilteredDriverList(ctx *gin.Context) {
-
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
@@ -149,7 +149,7 @@ func GetFilteredDriverList(ctx *gin.Context) {
 
 	var whereClauses []string
 	var args []interface{}
-	argIndex := 1
+	argIndex := 3 // Start from 3 since $1 and $2 are reserved for perPage and offset
 
 	if companyID != "" {
 		whereClauses = append(whereClauses, "d.company_id = $"+strconv.Itoa(argIndex))
@@ -218,7 +218,8 @@ func GetFilteredDriverList(ctx *gin.Context) {
 				SELECT json_agg(
 					json_build_object(
 						'id', v.id,
-						'vehicle_type', v.vehicle_type,
+						'vehicle_type_id', v.vehicle_type_id,
+						'vehicle_brand_id', v.vehicle_brand_id,
 						'numberplate', v.numberplate
 					)
 				)
@@ -227,15 +228,16 @@ func GetFilteredDriverList(ctx *gin.Context) {
 			), '[]') as assigned_vehicles
 		FROM tbl_driver d
 		LEFT JOIN tbl_company c ON d.company_id = c.id
-		WHERE ` + whereClause + `
-		ORDER BY ` + orderByClause + `
-		LIMIT $1 OFFSET $2
 	`
+	query += fmt.Sprintf(" WHERE %s ORDER BY %s LIMIT $1 OFFSET $2", whereClause, orderByClause)
+
+	// First add perPage and offset to the args slice
+	queryArgs := append([]interface{}{perPage, offset}, args...)
 
 	rows, err := db.DB.Query(
 		context.Background(),
 		query,
-		append([]interface{}{perPage, offset}, args...)...,
+		queryArgs...,
 	)
 
 	if err != nil {
@@ -254,10 +256,10 @@ func GetFilteredDriverList(ctx *gin.Context) {
 		err := rows.Scan(
 			&driver.ID, &driver.UUID, &driver.CompanyID, &driver.FirstName,
 			&driver.LastName, &driver.PatronymicName, &driver.Phone,
-			&driver.Email, &driver.Featured, &driver.Rating,
-			&driver.Partner, &driver.SuccessfulOps, &driver.ImageURL,
-			&driver.Meta, &driver.Meta2, &driver.Meta3, &driver.CreatedAt,
-			&driver.UpdatedAt, &driver.Active, &driver.Deleted,
+			&driver.Email, &driver.Featured, &driver.Rating, &driver.Partner,
+			&driver.SuccessfulOps, &driver.ImageURL, &driver.Meta, &driver.Meta2,
+			&driver.Meta3, &driver.Available, &driver.ViewCount,
+			&driver.CreatedAt, &driver.UpdatedAt, &driver.Active, &driver.Deleted,
 			&totalCount, &companyJSON, &vehiclesJSON,
 		)
 
