@@ -401,9 +401,12 @@ func CompleteOAuth(ctx *gin.Context) {
 	if roleID < 3 {
 		roleID = 3
 	}
-	if !(role == "sender" || role == "carrier") {
+	if roleID > 3 {
+		role = "carrier"
+	} else if roleID == 3 {
 		role = "sender"
 	}
+
 	authUser, err := gothic.CompleteUserAuth(ctx.Writer, ctx.Request)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", err.Error()))
