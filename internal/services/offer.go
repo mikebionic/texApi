@@ -212,7 +212,8 @@ func UpdateOffer(ctx *gin.Context) {
 
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
-		*offer.CompanyID = ctx.MustGet("companyID").(int)
+		companyID := ctx.MustGet("companyID").(int)
+		offer.CompanyID = &companyID
 		offer.OfferState = nil
 		offer.OfferRole = nil
 		stmt += ` AND active = 1 AND deleted = 0`
@@ -248,7 +249,7 @@ func DeleteOffer(ctx *gin.Context) {
 	id := ctx.Param("id")
 	companyID := ctx.MustGet("companyID").(int)
 
-	_, err := db.DB.Exec(
+	result, err := db.DB.Exec(
 		context.Background(),
 		queries.DeleteOffer,
 		id, companyID,
@@ -256,6 +257,12 @@ func DeleteOffer(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting offer", err.Error()))
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", "No offer found with the given ID for this company"))
 		return
 	}
 

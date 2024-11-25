@@ -25,8 +25,11 @@ SELECT
     ) as assigned_driver,
     json_build_object(
         'id', v.id,
-        'vehicle_type', v.vehicle_type,
-        'numberplate', v.numberplate
+        'vehicle_type_id', v.vehicle_type_id,
+        'numberplate', v.numberplate,
+        'mileage', v.mileage,
+		'gps', v.gps,
+    	'available', v.available
     ) as assigned_vehicle,
     json_build_object(
         'id', c2.id,
@@ -53,9 +56,8 @@ GROUP BY
     od.active, od.deleted, od.total_count, 
     c.id, c.company_name, c.country,
     d.id, d.first_name, d.last_name, d.image_url,
-    v.id, v.vehicle_type, v.numberplate,
+    v.id, v.vehicle_type_id, v.numberplate, v.mileage, v.gps, v.available,
     c2.id, c2.name, c2.description, c2.info;
-
 `
 
 const GetOfferList = `
@@ -84,8 +86,11 @@ SELECT
     ) as assigned_driver,
     json_build_object(
         'id', v.id,
-        'vehicle_type', v.vehicle_type,
-        'numberplate', v.numberplate
+        'vehicle_type_id', v.vehicle_type_id,
+        'numberplate', v.numberplate,
+	    'mileage', v.mileage,
+		'gps', v.gps,
+    	'available', v.available
     ) as assigned_vehicle,
     json_build_object(
         'id', c2.id,
