@@ -206,14 +206,14 @@ GROUP BY
 
 const CreateVehicle = `
 INSERT INTO tbl_vehicle (
-    company_id, vehicle_type, vehicle_brand_id, vehicle_model_id,
+    company_id, vehicle_type_id, vehicle_brand_id, vehicle_model_id,
     year_of_issue, mileage, numberplate, trailer_numberplate,
     gps, photo1_url, photo2_url, photo3_url,
     docs1_url, docs2_url, docs3_url,
-	view_count,	meta, meta2, meta3,	available
+    view_count, meta, meta2, meta3, available
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-    $13, $14, $15, $16, $17, $18, $19 $20 
+    $13, $14, $15, $16, $17, $18, $19, $20
 )
 RETURNING id;
 `
@@ -221,7 +221,7 @@ RETURNING id;
 const UpdateVehicle = `
 UPDATE tbl_vehicle
 SET 
-    vehicle_type = COALESCE($2, vehicle_type),
+    vehicle_type_id = COALESCE($2, vehicle_type_id),
     vehicle_brand_id = COALESCE($3, vehicle_brand_id),
     vehicle_model_id = COALESCE($4, vehicle_model_id),
     year_of_issue = COALESCE($5, year_of_issue),
@@ -238,13 +238,12 @@ SET
     active = COALESCE($16, active),
     company_id = COALESCE($17, company_id),
     deleted = COALESCE($18, deleted),
-	view_count = COALESCE($19, view_count),
-	meta = COALESCE($20, meta),
-	meta2 = COALESCE($21, meta2),
-	meta3 = COALESCE($22, meta3),
-	available = COALESCE($23, available),
-    updated_at = NOW()
-`
+    view_count = COALESCE($19, view_count),
+    meta = COALESCE($20, meta),
+    meta2 = COALESCE($21, meta2),
+    meta3 = COALESCE($22, meta3),
+    available = COALESCE($23, available),
+    updated_at = NOW()`
 
 const DeleteVehicle = `
 UPDATE tbl_vehicle
@@ -262,15 +261,25 @@ SELECT
     ) as company,
     json_build_object(
         'id', vb.id,
-        'name', vb.name
+        'name', vb.name,
+        'country', vb.country
     ) as brand,
     json_build_object(
         'id', vm.id,
-        'name', vm.name
-    ) as model
+        'name', vm.name,
+        'year', vm.year,
+        'feature', vm.feature
+    ) as model,
+    json_build_object(
+        'id', vt.id,
+        'title_en', vt.title_en,
+        'title_ru', vt.title_ru,
+        'title_tk', vt.title_tk
+    ) as type
 FROM tbl_vehicle v
 LEFT JOIN tbl_company c ON v.company_id = c.id
 LEFT JOIN tbl_vehicle_brand vb ON v.vehicle_brand_id = vb.id
 LEFT JOIN tbl_vehicle_model vm ON v.vehicle_model_id = vm.id
+LEFT JOIN tbl_vehicle_type vt ON v.vehicle_type_id = vt.id
 WHERE v.id = $1 AND v.deleted = 0;
 `
