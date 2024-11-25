@@ -7,6 +7,7 @@ type VehicleDetails struct {
 	Company *CompanyBasic `json:"company,omitempty"`
 	Brand   *VehicleBrand `json:"brand,omitempty"`
 	Model   *VehicleModel `json:"model,omitempty"`
+	Type    *VehicleType  `json:"type,omitempty"`
 }
 
 type VehicleCreate struct {
@@ -137,11 +138,8 @@ type VehicleModel struct {
 	ID             int    `json:"id"`
 	Name           string `json:"name"`
 	Year           int    `json:"year"`
-	Brand          string `json:"brand"`
 	VehicleBrandID int    `json:"vehicle_brand_id"`
-	VehicleBrand   string `json:"vehicle_brand"`
 	VehicleTypeID  int    `json:"vehicle_type_id"`
-	VehicleType    string `json:"vehicle_type"`
 	Feature        string `json:"feature"`
 	Deleted        int    `json:"deleted"`
 }
