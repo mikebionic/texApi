@@ -12,8 +12,9 @@ func Offer(router *gin.Engine) {
 	group := router.Group(config.ENV.API_PREFIX + "/offer/")
 	group.Use(middlewares.Guard)
 
-	group.GET("/", services.GetOfferList)
-	group.GET("/my/", services.GetMyOfferList)
+	group.GET("/", services.GetOfferListUpdate)
+	//group.GET("/my/", services.GetMyOfferList)
+	group.GET("/my/", services.GetMyOfferListUpdate)
 	group.GET("/:id", services.GetOffer)
 	group.POST("/", middlewares.Guard, services.CreateOffer)
 	group.PUT("/:id", middlewares.Guard, services.UpdateOffer)
