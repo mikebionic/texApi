@@ -10,7 +10,9 @@ import (
 	"log"
 	"os"
 	"texApi/config"
+	"texApi/database"
 	"texApi/internal/controllers"
+	"texApi/pkg/middlewares"
 	"time"
 )
 
@@ -21,6 +23,8 @@ func InitApp() *gin.Engine {
 		file, _ := os.Create("gin.log")
 		gin.DefaultWriter = io.MultiWriter(file)
 	}
+
+	middlewares.InitializeViewTracker(database.DB, 10)
 
 	router := gin.New()
 	router.SetTrustedProxies(nil)
