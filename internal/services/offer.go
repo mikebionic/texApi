@@ -21,6 +21,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
+	// TODO: I like this code approach
 	filters := map[string]interface{}{
 		"o.company_id":      ctx.MustGet("companyID"),
 		"o.exec_company_id": ctx.Query("exec_company_id"),
@@ -54,6 +55,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 
 	for key, value := range filters {
 		if value != "" && value != nil {
+			// TODO: but needs sql fix
 			whereClauses = append(whereClauses, fmt.Sprintf("%s = $%d", key, argCounter))
 			args = append(args, value)
 			argCounter++
