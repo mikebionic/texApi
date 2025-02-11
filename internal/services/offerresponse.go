@@ -34,59 +34,59 @@ func GetDetailedOfferResponseList(ctx *gin.Context) {
 
 	baseQuery := `
         SELECT 
-            ofr.*,
-            COUNT(*) OVER() as total_count,
-            
-            json_build_object(
-                'id', c.id,
-                'uuid', c.uuid,
-                'company_name', c.company_name,
-                'first_name', c.first_name,
-                'last_name', c.last_name,
-                'phone', c.phone,
-                'email', c.email,
-                'address', c.address,
-                'country', c.country,
-                'image_url', c.image_url,
-                'rating', c.rating,
-                'partner', c.partner
-            ) as company,
-            
-            json_build_object(
-                'id', tc.id,
-                'uuid', tc.uuid,
-                'company_name', tc.company_name,
-                'first_name', tc.first_name,
-                'last_name', tc.last_name,
-                'phone', tc.phone,
-                'email', tc.email,
-                'address', tc.address,
-                'country', tc.country,
-                'image_url', tc.image_url,
-                'rating', tc.rating,
-                'partner', tc.partner
-            ) as to_company,
-            
-            json_build_object(
-                'id', o.id,
-                'uuid', o.uuid,
-                'offer_state', o.offer_state,
-                'offer_role', o.offer_role,
-                'cost_per_km', o.cost_per_km,
-                'currency', o.currency,
-                'distance', o.distance,
-                'from_country', o.from_country,
-                'to_country', o.to_country,
-                'from_address', o.from_address,
-                'to_address', o.to_address,
-                'validity_start', o.validity_start,
-                'validity_end', o.validity_end
-            ) as offer
-            
-        FROM tbl_offer_response ofr
-        LEFT JOIN tbl_company c ON ofr.company_id = c.id
-        LEFT JOIN tbl_company tc ON ofr.to_company_id = tc.id
-        LEFT JOIN tbl_offer o ON ofr.offer_id = o.id
+			ofr.*,
+			COUNT(*) OVER() as total_count,
+			
+			json_build_object(
+				'id', c.id,
+				'uuid', c.uuid,
+				'company_name', c.company_name,
+				'first_name', c.first_name,
+				'last_name', c.last_name,
+				'phone', c.phone,
+				'email', c.email,
+				'address', c.address,
+				'country', c.country,
+				'image_url', c.image_url,
+				'rating', c.rating,
+				'partner', c.partner
+			) as company,
+			
+			json_build_object(
+				'id', tc.id,
+				'uuid', tc.uuid,
+				'company_name', tc.company_name,
+				'first_name', tc.first_name,
+				'last_name', tc.last_name,
+				'phone', tc.phone,
+				'email', tc.email,
+				'address', tc.address,
+				'country', tc.country,
+				'image_url', tc.image_url,
+				'rating', tc.rating,
+				'partner', tc.partner
+			) as to_company,
+			
+			json_build_object(
+				'id', o.id,
+				'uuid', o.uuid,
+				'offer_state', o.offer_state,
+				'offer_role', o.offer_role,
+				'cost_per_km', o.cost_per_km,
+				'currency', o.currency,
+				'distance', o.distance,
+				'from_country', o.from_country,
+				'to_country', o.to_country,
+				'from_address', o.from_address,
+				'to_address', o.to_address,
+				'validity_start', to_char(o.validity_start, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+				'validity_end', to_char(o.validity_end, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+			) as offer
+			
+		FROM tbl_offer_response ofr
+		LEFT JOIN tbl_company c ON ofr.company_id = c.id
+		LEFT JOIN tbl_company tc ON ofr.to_company_id = tc.id
+		LEFT JOIN tbl_offer o ON ofr.offer_id = o.id
     `
 
 	var whereClauses []string
@@ -158,7 +158,6 @@ func GetDetailedOfferResponseList(ctx *gin.Context) {
 		orderBy, orderDir, argCounter, argCounter+1)
 	args = append(args, perPage, offset)
 
-	fmt.Println(query)
 	var responses []dto.OfferResponseDetails
 	err := pgxscan.Select(context.Background(), db.DB, &responses, query, args...)
 	if err != nil {
@@ -224,7 +223,7 @@ func GetOfferResponse(ctx *gin.Context) {
 }
 
 func CreateOfferResponse(ctx *gin.Context) {
-	var offerResponse dto.OfferResponseCreate
+	var offerResponse dto.OfferResponse
 	companyID := ctx.MustGet("companyID").(int)
 
 	if err := ctx.ShouldBindJSON(&offerResponse); err != nil {
