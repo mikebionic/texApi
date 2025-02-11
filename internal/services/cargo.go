@@ -3,14 +3,16 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/georgysavva/scany/v2/pgxscan"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
 	"texApi/pkg/utils"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/gin-gonic/gin"
 )
 
 func GetCargoList(ctx *gin.Context) {
@@ -193,4 +195,162 @@ func DeleteCargo(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully deleted cargo!", gin.H{"id": id}))
+}
+
+func GetDetailedCargoList(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	validOrderColumns := map[string]bool{
+		"id": true, "name": true, "qty": true, "weight": true,
+		"created_at": true, "updated_at": true,
+	}
+
+	orderBy := ctx.DefaultQuery("order_by", "id")
+	if !validOrderColumns[orderBy] {
+		orderBy = "id"
+	}
+	orderDir := strings.ToUpper(ctx.DefaultQuery("order_dir", "DESC"))
+	if orderDir != "ASC" && orderDir != "DESC" {
+		orderDir = "DESC"
+	}
+
+	baseQuery := `
+        SELECT 
+            c.*,
+            COUNT(*) OVER() as total_count,
+            
+            -- Company fields
+            json_build_object(
+                'id', comp.id,
+                'company_name', comp.company_name,
+                'email', comp.email,
+                'phone', comp.phone,
+                'address', comp.address,
+                'country', comp.country
+            ) as company,
+            
+            -- Vehicle type fields
+            json_build_object(
+                'id', vt.id,
+                'title_en', vt.title_en,
+                'title_ru', vt.title_ru,
+                'title_tk', vt.title_tk
+            ) as vehicle_type,
+            
+            -- Packaging type fields
+            json_build_object(
+                'id', pt.id,
+                'name_en', pt.name_en,
+                'name_ru', pt.name_ru,
+                'name_tk', pt.name_tk,
+                'material', pt.material,
+                'dimensions', pt.dimensions
+            ) as packaging_type
+            
+        FROM tbl_cargo c
+        LEFT JOIN tbl_company comp ON c.company_id = comp.id
+        LEFT JOIN tbl_vehicle_type vt ON c.vehicle_type_id = vt.id
+        LEFT JOIN tbl_packaging_type pt ON c.packaging_type_id = pt.id
+    `
+
+	var whereClauses []string
+	var args []interface{}
+	argCounter := 1
+
+	role := ctx.MustGet("role").(string)
+	if !(role == "admin" || role == "system") {
+		whereClauses = append(whereClauses, "c.deleted = 0")
+	}
+
+	filters := map[string]string{
+		"cargo_id":          ctx.Query("cargo_id"),
+		"company_id":        ctx.Query("company_id"),
+		"vehicle_type_id":   ctx.Query("vehicle_type_id"),
+		"packaging_type_id": ctx.Query("packaging_type_id"),
+		"weight_type":       ctx.Query("weight_type"),
+		"gps":               ctx.Query("gps"),
+	}
+
+	for key, value := range filters {
+		if value != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("c.%s = $%d", key, argCounter))
+			args = append(args, value)
+			argCounter++
+		}
+	}
+
+	numericRanges := map[string]struct {
+		min string
+		max string
+	}{
+		"weight": {ctx.Query("min_weight"), ctx.Query("max_weight")},
+		"qty":    {ctx.Query("min_qty"), ctx.Query("max_qty")},
+	}
+
+	for field, ranges := range numericRanges {
+		if ranges.min != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("c.%s >= $%d", field, argCounter))
+			minVal, _ := strconv.Atoi(ranges.min)
+			args = append(args, minVal)
+			argCounter++
+		}
+		if ranges.max != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("c.%s <= $%d", field, argCounter))
+			maxVal, _ := strconv.Atoi(ranges.max)
+			args = append(args, maxVal)
+			argCounter++
+		}
+	}
+
+	searchTerm := ctx.Query("search")
+	if searchTerm != "" {
+		searchClause := fmt.Sprintf(`(
+            c.name ILIKE $%d OR 
+            c.description ILIKE $%d OR 
+            c.info ILIKE $%d
+        )`, argCounter, argCounter, argCounter)
+		whereClauses = append(whereClauses, searchClause)
+		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	query := baseQuery
+	if len(whereClauses) > 0 {
+		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	query += fmt.Sprintf(" ORDER BY c.%s %s LIMIT $%d OFFSET $%d",
+		orderBy, orderDir, argCounter, argCounter+1)
+	args = append(args, perPage, offset)
+
+	var cargos []dto.CargoDetailed
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&cargos,
+		query,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Couldn't retrieve data", err.Error()))
+		return
+	}
+
+	var totalCount int
+	if len(cargos) > 0 {
+		totalCount = cargos[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    cargos,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Cargo list detailed", response))
 }
