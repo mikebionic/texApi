@@ -1,6 +1,5 @@
 CREATE TYPE payment_method_t AS ENUM ('cash', 'transfer', 'card','credit','terminal', 'online', 'coupon');
 CREATE TYPE weight_type_t AS ENUM ('kg', 'g', 'lbs', 'oz', 'st', 't', 'tn');
-CREATE TYPE response_state_t AS ENUM ('pending', 'accepted', 'declined');
 CREATE TYPE currency_t AS ENUM (
     'USD',    -- United States Dollar
     'TMT',    -- Turkmenistan Manat
@@ -121,23 +120,25 @@ CREATE TABLE
         deleted INT NOT NULL DEFAULT 0
     );
 
+
+CREATE TYPE response_state_t AS ENUM ('pending', 'accepted', 'declined');
 CREATE TABLE
-    tbl_response (
+    tbl_offer_response (
         id SERIAL PRIMARY KEY,
         uuid UUID DEFAULT gen_random_uuid (),
         company_id INT REFERENCES tbl_company (id) ON DELETE CASCADE DEFAULT 0,
         offer_id INT REFERENCES tbl_offer (id) ON DELETE CASCADE DEFAULT 0,
---         tut nado obyasnit mekanu
-        response_company_id INT REFERENCES tbl_company (id) ON DELETE CASCADE DEFAULT 0,
+        to_company_id INT NOT NULL DEFAULT 0,
         state response_state_t NOT NULL DEFAULT 'pending',
-        title VARCHAR(200) NOT NULL DEFAULT '',
-        note VARCHAR(1000) NOT NULL DEFAULT '',
-        reason VARCHAR(1000) NOT NULL DEFAULT '',
-        meta TEXT NOT NULL DEFAULT '',
-        meta2 TEXT NOT NULL DEFAULT '',
-        meta3 TEXT NOT NULL DEFAULT '',
-        value INT NOT NULL DEFAULT 0,
-        rating INT NOT NULL DEFAULT 0,
+        bid_price DECIMAL(10, 2),
+        title VARCHAR(200),
+        note VARCHAR(1000),
+        reason VARCHAR(1000),
+        meta TEXT,
+        meta2 TEXT,
+        meta3 TEXT,
+        value INT,
+        rating INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         deleted INT
@@ -315,31 +316,29 @@ VALUES
     '2025-01-12', '2025-12-14', 'Transport of hazardous materials from Madrid to Lisbon. Requires safety measures during transport.', 0, 0,
     'cash', '', '', '', 0, 0, 'sender');
 
-
-INSERT INTO tbl_response (
-    company_id, response_company_id, offer_id, state, title, note, reason,
-    value, rating
+INSERT INTO tbl_offer_response (
+    company_id, to_company_id, offer_id, state, bid_price, title, note, reason
 )
 VALUES
-    (2, 3, 1, 'declined', 'Response Title 1', 'Response note 1', 'Reason 1', 0, 0),
-    (3, 2, 2, 'accepted', 'Response Title 2', 'Response note 2', 'Reason 2', 0, 0),
-    (1, 2, 2, 'pending', 'Response Title 3', 'Response note 3', 'Reason 3', 0, 0),
-    (2, 3, 3, 'declined', 'Response Title 4', 'Response note 4', 'Reason 4', 0, 0),
-    (3, 4, 4, 'declined', 'Response Title 5', 'Response note 5', 'Reason 5', 0, 0),
-    (1, 3, 3, 'accepted', 'Response Title 6', 'Response note 6', 'Reason 6', 0, 0),
-    (2, 3, 3, 'declined', 'Response Title 7', 'Response note 7', 'Reason 7',0, 0),
-    (1, 2, 2, 'pending', 'Response Title 8', 'Response note 8', 'Reason 8',0, 0),
-    (2, 1, 1, 'pending', 'Response Title 9', 'Response note 9', 'Reason 9',0, 0),
-    (1, 2, 2, 'accepted', 'Response Title 10', 'Response note 10', 'Reason 10',0, 0),
-    (2, 1, 1, 'declined', 'Response Title 11', 'Response note 11', 'Reason 11',0, 0),
-    (1, 3, 3, 'declined', 'Response Title 12', 'Response note 12', 'Reason 12',0, 0),
-    (2, 3, 3, 'declined', 'Response Title 13', 'Response note 13', 'Reason 13',0, 0),
-    (3, 1, 1, 'pending', 'Response Title 14', 'Response note 14', 'Reason 14',0, 0),
-    (2, 1, 1, 'accepted', 'Response Title 15', 'Response note 15', 'Reason 15',0, 0),
-    (1, 3, 3, 'accepted', 'Response Title 16', 'Response note 16', 'Reason 16',0, 0),
-    (2, 1, 1, 'pending', 'Response Title 17', 'Response note 17', 'Reason 17',0, 0),
-    (3, 2, 2, 'declined', 'Response Title 18', 'Response note 18', 'Reason 18',0, 0),
-    (1, 2, 2, 'declined', 'Response Title 19', 'Response note 19', 'Reason 19',0, 0);
+    (2, 3, 1, 'declined', 1200.50, 'Not a fit for us', 'We appreciate the offer but won’t proceed.', 'Price is too high.'),
+    (3, 2, 2, 'accepted', 1500.00, 'Happy to move forward', 'We accept the offer and look forward to working together.', ''),
+    (1, 2, 2, 'pending', 1100.75, 'Need more time', 'We are reviewing the offer and will get back soon.', ''),
+    (2, 3, 3, 'declined', 1300.00, 'Not within budget', 'The proposal is interesting, but we cannot afford it.', 'Too expensive.'),
+    (3, 4, 4, 'declined', 1400.00, 'Not a strategic fit', 'We appreciate it, but it’s not aligned with our goals.', ''),
+    (1, 3, 3, 'accepted', 1250.25, 'Let’s proceed', 'We accept and will begin discussions soon.', ''),
+    (2, 3, 3, 'declined', 1350.00, 'Not at this time', 'We’re unable to proceed with this offer currently.', ''),
+    (1, 2, 2, 'pending', 1180.00, 'Considering the offer', 'We need a few more days to review.', ''),
+    (2, 1, 1, 'pending', 1225.00, 'Evaluating internally', 'We are discussing this with our team.', ''),
+    (1, 2, 2, 'accepted', 1450.50, 'Great opportunity', 'Excited to move forward with this deal.', ''),
+    (2, 1, 1, 'declined', 1150.00, 'Not suitable', 'Unfortunately, this offer doesn’t align with our needs.', ''),
+    (1, 3, 3, 'declined', 1275.00, 'Different priorities', 'We are focusing on other opportunities at this time.', ''),
+    (2, 3, 3, 'declined', 1290.00, 'Budget constraints', 'We can’t afford this deal within our budget.', ''),
+    (3, 1, 1, 'pending', 1195.00, 'Awaiting approval', 'Our management team is reviewing this.', ''),
+    (2, 1, 1, 'accepted', 1480.00, 'Excited to collaborate', 'We are happy with the terms and ready to proceed.', ''),
+    (1, 3, 3, 'accepted', 1340.00, 'Looking forward', 'Let’s finalize the next steps soon.', ''),
+    (2, 1, 1, 'pending', 1235.00, 'Considering options', 'We are comparing this with other offers.', ''),
+    (3, 2, 2, 'declined', 1190.00, 'Not viable for us', 'This deal doesn’t align with our needs.', ''),
+    (1, 2, 2, 'declined', 1260.00, 'Different direction', 'We are taking another approach to our strategy.', '');
 
 INSERT INTO tbl_cargo (
     company_id, name, description, info, qty, weight, meta, meta2, meta3,
