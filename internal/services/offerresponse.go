@@ -158,6 +158,7 @@ func GetDetailedOfferResponseList(ctx *gin.Context) {
 		orderBy, orderDir, argCounter, argCounter+1)
 	args = append(args, perPage, offset)
 
+	fmt.Println(query)
 	var responses []dto.OfferResponseDetails
 	err := pgxscan.Select(context.Background(), db.DB, &responses, query, args...)
 	if err != nil {
@@ -224,10 +225,29 @@ func GetOfferResponse(ctx *gin.Context) {
 
 func CreateOfferResponse(ctx *gin.Context) {
 	var offerResponse dto.OfferResponseCreate
+	companyID := ctx.MustGet("companyID").(int)
 
 	if err := ctx.ShouldBindJSON(&offerResponse); err != nil {
 		ctx.JSON(http.StatusBadRequest,
 			utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	// Override company_id with authenticated company's ID and set initial state
+	offerResponse.CompanyID = companyID
+	offerResponse.State = "pending"
+
+	// Verify that the offer exists and is active
+	var offerExists int
+	err := db.DB.QueryRow(
+		context.Background(),
+		`SELECT COUNT(*) FROM tbl_offer WHERE id = $1 AND deleted = 0`,
+		offerResponse.OfferID,
+	).Scan(&offerExists)
+
+	if err != nil || offerExists == 0 {
+		ctx.JSON(http.StatusBadRequest,
+			utils.FormatErrorResponse("Invalid offer ID", "Offer not found or inactive"))
 		return
 	}
 
@@ -243,7 +263,7 @@ func CreateOfferResponse(ctx *gin.Context) {
 
 	var responseID int
 	var responseUUID string
-	err := db.DB.QueryRow(
+	err = db.DB.QueryRow(
 		context.Background(),
 		query,
 		offerResponse.CompanyID, offerResponse.OfferID,
@@ -266,12 +286,12 @@ func CreateOfferResponse(ctx *gin.Context) {
 		"uuid": responseUUID,
 	}))
 }
+
+// Updated UpdateOfferResponse function
 func UpdateOfferResponse(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	var offerResponse dto.OfferResponseUpdate
-
-	userID := ctx.MustGet("id").(int)
-	role := ctx.MustGet("role").(string)
+	companyID := ctx.MustGet("companyID").(int)
 
 	if err := ctx.ShouldBindJSON(&offerResponse); err != nil {
 		ctx.JSON(http.StatusBadRequest,
@@ -279,29 +299,66 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
-	// If not admin, verify company ownership
-	if role != "admin" {
-		var count int
-		err := db.DB.QueryRow(
-			context.Background(),
-			`SELECT COUNT(*) 
-             FROM tbl_offer_response ofr
-             JOIN tbl_company c ON ofr.company_id = c.id
-             WHERE ofr.id = $1 AND c.user_id = $2 AND ofr.deleted = 0`,
-			id, userID,
-		).Scan(&count)
+	// Verify the user belongs to to_company_id
+	var toCompanyID int
+	err := db.DB.QueryRow(
+		context.Background(),
+		`SELECT to_company_id FROM tbl_offer_response WHERE id = $1 AND deleted = 0`,
+		id,
+	).Scan(&toCompanyID)
 
-		if err != nil || count == 0 {
-			ctx.JSON(http.StatusForbidden,
-				utils.FormatErrorResponse("Permission denied", ""))
+	if err != nil {
+		ctx.JSON(http.StatusNotFound,
+			utils.FormatErrorResponse("Offer response not found", err.Error()))
+		return
+	}
+
+	if toCompanyID != companyID {
+		ctx.JSON(http.StatusForbidden,
+			utils.FormatErrorResponse("Permission denied", "Only the recipient company can update this response"))
+		return
+	}
+
+	// Start transaction for updating offer responses
+	tx, err := db.DB.Begin(context.Background())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Transaction error", err.Error()))
+		return
+	}
+	defer tx.Rollback(context.Background())
+
+	// If accepting the offer, decline all other responses for the same offer
+	if offerResponse.State != nil && *offerResponse.State == "accepted" {
+		var offerID int
+		err := tx.QueryRow(
+			context.Background(),
+			`SELECT offer_id FROM tbl_offer_response WHERE id = $1`,
+			id,
+		).Scan(&offerID)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError,
+				utils.FormatErrorResponse("Error fetching offer ID", err.Error()))
 			return
 		}
 
-		// Reset admin-only fields for non-admin users
-		offerResponse.Active = nil
-		offerResponse.Deleted = nil
+		_, err = tx.Exec(
+			context.Background(),
+			`UPDATE tbl_offer_response 
+             SET state = 'declined', updated_at = CURRENT_TIMESTAMP
+             WHERE offer_id = $1 AND id != $2 AND state = 'pending'`,
+			offerID, id,
+		)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError,
+				utils.FormatErrorResponse("Error updating other responses", err.Error()))
+			return
+		}
 	}
 
+	// Update the current offer response
 	query := `
         UPDATE tbl_offer_response SET
             state = COALESCE($1, state),
@@ -314,14 +371,13 @@ func UpdateOfferResponse(ctx *gin.Context) {
             meta3 = COALESCE($8, meta3),
             value = COALESCE($9, value),
             rating = COALESCE($10, rating),
-            deleted = COALESCE($11, deleted),
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = $12 AND deleted = 0
+        WHERE id = $11 AND deleted = 0
         RETURNING id
     `
 
 	var updatedID int
-	err := db.DB.QueryRow(
+	err = tx.QueryRow(
 		context.Background(),
 		query,
 		offerResponse.State, offerResponse.BidPrice,
@@ -329,7 +385,6 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		offerResponse.Reason, offerResponse.Meta,
 		offerResponse.Meta2, offerResponse.Meta3,
 		offerResponse.Value, offerResponse.Rating,
-		offerResponse.Active, offerResponse.Deleted,
 		id,
 	).Scan(&updatedID)
 
@@ -339,15 +394,21 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
+	// Commit the transaction
+	if err := tx.Commit(context.Background()); err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Error committing transaction", err.Error()))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated!", gin.H{
 		"id": updatedID,
 	}))
 }
-
 func DeleteOfferResponse(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
-	userID := ctx.MustGet("id").(int)
+	companyID := ctx.MustGet("companyID").(int)
 	role := ctx.MustGet("role").(string)
 
 	// If not admin, verify company ownership
@@ -357,9 +418,8 @@ func DeleteOfferResponse(ctx *gin.Context) {
 			context.Background(),
 			`SELECT COUNT(*) 
              FROM tbl_offer_response ofr
-             JOIN tbl_company c ON ofr.company_id = c.id
-             WHERE ofr.id = $1 AND c.user_id = $2 AND ofr.deleted = 0`,
-			id, userID,
+             WHERE ofr.id = $1 AND ofr.company_id = $2 AND ofr.state = 'pending'`,
+			id, companyID,
 		).Scan(&count)
 
 		if err != nil || count == 0 {
@@ -373,7 +433,7 @@ func DeleteOfferResponse(ctx *gin.Context) {
 	query := `
         UPDATE tbl_offer_response 
         SET deleted = 1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND deleted = 0
+        WHERE id = $1
         RETURNING id
     `
 
