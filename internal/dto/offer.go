@@ -10,7 +10,9 @@ type Offer struct {
 	ExecCompanyID    int       `json:"exec_company_id"`
 	DriverID         int       `json:"driver_id"`
 	VehicleID        int       `json:"vehicle_id"`
+	VehicleTypeID    int       `json:"vehicle_type_id"`
 	CargoID          int       `json:"cargo_id"`
+	PackagingTypeID  int       `json:"packaging_type_id"`
 	OfferState       string    `json:"offer_state"`
 	OfferRole        string    `json:"offer_role"`
 	CostPerKm        float64   `json:"cost_per_km"`
@@ -19,12 +21,14 @@ type Offer struct {
 	FromCityID       int       `json:"from_city_id"`
 	ToCountryID      int       `json:"to_country_id"`
 	ToCityID         int       `json:"to_city_id"`
+	Distance         int       `json:"distance"`
 	FromCountry      string    `json:"from_country"`
 	FromRegion       string    `json:"from_region"`
 	ToCountry        string    `json:"to_country"`
 	ToRegion         string    `json:"to_region"`
 	FromAddress      string    `json:"from_address"`
 	ToAddress        string    `json:"to_address"`
+	MapURL           string    `json:"map_url"`
 	SenderContact    string    `json:"sender_contact"`
 	RecipientContact string    `json:"recipient_contact"`
 	DeliverContact   string    `json:"deliver_contact"`
@@ -39,6 +43,7 @@ type Offer struct {
 	Trade            int       `json:"trade"`
 	Discount         int       `json:"discount"`
 	PaymentMethod    string    `json:"payment_method"`
+	PaymentTerm      string    `json:"payment_term"`
 	Meta             string    `json:"meta"`
 	Meta2            string    `json:"meta2"`
 	Meta3            string    `json:"meta3"`
@@ -51,6 +56,17 @@ type Offer struct {
 	TotalCount       int       `json:"total_count"`
 }
 
+type OfferDetailedResponse struct {
+	Offer
+	Company        *CompanyCreate         `json:"company,omitempty"`
+	ExecCompany    *CompanyCreate         `json:"exec_company,omitempty"`
+	AssignedDriver *DriverCreate          `json:"assigned_driver,omitempty"`
+	Vehicle        *VehicleCreate         `json:"vehicle,omitempty"`
+	VehicleType    *VehicleType           `json:"vehicle_type,omitempty"`
+	Cargo          *Cargo                 `json:"cargo,omitempty"`
+	PackagingType  *PackagingTypeResponse `json:"packaging_type,omitempty"`
+}
+
 type OfferDetails struct {
 	Offer
 	Company         *CompanyBasic `json:"company,omitempty"`
@@ -59,12 +75,17 @@ type OfferDetails struct {
 	Cargo           *Cargo        `json:"cargo,omitempty"`
 }
 
+// OfferUpdate represents the structure for updating an existing offer
 type OfferUpdate struct {
-	DriverID         *int     `json:"driver_id,omitempty"`
+	ID               *int     `json:"id,omitempty,omitempty"`
+	UserID           *int     `json:"user_id,omitempty"`
 	CompanyID        *int     `json:"company_id,omitempty"`
 	ExecCompanyID    *int     `json:"exec_company_id,omitempty"`
+	DriverID         *int     `json:"driver_id,omitempty"`
 	VehicleID        *int     `json:"vehicle_id,omitempty"`
+	VehicleTypeID    *int     `json:"vehicle_type_id,omitempty"`
 	CargoID          *int     `json:"cargo_id,omitempty"`
+	PackagingTypeID  *int     `json:"packaging_type_id,omitempty"`
 	OfferState       *string  `json:"offer_state,omitempty"`
 	OfferRole        *string  `json:"offer_role,omitempty"`
 	CostPerKm        *float64 `json:"cost_per_km,omitempty"`
@@ -73,15 +94,18 @@ type OfferUpdate struct {
 	FromCityID       *int     `json:"from_city_id,omitempty"`
 	ToCountryID      *int     `json:"to_country_id,omitempty"`
 	ToCityID         *int     `json:"to_city_id,omitempty"`
+	Distance         *int     `json:"distance,omitempty"`
 	FromCountry      *string  `json:"from_country,omitempty"`
 	FromRegion       *string  `json:"from_region,omitempty"`
 	ToCountry        *string  `json:"to_country,omitempty"`
 	ToRegion         *string  `json:"to_region,omitempty"`
 	FromAddress      *string  `json:"from_address,omitempty"`
 	ToAddress        *string  `json:"to_address,omitempty"`
+	MapURL           *string  `json:"map_url,omitempty"`
 	SenderContact    *string  `json:"sender_contact,omitempty"`
 	RecipientContact *string  `json:"recipient_contact,omitempty"`
 	DeliverContact   *string  `json:"deliver_contact,omitempty"`
+	ViewCount        *int     `json:"view_count,omitempty"`
 	ValidityStart    *string  `json:"validity_start,omitempty"`
 	ValidityEnd      *string  `json:"validity_end,omitempty"`
 	DeliveryStart    *string  `json:"delivery_start,omitempty"`
@@ -92,9 +116,14 @@ type OfferUpdate struct {
 	Trade            *int     `json:"trade,omitempty"`
 	Discount         *int     `json:"discount,omitempty"`
 	PaymentMethod    *string  `json:"payment_method,omitempty"`
+	PaymentTerm      *string  `json:"payment_term,omitempty"`
 	Meta             *string  `json:"meta,omitempty"`
 	Meta2            *string  `json:"meta2,omitempty"`
 	Meta3            *string  `json:"meta3,omitempty"`
+	Featured         *int     `json:"featured,omitempty"`
+	Partner          *int     `json:"partner,omitempty"`
+	CreatedAt        *string  `json:"created_at,omitempty"`
+	UpdatedAt        *string  `json:"updated_at,omitempty"`
 	Active           *int     `json:"active,omitempty"`
 	Deleted          *int     `json:"deleted,omitempty"`
 }

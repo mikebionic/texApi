@@ -142,8 +142,13 @@ INSERT INTO tbl_offer (
     meta2,
     meta3,
     offer_role,
-    exec_company_id
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
+    exec_company_id,
+	vehicle_type_id,
+	packaging_type_id,
+	distance,
+	map_url,
+	payment_term
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)
 RETURNING id;
 `
 
@@ -186,8 +191,13 @@ SET
     exec_company_id = COALESCE($35, exec_company_id),
     offer_state = COALESCE($36, offer_state),
     offer_role = COALESCE($37, offer_role),
+	vehicle_type_id = COALESCE($38,vehicle_type_id),
+	packaging_type_id = COALESCE($39,packaging_type_id),
+	distance = COALESCE($40,distance),
+	map_url = COALESCE($41,map_url),
+	payment_term = COALESCE($42,payment_term),
     updated_at = NOW()
-WHERE id = $1 AND company_id = $38
+WHERE id = $1 AND company_id = $43
 `
 
 const DeleteOffer = `
