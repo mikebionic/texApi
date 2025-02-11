@@ -495,6 +495,7 @@ func UpdateOffer(ctx *gin.Context) {
 		offer.CompanyID = &companyID
 		offer.OfferState = nil
 		offer.OfferRole = nil
+		offer.Active = nil
 		stmt += ` AND active = 1 AND deleted = 0`
 	}
 	stmt += ` RETURNING id;`
