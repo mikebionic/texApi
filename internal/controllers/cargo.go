@@ -11,6 +11,7 @@ import (
 func Cargo(router *gin.Engine) {
 	group := router.Group(config.ENV.API_PREFIX + "/cargo/")
 
+	group.GET("/detailed/", middlewares.Guard, services.GetDetailedCargoList)
 	group.GET("/", middlewares.Guard, services.GetCargoList)
 	group.GET("/:id", middlewares.Guard, services.GetCargo)
 	group.POST("/", middlewares.Guard, services.CreateCargo)
