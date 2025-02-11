@@ -141,7 +141,7 @@ CREATE TABLE
         rating INT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        deleted INT
+        deleted INT DEFAULT 0
     );
 
 

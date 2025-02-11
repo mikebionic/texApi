@@ -58,7 +58,7 @@ func InitApp() *gin.Engine {
 	controllers.Driver(router)
 	controllers.Vehicle(router)
 	controllers.Offer(router)
-	controllers.Bid(router)
+	controllers.OfferResponse(router)
 	controllers.PackagingType(router)
 	controllers.Cargo(router)
 	controllers.Media(router)

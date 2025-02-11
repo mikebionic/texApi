@@ -8,12 +8,12 @@ import (
 )
 
 func OfferResponse(router *gin.Engine) {
-	offerResponseGroup := router.Group(config.ENV.API_PREFIX + "/offer-response/")
+	offerResponseGroup := router.Group(config.ENV.API_PREFIX + "/offer-response/").Use(middlewares.Guard)
 	{
 		offerResponseGroup.GET("/", services.GetDetailedOfferResponseList)
 		offerResponseGroup.GET("/:id", services.GetOfferResponse)
-		offerResponseGroup.POST("/", middlewares.Guard, services.CreateOfferResponse)
-		offerResponseGroup.PUT("/:id", middlewares.Guard, services.UpdateOfferResponse)
-		offerResponseGroup.DELETE("/:id", middlewares.Guard, services.DeleteOfferResponse)
+		offerResponseGroup.POST("/", services.CreateOfferResponse)
+		offerResponseGroup.PUT("/:id", services.UpdateOfferResponse)
+		offerResponseGroup.DELETE("/:id", services.DeleteOfferResponse)
 	}
 }
