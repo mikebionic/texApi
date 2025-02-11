@@ -56,3 +56,10 @@ type CargoUpdate struct {
 	Active          *int    `json:"active,omitempty"`
 	Deleted         *int    `json:"deleted,omitempty"`
 }
+
+type CargoDetailed struct {
+	Cargo
+	Company       *CompanyCreate         `json:"company"`
+	VehicleType   *VehicleType           `json:"vehicle_type"`
+	PackagingType *PackagingTypeResponse `json:"packaging_type"`
+}
