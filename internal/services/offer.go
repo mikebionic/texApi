@@ -121,17 +121,17 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 
 		err := rows.Scan(
 			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID,
-			&offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID,
-			&offer.CargoID, &offer.OfferState, &offer.OfferRole,
+			&offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.VehicleTypeID,
+			&offer.CargoID, &offer.PackagingTypeID, &offer.OfferState, &offer.OfferRole,
 			&offer.CostPerKm, &offer.Currency, &offer.FromCountryID,
-			&offer.FromCityID, &offer.ToCountryID, &offer.ToCityID,
+			&offer.FromCityID, &offer.ToCountryID, &offer.ToCityID, &offer.Distance,
 			&offer.FromCountry, &offer.FromRegion, &offer.ToCountry,
-			&offer.ToRegion, &offer.FromAddress, &offer.ToAddress,
+			&offer.ToRegion, &offer.FromAddress, &offer.ToAddress, &offer.MapURL,
 			&offer.SenderContact, &offer.RecipientContact,
 			&offer.DeliverContact, &offer.ViewCount, &offer.ValidityStart,
 			&offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
 			&offer.Note, &offer.Tax, &offer.TaxPrice, &offer.Trade,
-			&offer.Discount, &offer.PaymentMethod, &offer.Meta,
+			&offer.Discount, &offer.PaymentMethod, &offer.PaymentTerm, &offer.Meta,
 			&offer.Meta2, &offer.Meta3, &offer.Featured, &offer.Partner,
 			&offer.CreatedAt, &offer.UpdatedAt, &offer.Active,
 			&offer.Deleted, &totalCount,
@@ -147,75 +147,6 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		json.Unmarshal(vehicleJSON, &offer.AssignedVehicle)
 		// Uncomment if cargo unmarshaling is needed
 		json.Unmarshal(cargoJSON, &offer.Cargo)
-
-		offers = append(offers, offer)
-	}
-
-	if err := rows.Err(); err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
-		return
-	}
-
-	response := utils.PaginatedResponse{
-		Total:   totalCount,
-		Page:    page,
-		PerPage: perPage,
-		Data:    offers,
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer list", response))
-}
-
-func GetMyOfferList(ctx *gin.Context) {
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
-	offset := (page - 1) * perPage
-
-	companyID := ctx.MustGet("companyID").(int)
-	offerState := ctx.GetHeader("OfferState")
-
-	rows, err := db.DB.Query(
-		context.Background(),
-		queries.GetMyOfferList,
-		companyID,
-		perPage,
-		offset,
-		offerState,
-	)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
-		return
-	}
-	defer rows.Close()
-
-	var offers []dto.OfferDetails
-	var totalCount int
-
-	for rows.Next() {
-		var offer dto.OfferDetails
-		var companyJSON, driverJSON, vehicleJSON, cargoJSON []byte
-
-		err := rows.Scan(
-			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
-			&offer.OfferState, &offer.OfferRole, &offer.CostPerKm, &offer.Currency,
-			&offer.FromCountryID, &offer.FromCityID, &offer.ToCountryID, &offer.ToCityID,
-			&offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
-			&offer.FromAddress, &offer.ToAddress, &offer.SenderContact, &offer.RecipientContact, &offer.DeliverContact,
-			&offer.ViewCount, &offer.ValidityStart, &offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
-			&offer.Note, &offer.Tax, &offer.TaxPrice, &offer.Trade, &offer.Discount, &offer.PaymentMethod, &offer.Meta, &offer.Meta2, &offer.Meta3,
-			&offer.Featured, &offer.Partner, &offer.CreatedAt, &offer.UpdatedAt, &offer.Active, &offer.Deleted,
-			&totalCount, &companyJSON, &driverJSON, &vehicleJSON, &cargoJSON,
-		)
-
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
-			return
-		}
-
-		json.Unmarshal(companyJSON, &offer.Company)
-		json.Unmarshal(driverJSON, &offer.AssignedDriver)
-		json.Unmarshal(vehicleJSON, &offer.AssignedVehicle)
-		//json.Unmarshal(cargoJSON, &offer.Cargo)
 
 		offers = append(offers, offer)
 	}
@@ -361,89 +292,6 @@ func GetOfferListUpdate(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer list", response))
 }
 
-func GetOfferList(ctx *gin.Context) {
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
-	offset := (page - 1) * perPage
-
-	// TODO MAKE DELETED SEPARATED
-	companyID, _ := strconv.Atoi(ctx.GetHeader("CompanyID"))
-	stmt := queries.GetOfferList
-	role := ctx.MustGet("role").(string)
-	if !(role == "admin" || role == "system") {
-		stmt += ` AND o.offer_state='enabled'`
-		stmt += ` AND (o.company_id = $3 OR $3 = 0) AND o.deleted = 0`
-	} else {
-		stmt += ` AND (o.company_id = $3 OR $3 = 0)`
-	}
-	stmt += ` ORDER BY o.id DESC LIMIT $1 OFFSET $2;`
-
-	var offers []dto.Offer
-
-	err := pgxscan.Select(
-		context.Background(),
-		db.DB,
-		&offers,
-		stmt,
-		perPage,
-		offset,
-		companyID,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Couldn't retrieve data", err.Error()))
-		return
-	}
-
-	var totalCount int
-	if len(offers) > 0 {
-		totalCount = offers[0].TotalCount
-	}
-	response := utils.PaginatedResponse{
-		Total:   totalCount,
-		Page:    page,
-		PerPage: perPage,
-		Data:    offers,
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer list", response))
-}
-
-func GetOffer(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	var offer dto.OfferDetails
-	var companyJSON, driverJSON, vehicleJSON, cargoJSON []byte
-
-	err := db.DB.QueryRow(
-		context.Background(),
-		queries.GetOfferByID,
-		id,
-	).Scan(
-		&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID, &offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.CargoID,
-		&offer.OfferState, &offer.OfferRole, &offer.CostPerKm, &offer.Currency,
-		&offer.FromCountryID, &offer.FromCityID, &offer.ToCountryID, &offer.ToCityID,
-		&offer.FromCountry, &offer.FromRegion, &offer.ToCountry, &offer.ToRegion,
-		&offer.FromAddress, &offer.ToAddress, &offer.SenderContact, &offer.RecipientContact, &offer.DeliverContact,
-		&offer.ViewCount, &offer.ValidityStart, &offer.ValidityEnd, &offer.DeliveryStart, &offer.DeliveryEnd,
-		&offer.Note, &offer.Tax, &offer.TaxPrice, &offer.Trade, &offer.Discount, &offer.PaymentMethod, &offer.Meta, &offer.Meta2, &offer.Meta3,
-		&offer.Featured, &offer.Partner, &offer.CreatedAt, &offer.UpdatedAt, &offer.Active, &offer.Deleted,
-		&companyJSON, &driverJSON, &vehicleJSON, &cargoJSON,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", err.Error()))
-		return
-	}
-
-	json.Unmarshal(companyJSON, &offer.Company)
-	json.Unmarshal(driverJSON, &offer.AssignedDriver)
-	json.Unmarshal(vehicleJSON, &offer.AssignedVehicle)
-	json.Unmarshal(cargoJSON, &offer.Cargo)
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer details", offer))
-}
-
 func CreateOffer(ctx *gin.Context) {
 	var offer dto.Offer
 	if err := ctx.ShouldBindJSON(&offer); err != nil {
@@ -451,13 +299,14 @@ func CreateOffer(ctx *gin.Context) {
 		return
 	}
 
-	// TODO MAKE ADMIN STUFFF HERE
 	companyID := ctx.MustGet("companyID").(int)
 	userID := ctx.MustGet("id").(int)
 	role := ctx.MustGet("role").(string)
-	offer.CompanyID = companyID
-	offer.UserID = userID
-	offer.OfferRole = role
+	if !(role == "admin" || role == "system") {
+		offer.CompanyID = companyID
+		offer.UserID = userID
+		offer.OfferRole = role
+	}
 
 	var id int
 	err := db.DB.QueryRow(
@@ -469,6 +318,7 @@ func CreateOffer(ctx *gin.Context) {
 		offer.SenderContact, offer.RecipientContact, offer.DeliverContact, offer.ValidityStart, offer.ValidityEnd,
 		offer.DeliveryStart, offer.DeliveryEnd, offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
 		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3, offer.OfferRole, offer.ExecCompanyID,
+		offer.VehicleTypeID, offer.PackagingTypeID, offer.Distance, offer.MapURL, offer.PaymentTerm,
 	).Scan(&id)
 
 	if err != nil {
@@ -514,7 +364,9 @@ func UpdateOffer(ctx *gin.Context) {
 		offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
 		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3,
 		offer.Active, offer.Deleted, offer.ExecCompanyID,
-		offer.OfferState, offer.OfferRole, offer.CompanyID,
+		offer.OfferState, offer.OfferRole,
+		offer.VehicleTypeID, offer.PackagingTypeID, offer.Distance, offer.MapURL, offer.PaymentTerm,
+		offer.CompanyID,
 	).Scan(&updatedID)
 
 	if err != nil {
@@ -522,7 +374,81 @@ func UpdateOffer(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated offer!", gin.H{"id": updatedID}))
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully updated offer!", gin.H{"id": updatedID}))
+}
+
+func GetOffer(ctx *gin.Context) {
+	const query = `
+        SELECT 
+            o.*,
+            json_build_object(
+                'id', c.id,
+                'company_name', c.company_name,
+                'email', c.email,
+                'phone', c.phone,
+                'address', c.address,
+                'country', c.country
+            ) as company,
+            json_build_object(
+                'id', ec.id,
+                'company_name', ec.company_name,
+                'email', ec.email,
+                'phone', ec.phone,
+                'address', ec.address,
+                'country', ec.country
+            ) as exec_company,
+            json_build_object(
+                'id', d.id,
+                'first_name', d.first_name,
+                'last_name', d.last_name,
+                'phone', d.phone,
+                'email', d.email,
+                'image_url', d.image_url
+            ) as assigned_driver,
+            json_build_object(
+                'id', v.id,
+                'vehicle_type_id', v.vehicle_type_id,
+                'numberplate', v.numberplate,
+                'mileage', v.mileage,
+                'gps', v.gps,
+                'available', v.available
+            ) as vehicle,
+            json_build_object(
+                'id', vt.id,
+                'title_en', vt.title_en,
+                'title_ru', vt.title_ru,
+                'title_tk', vt.title_tk
+            ) as vehicle_type,
+            json_build_object(
+                'id', cg.id,
+                'name', cg.name,
+                'description', cg.description,
+                'info', cg.info
+            ) as cargo,
+            json_build_object(
+                'id', pt.id,
+                'name_en', pt.name_en,
+                'name_ru', pt.name_ru,
+                'name_tk', pt.name_tk
+            ) as packaging_type
+        FROM tbl_offer o
+        LEFT JOIN tbl_company c ON o.company_id = c.id
+        LEFT JOIN tbl_company ec ON o.exec_company_id = ec.id
+        LEFT JOIN tbl_driver d ON o.driver_id = d.id
+        LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
+        LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
+        LEFT JOIN tbl_cargo cg ON o.cargo_id = cg.id
+        LEFT JOIN tbl_packaging_type pt ON o.packaging_type_id = pt.id
+        WHERE o.id = $1 AND o.deleted = 0`
+
+	var offer dto.OfferDetailedResponse
+	err := pgxscan.Get(context.Background(), db.DB, &offer, query, ctx.Param("id"))
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer details", offer))
 }
 
 func DeleteOffer(ctx *gin.Context) {
@@ -547,4 +473,253 @@ func DeleteOffer(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted offer!", gin.H{"id": id}))
+}
+
+func GetDetailedOfferList(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	validOrderColumns := map[string]bool{
+		"id": true, "cost_per_km": true, "distance": true,
+		"view_count": true, "created_at": true, "updated_at": true,
+	}
+
+	orderBy := ctx.DefaultQuery("order_by", "id")
+	if !validOrderColumns[orderBy] {
+		orderBy = "id"
+	}
+	orderDir := strings.ToUpper(ctx.DefaultQuery("order_dir", "DESC"))
+	if orderDir != "ASC" && orderDir != "DESC" {
+		orderDir = "DESC"
+	}
+
+	baseQuery := `
+        SELECT 
+            o.*,
+            COUNT(*) OVER() as total_count,
+            
+            -- Company fields
+            json_build_object(
+                'id', c.id,
+                'company_name', c.company_name,
+                'email', c.email,
+                'phone', c.phone,
+                'address', c.address,
+                'country', c.country
+            ) as company,
+            
+            -- Exec Company fields
+            json_build_object(
+                'id', ec.id,
+                'company_name', ec.company_name,
+                'email', ec.email,
+                'phone', ec.phone,
+                'address', ec.address,
+                'country', ec.country
+            ) as exec_company,
+            
+            -- Driver fields
+            json_build_object(
+                'id', d.id,
+                'first_name', d.first_name,
+                'last_name', d.last_name,
+                'phone', d.phone,
+                'email', d.email,
+                'image_url', d.image_url
+            ) as assigned_driver,
+            
+            -- Vehicle fields
+            json_build_object(
+                'id', v.id,
+                'vehicle_type_id', v.vehicle_type_id,
+                'numberplate', v.numberplate,
+                'mileage', v.mileage,
+                'gps', v.gps,
+                'available', v.available
+            ) as vehicle,
+            
+            -- Vehicle type fields
+            json_build_object(
+                'id', vt.id,
+                'title_en', vt.title_en,
+                'title_ru', vt.title_ru,
+                'title_tk', vt.title_tk
+            ) as vehicle_type,
+            
+            -- Cargo fields
+            json_build_object(
+                'id', cg.id,
+                'name', cg.name,
+                'description', cg.description,
+                'info', cg.info,
+                'qty', cg.qty,
+                'weight', cg.weight
+            ) as cargo,
+            
+            -- Packaging type fields
+            json_build_object(
+                'id', pt.id,
+                'name_en', pt.name_en,
+                'name_ru', pt.name_ru,
+                'name_tk', pt.name_tk,
+                'material', pt.material,
+                'dimensions', pt.dimensions
+            ) as packaging_type
+            
+        FROM tbl_offer o
+        LEFT JOIN tbl_company c ON o.company_id = c.id
+        LEFT JOIN tbl_company ec ON o.exec_company_id = ec.id
+        LEFT JOIN tbl_driver d ON o.driver_id = d.id
+        LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
+        LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
+        LEFT JOIN tbl_cargo cg ON o.cargo_id = cg.id
+        LEFT JOIN tbl_packaging_type pt ON o.packaging_type_id = pt.id
+        `
+
+	var whereClauses []string
+	var args []interface{}
+	argCounter := 1
+
+	role := ctx.MustGet("role").(string)
+	if !(role == "admin" || role == "system") {
+		whereClauses = append(whereClauses, "o.deleted = 0")
+		whereClauses = append(whereClauses, "o.active = 1")
+	}
+
+	filters := map[string]string{
+		"company_id":        ctx.Query("company_id"),
+		"exec_company_id":   ctx.Query("exec_company_id"),
+		"driver_id":         ctx.Query("driver_id"),
+		"vehicle_id":        ctx.Query("vehicle_id"),
+		"vehicle_type_id":   ctx.Query("vehicle_type_id"),
+		"cargo_id":          ctx.Query("cargo_id"),
+		"packaging_type_id": ctx.Query("packaging_type_id"),
+		"offer_state":       ctx.Query("offer_state"),
+		"offer_role":        ctx.Query("offer_role"),
+		"currency":          ctx.Query("currency"),
+		"payment_method":    ctx.Query("payment_method"),
+	}
+
+	for key, value := range filters {
+		if value != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s = $%d", key, argCounter))
+			args = append(args, value)
+			argCounter++
+		}
+	}
+
+	numericRanges := map[string]struct {
+		min string
+		max string
+	}{
+		"cost_per_km": {ctx.Query("min_cost"), ctx.Query("max_cost")},
+		"distance":    {ctx.Query("min_distance"), ctx.Query("max_distance")},
+		"tax":         {ctx.Query("min_tax"), ctx.Query("max_tax")},
+		"discount":    {ctx.Query("min_discount"), ctx.Query("max_discount")},
+	}
+
+	for field, ranges := range numericRanges {
+		if ranges.min != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s >= $%d", field, argCounter))
+			minVal, _ := strconv.ParseFloat(ranges.min, 64)
+			args = append(args, minVal)
+			argCounter++
+		}
+		if ranges.max != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s <= $%d", field, argCounter))
+			maxVal, _ := strconv.ParseFloat(ranges.max, 64)
+			args = append(args, maxVal)
+			argCounter++
+		}
+	}
+
+	dateRanges := map[string]struct {
+		start string
+		end   string
+	}{
+		"validity": {ctx.Query("validity_start"), ctx.Query("validity_end")},
+		"delivery": {ctx.Query("delivery_start"), ctx.Query("delivery_end")},
+	}
+
+	for field, ranges := range dateRanges {
+		if ranges.start != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s_start >= $%d", field, argCounter))
+			args = append(args, ranges.start)
+			argCounter++
+		}
+		if ranges.end != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s_end <= $%d", field, argCounter))
+			args = append(args, ranges.end)
+			argCounter++
+		}
+	}
+
+	locationFilters := map[string]string{
+		"from_country_id": ctx.Query("from_country_id"),
+		"from_city_id":    ctx.Query("from_city_id"),
+		"to_country_id":   ctx.Query("to_country_id"),
+		"to_city_id":      ctx.Query("to_city_id"),
+	}
+
+	for key, value := range locationFilters {
+		if value != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s = $%d", key, argCounter))
+			args = append(args, value)
+			argCounter++
+		}
+	}
+
+	searchTerm := ctx.Query("search")
+	if searchTerm != "" {
+		searchClause := fmt.Sprintf(`(
+                    o.note ILIKE $%d OR 
+                    o.from_address ILIKE $%d OR 
+                    o.to_address ILIKE $%d OR
+                    o.sender_contact ILIKE $%d OR
+                    o.recipient_contact ILIKE $%d OR
+                    o.deliver_contact ILIKE $%d
+                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
+		whereClauses = append(whereClauses, searchClause)
+		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	query := baseQuery
+	if len(whereClauses) > 0 {
+		query += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	query += fmt.Sprintf(" ORDER BY o.%s %s LIMIT $%d OFFSET $%d",
+		orderBy, orderDir, argCounter, argCounter+1)
+	args = append(args, perPage, offset)
+
+	var offers []dto.OfferDetailedResponse
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&offers,
+		query,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Couldn't retrieve data", err.Error()))
+		return
+	}
+
+	var totalCount int
+	if len(offers) > 0 {
+		totalCount = offers[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    offers,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer list detailed", response))
 }
