@@ -176,7 +176,7 @@ VALUES
     (3, 3, 3, 3, 3, 'enabled', 299.75, 'GBP', 5, 5, 6, 6, 'UK', 'London',
      'Netherlands', 'Amsterdam', '10 Downing St, London, UK', 'Damstraat 12, Amsterdam, Netherlands',
      '+44 20 7946 0958', '+31 20 7946 0987', '+44 20 7946 1234',
-     20, '2024-11-07', '2025-11-14',
+     20, '2024-11-07', '2025-02-11',
      '2024-11-08', '2025-11-13', 'Request for timely delivery from London to Amsterdam. Cargo includes electronics and perishable items.', 0, 0,
      'card', '', '', '', 0, 0, 'sender'),
 
