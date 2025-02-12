@@ -758,25 +758,26 @@ func GetDetailedOfferList(ctx *gin.Context) {
 
 	searchFromLocation := ctx.Query("from_location")
 	if searchFromLocation != "" {
-		searchClause := fmt.Sprintf(`(
-                    o.from_country ILIKE $%d OR
-                    o.from_region ILIKE $%d OR 
-                    o.from_address ILIKE $%d OR 
-                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
-		whereClauses = append(whereClauses, searchClause)
-		args = append(args, "%"+searchFromLocation+"%")
-		argCounter++
+		searchFromLocationClause := fmt.Sprintf(`(
+        o.from_country ILIKE $%d OR
+        o.from_region ILIKE $%d OR 
+        o.from_address ILIKE $%d
+    )`, argCounter, argCounter+1, argCounter+2)
+		whereClauses = append(whereClauses, searchFromLocationClause)
+		args = append(args, "%"+searchFromLocation+"%", "%"+searchFromLocation+"%", "%"+searchFromLocation+"%")
+		argCounter += 3
 	}
+
 	searchToLocation := ctx.Query("to_location")
 	if searchToLocation != "" {
-		searchClause := fmt.Sprintf(`(
-                    o.to_country ILIKE $%d OR
-                    o.to_region ILIKE $%d OR 
-                    o.to_address ILIKE $%d OR 
-                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
-		whereClauses = append(whereClauses, searchClause)
-		args = append(args, "%"+searchToLocation+"%")
-		argCounter++
+		searchToLocationClause := fmt.Sprintf(`(
+        o.to_country ILIKE $%d OR
+        o.to_region ILIKE $%d OR 
+        o.to_address ILIKE $%d
+    )`, argCounter, argCounter+1, argCounter+2)
+		whereClauses = append(whereClauses, searchToLocationClause)
+		args = append(args, "%"+searchToLocation+"%", "%"+searchToLocation+"%", "%"+searchToLocation+"%")
+		argCounter += 3
 	}
 
 	query := baseQuery
