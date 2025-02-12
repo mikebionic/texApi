@@ -747,14 +747,35 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	if searchTerm != "" {
 		searchClause := fmt.Sprintf(`(
                     o.note ILIKE $%d OR 
-                    o.from_address ILIKE $%d OR 
-                    o.to_address ILIKE $%d OR
                     o.sender_contact ILIKE $%d OR
                     o.recipient_contact ILIKE $%d OR
                     o.deliver_contact ILIKE $%d
                 )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
 		whereClauses = append(whereClauses, searchClause)
 		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	searchFromLocation := ctx.Query("from_location")
+	if searchFromLocation != "" {
+		searchClause := fmt.Sprintf(`(
+                    o.from_country ILIKE $%d OR
+                    o.from_region ILIKE $%d OR 
+                    o.from_address ILIKE $%d OR 
+                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
+		whereClauses = append(whereClauses, searchClause)
+		args = append(args, "%"+searchFromLocation+"%")
+		argCounter++
+	}
+	searchToLocation := ctx.Query("to_location")
+	if searchToLocation != "" {
+		searchClause := fmt.Sprintf(`(
+                    o.to_country ILIKE $%d OR
+                    o.to_region ILIKE $%d OR 
+                    o.to_address ILIKE $%d OR 
+                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
+		whereClauses = append(whereClauses, searchClause)
+		args = append(args, "%"+searchToLocation+"%")
 		argCounter++
 	}
 
