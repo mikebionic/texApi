@@ -291,22 +291,6 @@ func SingleVehicleBrand(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle brand", brand[0]))
 }
 
-func GetVehicleBrands(ctx *gin.Context) {
-	var brands []dto.VehicleBrand
-
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&brands, queries.GetVehicleBrand,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle brands not found", err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle brands", brands))
-}
-
 func CreateVehicleBrand(ctx *gin.Context) {
 	var brand dto.VehicleBrand
 
@@ -392,22 +376,6 @@ func SingleVehicleType(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle type", vehicleType[0]))
-}
-
-func GetVehicleTypes(ctx *gin.Context) {
-	var types []dto.VehicleType
-
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&types, queries.GetVehicleType,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle types not found", err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle types", types))
 }
 
 func CreateVehicleType(ctx *gin.Context) {
@@ -527,22 +495,6 @@ func SingleVehicleModel(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle model", model[0]))
 }
 
-func GetVehicleModels(ctx *gin.Context) {
-	var models []dto.VehicleModel
-
-	err := pgxscan.Select(
-		context.Background(), db.DB,
-		&models, queries.GetVehicleModel,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle models not found", err.Error()))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle models", models))
-}
-
 func CreateVehicleModel(ctx *gin.Context) {
 	var model dto.VehicleModel
 
@@ -613,4 +565,263 @@ func DeleteVehicleModel(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted!", gin.H{"id": id}))
+}
+
+func GetVehicleModels(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	baseQuery := `
+        SELECT 
+            vm.*,
+            COUNT(*) OVER() as total_count,
+            json_build_object(
+                'id', vb.id,
+                'name', vb.name,
+                'country', vb.country,
+                'founded_year', vb.founded_year
+            ) as brand,
+            json_build_object(
+                'id', vt.id,
+                'title_en', vt.title_en,
+                'title_ru', vt.title_ru,
+                'title_tk', vt.title_tk
+            ) as vehicle_type
+        FROM tbl_vehicle_model vm
+        LEFT JOIN tbl_vehicle_brand vb ON vm.vehicle_brand_id = vb.id
+        LEFT JOIN tbl_vehicle_type vt ON vm.vehicle_type_id = vt.id
+        WHERE vm.deleted = 0
+    `
+
+	var whereClauses []string
+	var args []interface{}
+	argCounter := 1
+
+	// Add filters
+	if brandID := ctx.Query("brand_id"); brandID != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vm.vehicle_brand_id = $%d", argCounter))
+		args = append(args, brandID)
+		argCounter++
+	}
+
+	if typeID := ctx.Query("type_id"); typeID != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vm.vehicle_type_id = $%d", argCounter))
+		args = append(args, typeID)
+		argCounter++
+	}
+
+	if year := ctx.Query("year"); year != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vm.year = $%d", argCounter))
+		args = append(args, year)
+		argCounter++
+	}
+
+	if searchTerm := ctx.Query("search"); searchTerm != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("(vm.name ILIKE $%d OR vm.feature ILIKE $%d)",
+			argCounter, argCounter))
+		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	if len(whereClauses) > 0 {
+		baseQuery += " AND " + strings.Join(whereClauses, " AND ")
+	}
+
+	baseQuery += fmt.Sprintf(" ORDER BY vm.id DESC LIMIT $%d OFFSET $%d",
+		argCounter, argCounter+1)
+	args = append(args, perPage, offset)
+
+	var models []dto.VehicleModelDetailed
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&models,
+		baseQuery,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+
+	var totalCount int
+	if len(models) > 0 {
+		totalCount = models[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    models,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle models", response))
+}
+
+func GetVehicleTypes(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	baseQuery := `
+        SELECT 
+            vt.*,
+            COUNT(*) OVER() as total_count,
+            (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', vm.id,
+                        'name', vm.name,
+                        'year', vm.year
+                    )
+                )
+                FROM tbl_vehicle_model vm 
+                WHERE vm.vehicle_type_id = vt.id AND vm.deleted = 0
+            ) as models
+        FROM tbl_vehicle_type vt
+        WHERE vt.deleted = 0
+    `
+
+	var whereClauses []string
+	var args []interface{}
+	argCounter := 1
+
+	if searchTerm := ctx.Query("search"); searchTerm != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf(
+			"(vt.title_en ILIKE $%d OR vt.title_ru ILIKE $%d OR vt.title_tk ILIKE $%d)",
+			argCounter, argCounter, argCounter))
+		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	if len(whereClauses) > 0 {
+		baseQuery += " AND " + strings.Join(whereClauses, " AND ")
+	}
+
+	baseQuery += fmt.Sprintf(" ORDER BY vt.id DESC LIMIT $%d OFFSET $%d",
+		argCounter, argCounter+1)
+	args = append(args, perPage, offset)
+
+	var types []dto.VehicleTypeDetailed
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&types,
+		baseQuery,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+
+	var totalCount int
+	if len(types) > 0 {
+		totalCount = types[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    types,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle types", response))
+}
+
+func GetVehicleBrands(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	baseQuery := `
+        SELECT 
+            vb.*,
+            COUNT(*) OVER() as total_count,
+            (
+                SELECT json_agg(
+                    json_build_object(
+                        'id', vm.id,
+                        'name', vm.name,
+                        'year', vm.year
+                    )
+                )
+                FROM tbl_vehicle_model vm 
+                WHERE vm.vehicle_brand_id = vb.id AND vm.deleted = 0
+            ) as models
+        FROM tbl_vehicle_brand vb
+        WHERE vb.deleted = 0
+    `
+
+	var whereClauses []string
+	var args []interface{}
+	argCounter := 1
+
+	if country := ctx.Query("country"); country != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vb.country = $%d", argCounter))
+		args = append(args, country)
+		argCounter++
+	}
+
+	if yearFrom := ctx.Query("founded_year_from"); yearFrom != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vb.founded_year >= $%d", argCounter))
+		args = append(args, yearFrom)
+		argCounter++
+	}
+
+	if yearTo := ctx.Query("founded_year_to"); yearTo != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vb.founded_year <= $%d", argCounter))
+		args = append(args, yearTo)
+		argCounter++
+	}
+
+	if searchTerm := ctx.Query("search"); searchTerm != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("vb.name ILIKE $%d", argCounter))
+		args = append(args, "%"+searchTerm+"%")
+		argCounter++
+	}
+
+	if len(whereClauses) > 0 {
+		baseQuery += " AND " + strings.Join(whereClauses, " AND ")
+	}
+
+	baseQuery += fmt.Sprintf(" ORDER BY vb.id DESC LIMIT $%d OFFSET $%d",
+		argCounter, argCounter+1)
+	args = append(args, perPage, offset)
+
+	var brands []dto.VehicleBrandDetailed
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&brands,
+		baseQuery,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError,
+			utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+
+	var totalCount int
+	if len(brands) > 0 {
+		totalCount = brands[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    brands,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle brands", response))
 }

@@ -164,3 +164,30 @@ type VehicleBasic struct {
 	VehicleBrandID int    `json:"vehicle_brand_id"`
 	Numberplate    string `json:"numberplate"`
 }
+
+type VehicleModelDetailed struct {
+	VehicleModel
+	TotalCount  int           `json:"total_count"`
+	Brand       *VehicleBrand `json:"brand,omitempty"`
+	VehicleType *VehicleType  `json:"vehicle_type,omitempty"`
+}
+
+type VehicleTypeDetailed struct {
+	VehicleType
+	TotalCount int            `json:"total_count"`
+	Models     []VehicleModel `json:"models,omitempty"`
+}
+
+type VehicleBrandDetailed struct {
+	VehicleBrand
+	TotalCount int            `json:"total_count"`
+	Models     []VehicleModel `json:"models,omitempty"`
+}
+
+type VehicleDetailedResponse struct {
+	VehicleCreate
+	Company     *CompanyWithStats `json:"company,omitempty"`
+	VehicleType *VehicleType      `json:"vehicle_type,omitempty"`
+	Brand       *VehicleBrand     `json:"brand,omitempty"`
+	Model       *VehicleModel     `json:"model,omitempty"`
+}
