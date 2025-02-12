@@ -115,7 +115,7 @@ WHERE id = $1;
 // Vehicle Model queries
 var GetVehicleModel = `
 SELECT m.id, m.name, m.year, m.vehicle_brand_id, m.vehicle_type_id,
-       b.name AS vehicle_brand, -- Update this alias
+       b.name AS vehicle_brand,
        t.title_en AS vehicle_type, m.feature, m.deleted
 FROM tbl_vehicle_model m
 LEFT JOIN tbl_vehicle_type t ON t.id = m.vehicle_type_id
