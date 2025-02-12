@@ -37,11 +37,11 @@ type DriverCreate struct {
 	Partner        int       `json:"partner"`
 	SuccessfulOps  int       `json:"successful_ops"`
 	ImageURL       string    `json:"image_url"`
-	ViewCount      string    `json:"view_count"`
+	ViewCount      int       `json:"view_count"`
 	Meta           string    `json:"meta"`
 	Meta2          string    `json:"meta2"`
 	Meta3          string    `json:"meta3"`
-	Available      string    `json:"available"`
+	Available      int       `json:"available"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 	Active         int       `json:"active"`
