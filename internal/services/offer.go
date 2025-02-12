@@ -495,28 +495,47 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	}
 
 	baseQuery := `
+        WITH company_stats AS (
+            SELECT 
+                c.id as company_id,
+                COUNT(DISTINCT d.id) as drivers_count,
+                COUNT(DISTINCT CASE 
+                    WHEN o2.active = 1 
+                    AND o2.deleted = 0 
+                    AND o2.validity_end >= CURRENT_DATE 
+                    THEN o2.id 
+                    END) as offers_count
+            FROM tbl_company c
+            LEFT JOIN tbl_driver d ON d.company_id = c.id AND d.deleted = 0 AND d.active = 1
+            LEFT JOIN tbl_offer o2 ON (o2.company_id = c.id OR o2.exec_company_id = c.id)
+            GROUP BY c.id
+        )
         SELECT 
             o.*,
             COUNT(*) OVER() as total_count,
             
-            -- Company fields
+            -- Company fields with stats
             json_build_object(
                 'id', c.id,
                 'company_name', c.company_name,
                 'email', c.email,
                 'phone', c.phone,
                 'address', c.address,
-                'country', c.country
+                'country', c.country,
+                'drivers_count', COALESCE(cs1.drivers_count, 0),
+                'offers_count', COALESCE(cs1.offers_count, 0)
             ) as company,
             
-            -- Exec Company fields
+            -- Exec Company fields with stats
             json_build_object(
                 'id', ec.id,
                 'company_name', ec.company_name,
                 'email', ec.email,
                 'phone', ec.phone,
                 'address', ec.address,
-                'country', ec.country
+                'country', ec.country,
+                'drivers_count', COALESCE(cs2.drivers_count, 0),
+                'offers_count', COALESCE(cs2.offers_count, 0)
             ) as exec_company,
             
             -- Driver fields
@@ -569,7 +588,9 @@ func GetDetailedOfferList(ctx *gin.Context) {
             
         FROM tbl_offer o
         LEFT JOIN tbl_company c ON o.company_id = c.id
+        LEFT JOIN company_stats cs1 ON c.id = cs1.company_id
         LEFT JOIN tbl_company ec ON o.exec_company_id = ec.id
+        LEFT JOIN company_stats cs2 ON ec.id = cs2.company_id
         LEFT JOIN tbl_driver d ON o.driver_id = d.id
         LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
         LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
