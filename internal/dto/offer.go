@@ -56,10 +56,16 @@ type Offer struct {
 	TotalCount       int       `json:"total_count"`
 }
 
+type CompanyWithStats struct {
+	CompanyCreate
+	DriversCount      int `json:"drivers_count"`
+	ActiveOffersCount int `json:"offers_count"`
+}
+
 type OfferDetailedResponse struct {
 	Offer
-	Company        *CompanyCreate         `json:"company,omitempty"`
-	ExecCompany    *CompanyCreate         `json:"exec_company,omitempty"`
+	Company        *CompanyWithStats      `json:"company,omitempty"`
+	ExecCompany    *CompanyWithStats      `json:"exec_company,omitempty"`
 	AssignedDriver *DriverCreate          `json:"assigned_driver,omitempty"`
 	Vehicle        *VehicleCreate         `json:"vehicle,omitempty"`
 	VehicleType    *VehicleType           `json:"vehicle_type,omitempty"`
