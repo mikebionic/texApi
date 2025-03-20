@@ -4,7 +4,7 @@ dev:
 	@go run cmd/tex/main.go
 
 db:
-	@echo "Initializing storegramApi database..."
+	@echo "Initializing texApi database..."
 	@bash ./scripts/re-init-db.sh
 #	@PGPASSWORD=$(DB_PASSWORD) psql -h $(DB_HOST) -p $(DB_PORT) -U $(DB_USER) -d postgres \
 #    -f ./schemas/0.0.5_drop_db.sql

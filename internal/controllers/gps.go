@@ -31,13 +31,13 @@ func GPS(router *gin.Engine) {
 		gpsGroup.GET("/geofence", middlewares.Guard, services.GetGeofenceList)
 		gpsGroup.PUT("/geofence/:geofence_id", middlewares.Guard, services.UpdateGeofence)
 		gpsGroup.DELETE("/geofence/:geofence_id", middlewares.Guard, services.DeleteGeofence)
-		gpsGroup.GET("/geofence/events", middlewares.Guard, services.GetGeofenceEvents)
-
-		// Analytics and reporting
-		gpsGroup.GET("/analytics/vehicle/:vehicle_id", middlewares.Guard, services.GetVehicleAnalytics)
-		gpsGroup.GET("/analytics/driver/:driver_id", middlewares.Guard, services.GetDriverAnalytics)
-
-		// Map data
-		gpsGroup.GET("/map-data", middlewares.Guard, services.GetMapData)
+		//gpsGroup.GET("/geofence/events", middlewares.Guard, services.GetGeofenceEvents)
+		//
+		//// Analytics and reporting
+		//gpsGroup.GET("/analytics/vehicle/:vehicle_id", middlewares.Guard, services.GetVehicleAnalytics)
+		//gpsGroup.GET("/analytics/driver/:driver_id", middlewares.Guard, services.GetDriverAnalytics)
+		//
+		//// Map data
+		//gpsGroup.GET("/map-data", middlewares.Guard, services.GetMapData)
 	}
 }

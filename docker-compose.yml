@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:15
+    container_name: db_tex
+    environment:
+      POSTGRES_USER: db_tex
+      POSTGRES_PASSWORD: db_tex
+      POSTGRES_DB: db_tex
+    ports:
+      - "15432:5432"
+    volumes:
+      - postgres_tex:/var/lib/postgresql/data
+    networks:
+      - tex_project
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U db_tex"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tex-app
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "7000:7000"
+    volumes:
+      - ~/TEX_UPLOADS:/app/uploads
+    networks:
+      - tex_project
+    command: >
+      sh -c "chmod +x /usr/local/bin/scripts/init-db.sh &&
+        bash -x /usr/local/bin/scripts/init-db.sh ||
+        { echo 'DB initialization failed'; exit 1; } &&
+        ./app
+        "
+volumes:
+  postgres_tex:
+
+networks:
+  tex_project:
