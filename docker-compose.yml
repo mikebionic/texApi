@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: db_tex
       POSTGRES_DB: db_tex
     ports:
-      - "15432:5432"
+      - "15433:5432"
     volumes:
       - postgres_tex:/var/lib/postgresql/data
     networks:
