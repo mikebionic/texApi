@@ -6,11 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
-
-var SocketClients = make(map[string]*websocket.Conn)
 
 type Config struct {
 	API_HOST       string
@@ -23,6 +20,9 @@ type Config struct {
 	UPLOAD_PATH           string
 	MAX_FILE_UPLOAD_COUNT int
 	STATIC_URL            string
+	COMPRESS_IMAGES       int
+	COMPRESS_SIZE         int
+	COMPRESS_QUALITY      int
 
 	ENCRYPT_PASSWORDS bool
 	SESSION_MAX_AGE   int
@@ -47,6 +47,15 @@ type Config struct {
 	SMTP_MAIL     string
 	SMTP_PASSWORD string
 	APP_LOGO_URL  string
+
+	FileUpload FileUpload
+}
+
+type FileUpload struct {
+	MaxFileSize      int64 // in bytes (e.g., 10MB = 10 * 1024 * 1024)
+	MaxFiles         int
+	AllowedMimeTypes map[string]bool
+	StorageBasePath  string
 }
 
 var ENV Config
@@ -64,6 +73,9 @@ func InitConfig() {
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
 	ENV.MAX_FILE_UPLOAD_COUNT, _ = strconv.Atoi(os.Getenv("MAX_FILE_UPLOAD_COUNT"))
 	ENV.STATIC_URL = fmt.Sprintf("/%s/uploads/", ENV.API_PREFIX)
+	ENV.COMPRESS_IMAGES, _ = strconv.Atoi(os.Getenv("COMPRESS_IMAGES"))
+	ENV.COMPRESS_SIZE, _ = strconv.Atoi(os.Getenv("COMPRESS_SIZE"))
+	ENV.COMPRESS_QUALITY, _ = strconv.Atoi(os.Getenv("COMPRESS_QUALITY"))
 
 	ENV.ENCRYPT_PASSWORDS = os.Getenv("ENCRYPT_PASSWORDS") == "true"
 
@@ -74,12 +86,22 @@ func InitConfig() {
 	ENV.DB_NAME = os.Getenv("DB_NAME")
 
 	ENV.ACCESS_KEY = os.Getenv("ACCESS_KEY")
-	AT, _ := time.ParseDuration(os.Getenv(("ACCESS_TIME")))
-	ENV.ACCESS_TIME = AT
+	accessTime, err := time.ParseDuration(os.Getenv("ACCESS_TIME"))
+	if err != nil {
+		ENV.ACCESS_TIME = accessTime
+	} else {
+		ENV.ACCESS_TIME = 15 * time.Minute // Default
+		fmt.Printf("Warning: Invalid ACCESS_TIME, using default: %v\n", ENV.ACCESS_TIME)
+	}
 
 	ENV.REFRESH_KEY = os.Getenv("REFRESH_KEY")
-	RT, _ := time.ParseDuration(os.Getenv(("REFRESH_TIME")))
-	ENV.REFRESH_TIME = RT
+	refreshTime, err := time.ParseDuration(os.Getenv("REFRESH_TIME"))
+	if err != nil {
+		ENV.REFRESH_TIME = refreshTime
+	} else {
+		ENV.REFRESH_TIME = 7 * 24 * time.Hour // Default
+		fmt.Printf("Warning: Invalid REFRESH_TIME, using default: %v\n", ENV.REFRESH_TIME)
+	}
 
 	ENV.GLE_KEY = os.Getenv("GLE_KEY")
 	ENV.GLE_SECRET = os.Getenv("GLE_SECRET")
@@ -93,4 +115,96 @@ func InitConfig() {
 	if len(os.Getenv("APP_LOGO_URL")) > 8 {
 		ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
 	}
+
+	ENV.FileUpload = FileUpload{
+		MaxFileSize:      10 * 1024 * 1024, // 10MB
+		MaxFiles:         5,
+		AllowedMimeTypes: mergeAllowedTypes(),
+		StorageBasePath:  ENV.UPLOAD_PATH,
+	}
+}
+
+var (
+	AllowedImageTypes = map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+		"image/gif":  true,
+	}
+
+	AllowedVideoTypes = map[string]bool{
+		"video/mp4":  true,
+		"video/webm": true,
+		"video/mpeg": true,
+	}
+
+	AllowedDocumentTypes = map[string]bool{
+		"application/pdf":  true,
+		"application/doc":  true,
+		"application/docx": true,
+		"text/plain":       true,
+	}
+	AllowedAudioTypes = map[string]bool{
+		"audio/mpeg":     true, // .mp3
+		"audio/wav":      true, // .wav
+		"audio/x-wav":    true, // alternate .wav
+		"audio/ogg":      true, // .ogg
+		"audio/webm":     true, // .webm
+		"audio/aac":      true, // .aac
+		"audio/flac":     true, // .flac
+		"audio/mp4":      true, // .m4a
+		"audio/3gpp":     true, // .3gp
+		"audio/x-ms-wma": true, // .wma
+	}
+	AllowedArchiveTypes = map[string]bool{
+		"application/zip":              true,
+		"application/x-rar-compressed": false,
+		"application/x-7z-compressed":  false,
+		"application/gzip":             false,
+	}
+	AllowedSpreadsheetTypes = map[string]bool{
+		"application/vnd.ms-excel": false, // .xls
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": false, // .xlsx
+	}
+	AllowedPresentationTypes = map[string]bool{
+		"application/vnd.ms-powerpoint":                                             false, // .ppt
+		"application/vnd.openxmlformats-officedocument.presentationml.presentation": false, // .pptx
+	}
+	AllowedCodeTypes = map[string]bool{
+		"text/markdown":          false,
+		"text/html":              false,
+		"text/css":               false,
+		"application/javascript": false,
+		"application/json":       false,
+		"text/x-python":          false,
+	}
+)
+
+func mergeAllowedTypes() map[string]bool {
+	allowedTypes := make(map[string]bool)
+	for k, v := range AllowedImageTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedVideoTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedDocumentTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedAudioTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedArchiveTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedSpreadsheetTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedPresentationTypes {
+		allowedTypes[k] = v
+	}
+	for k, v := range AllowedCodeTypes {
+		allowedTypes[k] = v
+	}
+	return allowedTypes
 }

@@ -251,3 +251,30 @@ func ValidateOTPAndTime(registerType, credentials, promptOTP string) error {
 
 	return nil
 }
+
+func UpdateUserLastActive(companyID int) error {
+	const updateLastActiveQuery = `
+		UPDATE tbl_company 
+		SET last_active = CURRENT_TIMESTAMP 
+		WHERE id = $1
+		RETURNING id
+	`
+	var result []struct{ ID int }
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&result,
+		updateLastActiveQuery,
+		companyID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to update last seen: %w", err)
+	}
+
+	if len(result) == 0 {
+		return fmt.Errorf("no profile found with ID %d", companyID)
+	}
+
+	return nil
+}

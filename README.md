@@ -1,6 +1,27 @@
 # texApi
 
-Installation is easy
+Logistics related api ecosystem, written in Golang GIN, Postgres.
+
+### Docker Compose setup
+
+Using docker-compose:
+```sh
+# To rebuild the app container
+docker-compose up --build app
+
+# Or to rebuild all containers
+docker-compose up --build
+
+# With DB initialization
+INIT_DB=true docker-compose up --build
+
+# App-only update
+INIT_DB=false docker-compose up --build app
+```
+
+---
+
+### Manual setup: 
 
 Put this repo folder in:
 **~/tex_backend/texApi**
