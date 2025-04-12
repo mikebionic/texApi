@@ -1,9 +1,11 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"texApi/config"
+	repo "texApi/internal/repositories"
 	"texApi/pkg/utils"
 
 	"github.com/gin-gonic/gin"
@@ -78,5 +80,47 @@ func GuardAdmin(ctx *gin.Context) {
 	ctx.Set("roleID", int(claims["roleID"].(float64)))
 	ctx.Set("companyID", int(claims["companyID"].(float64)))
 	ctx.Set("role", claims["role"])
+	ctx.Next()
+}
+
+func UpdateLastActive(ctx *gin.Context) {
+	authorization := ctx.Request.Header["Authorization"]
+	if len(authorization) == 0 {
+		ctx.Next()
+		return
+	}
+	bearer := strings.Split(authorization[0], "Bearer ")
+	if len(bearer) == 0 || len(bearer) == 1 {
+		ctx.Next()
+		return
+	}
+
+	token := bearer[1]
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(
+		token, claims, func(t *jwt.Token) (interface{}, error) {
+			return []byte(config.ENV.ACCESS_KEY), nil
+		},
+	)
+	if err != nil {
+		ctx.Next()
+		return
+	}
+
+	companyID := int(claims["companyID"].(float64))
+	if companyID == 0 {
+		ctx.Next()
+		return
+	}
+
+	go func() {
+		err := repo.UpdateUserLastActive(companyID)
+		if err != nil {
+			log.Print("Failed to update last seen", err)
+			ctx.Next()
+			return
+		}
+	}()
+
 	ctx.Next()
 }
