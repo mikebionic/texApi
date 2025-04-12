@@ -22,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: tex-app:latest
     container_name: tex-app
     depends_on:
       db:
@@ -32,10 +33,14 @@ services:
       - ~/TEX_UPLOADS:/app/uploads
     networks:
       - tex_project
+    environment:
+      - INIT_DB=${INIT_DB:-false}
     command: >
-      sh -c "chmod +x /usr/local/bin/scripts/init-db.sh &&
-        bash -x /usr/local/bin/scripts/init-db.sh ||
-        { echo 'DB initialization failed'; exit 1; } &&
+      sh -c "if [ \"$$INIT_DB\" = \"true\" ]; then
+        chmod +x /usr/local/bin/scripts/init-db.sh &&
+        bash -x /usr/local/bin/scripts/init-db.sh || 
+        { echo 'DB initialization failed'; exit 1; };
+        fi &&
         ./app
         "
 volumes:

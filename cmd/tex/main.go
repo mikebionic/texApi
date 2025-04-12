@@ -6,6 +6,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/google"
+	"log"
 	"texApi/config"
 	"texApi/database"
 	app "texApi/internal"
@@ -37,7 +38,10 @@ func main() {
 	database.InitDB()
 	setupSMTPConfig()
 	NewGoogleAuth()
+	
 	server := app.InitApp()
 	address := fmt.Sprintf("%v:%v", config.ENV.API_HOST, config.ENV.API_PORT)
-	server.Run(address)
+	if err := server.Run(address); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

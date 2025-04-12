@@ -11,6 +11,7 @@ import (
 	"os"
 	"texApi/config"
 	"texApi/database"
+	"texApi/internal/chat"
 	"texApi/internal/controllers"
 	"texApi/pkg/middlewares"
 	"time"
@@ -29,11 +30,10 @@ func InitApp() *gin.Engine {
 	router := gin.New()
 	router.SetTrustedProxies(nil)
 	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("texsession", store))
-
-	//router.Use(middlewares.Cors)
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -47,6 +47,7 @@ func InitApp() *gin.Engine {
 		}
 		ctx.Next()
 	})
+	router.Use(middlewares.UpdateLastActive)
 	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
 	router.Static(fmt.Sprintf("/%s/assets/", config.ENV.API_PREFIX), "assets/")
 
@@ -62,6 +63,7 @@ func InitApp() *gin.Engine {
 	controllers.PackagingType(router)
 	controllers.Cargo(router)
 	controllers.Media(router)
+	chat.Chat(router)
 
 	return router
 }
