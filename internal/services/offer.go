@@ -40,7 +40,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		"o.payment_method":  ctx.Query("payment_method"),
 		"o.featured":        ctx.Query("featured"),
 		"o.partner":         ctx.Query("partner"),
-		"o.active":          ctx.DefaultQuery("active"),
+		"o.active":          ctx.Query("active"),
 		"o.deleted":         ctx.DefaultQuery("deleted", "0"),
 	}
 
