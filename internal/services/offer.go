@@ -346,8 +346,7 @@ func UpdateOffer(ctx *gin.Context) {
 		offer.CompanyID = &companyID
 		offer.OfferState = nil
 		offer.OfferRole = nil
-		offer.Active = nil
-		stmt += ` AND active = 1 AND deleted = 0`
+		stmt += ` AND deleted = 0`
 	}
 	stmt += ` RETURNING id;`
 
@@ -501,13 +500,12 @@ func GetDetailedOfferList(ctx *gin.Context) {
                 c.id as company_id,
                 COUNT(DISTINCT d.id) as drivers_count,
                 COUNT(DISTINCT CASE 
-                    WHEN o2.active = 1 
-                    AND o2.deleted = 0 
+                    WHEN o2.deleted = 0 
                     AND o2.validity_end >= CURRENT_DATE 
                     THEN o2.id 
                     END) as offers_count
             FROM tbl_company c
-            LEFT JOIN tbl_driver d ON d.company_id = c.id AND d.deleted = 0 AND d.active = 1
+            LEFT JOIN tbl_driver d ON d.company_id = c.id AND d.deleted = 0
             LEFT JOIN tbl_offer o2 ON (o2.company_id = c.id OR o2.exec_company_id = c.id)
             GROUP BY c.id
         )
@@ -655,12 +653,6 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	var args []interface{}
 	argCounter := 1
 
-	role := ctx.MustGet("role").(string)
-	if !(role == "admin" || role == "system") {
-		whereClauses = append(whereClauses, "o.deleted = 0")
-		whereClauses = append(whereClauses, "o.active = 1")
-	}
-
 	filters := map[string]string{
 		"company_id":        ctx.Query("company_id"),
 		"exec_company_id":   ctx.Query("exec_company_id"),
@@ -673,6 +665,8 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		"offer_role":        ctx.Query("offer_role"),
 		"currency":          ctx.Query("currency"),
 		"payment_method":    ctx.Query("payment_method"),
+		"active":            ctx.Query("active"),
+		"deleted":           ctx.DefaultQuery("deleted", "0"),
 	}
 
 	for key, value := range filters {
