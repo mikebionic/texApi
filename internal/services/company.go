@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"encoding/json"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -17,45 +17,16 @@ func GetCompanyList(ctx *gin.Context) {
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
-	rows, err := db.DB.Query(
-		context.Background(),
-		queries.GetCompanyWithRelations,
-		perPage,
-		offset,
-	)
+	var companies []dto.CompanyDetails
+	err := pgxscan.Select(ctx, db.DB, &companies, queries.GetCompanyList, perPage, offset)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("System error", err.Error()))
 		return
 	}
-	defer rows.Close()
 
-	var companies []dto.CompanyDetails
 	var totalCount int
-
-	for rows.Next() {
-		var company dto.CompanyDetails
-		var driversJSON, vehiclesJSON []byte
-
-		err := rows.Scan(
-			&company.ID, &company.UUID, &company.UserID, &company.RoleID,
-			&company.CompanyName, &company.FirstName, &company.LastName,
-			&company.PatronymicName, &company.Phone, &company.Phone2,
-			&company.Phone3, &company.Email, &company.Email2, &company.Email3,
-			&company.Meta, &company.Meta2, &company.Meta3, &company.Address,
-			&company.Country, &company.CountryID, &company.CityID,
-			&company.ImageURL, &company.Entity, &company.Featured,
-			&company.Rating, &company.Partner, &company.SuccessfulOps,
-			&company.CreatedAt, &company.UpdatedAt, &company.Active, &company.Deleted,
-			&totalCount, &driversJSON, &vehiclesJSON,
-		)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
-			return
-		}
-
-		json.Unmarshal(driversJSON, &company.Drivers)
-		json.Unmarshal(vehiclesJSON, &company.Vehicles)
-		companies = append(companies, company)
+	if len(companies) > 0 {
+		totalCount = companies[0].TotalCount
 	}
 
 	response := utils.PaginatedResponse{
@@ -71,35 +42,17 @@ func GetCompanyList(ctx *gin.Context) {
 func GetCompany(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	var company dto.CompanyDetails
-	var driversJSON, vehiclesJSON []byte
-
-	err := db.DB.QueryRow(
-		context.Background(),
-		queries.GetCompanyByID,
-		id,
-	).Scan(
-		&company.ID, &company.UUID, &company.UserID, &company.RoleID,
-		&company.CompanyName, &company.FirstName, &company.LastName,
-		&company.PatronymicName, &company.Phone, &company.Phone2,
-		&company.Phone3, &company.Email, &company.Email2, &company.Email3,
-		&company.Meta, &company.Meta2, &company.Meta3, &company.Address,
-		&company.Country, &company.CountryID, &company.CityID,
-		&company.ImageURL, &company.Entity, &company.Featured,
-		&company.Rating, &company.Partner, &company.SuccessfulOps,
-		&company.CreatedAt, &company.UpdatedAt, &company.Active, &company.Deleted,
-		&driversJSON, &vehiclesJSON,
-	)
-
+	var company []dto.CompanyDetails
+	err := pgxscan.Select(ctx, db.DB, &company, queries.GetCompanyByID, id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Company not found", err.Error()))
 		return
 	}
-
-	json.Unmarshal(driversJSON, &company.Drivers)
-	json.Unmarshal(vehiclesJSON, &company.Vehicles)
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company))
+	if len(company) == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Company not found", ""))
+	}
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company[0]))
+	return
 }
 
 // // TODO: should they be able to create only one company? check if company of that user exists?

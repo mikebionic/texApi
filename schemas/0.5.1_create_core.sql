@@ -79,7 +79,7 @@ CREATE TABLE tbl_company
     rating          INT          NOT NULL DEFAULT 0,
     partner         INT          NOT NULL DEFAULT 0,
     successful_ops  INT          NOT NULL DEFAULT 0,
-    last_active              TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_active     TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     active          INT          NOT NULL DEFAULT 1,

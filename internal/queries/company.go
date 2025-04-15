@@ -1,55 +1,17 @@
 package queries
 
-const GetCompanyWithRelations = `
-WITH company_data AS (
-    SELECT 
-        c.*,
-        COUNT(*) OVER() as total_count
-    FROM tbl_company c
-    WHERE c.deleted = 0
-    ORDER BY c.id
-    LIMIT $1 OFFSET $2
-)
+const GetCompanyList = `
 SELECT 
-    cd.*, 
+    c.*,
+	COUNT(*) OVER() as total_count,
     json_agg(DISTINCT d.*) FILTER (WHERE d.id IS NOT NULL) as drivers,
     json_agg(DISTINCT v.*) FILTER (WHERE v.id IS NOT NULL) as vehicles
-FROM company_data cd
-LEFT JOIN tbl_driver d ON cd.id = d.company_id AND d.deleted = 0
-LEFT JOIN tbl_vehicle v ON cd.id = v.company_id AND v.deleted = 0
-GROUP BY 
-    cd.id, 
-    cd.uuid,
-    cd.user_id,
-    cd.role_id,
-    cd.company_name,
-    cd.first_name,
-    cd.last_name,
-    cd.patronymic_name,
-    cd.phone,
-    cd.phone2,
-    cd.phone3,
-    cd.email,
-    cd.email2,
-    cd.email3,
-    cd.meta,
-    cd.meta2,
-    cd.meta3,
-    cd.address,
-    cd.country,
-    cd.country_id,
-    cd.city_id,
-    cd.image_url,
-    cd.entity,
-    cd.featured,
-    cd.rating,
-    cd.partner,
-    cd.successful_ops,
-    cd.created_at,
-    cd.updated_at,
-    cd.active,
-    cd.deleted,
-    cd.total_count;
+FROM tbl_company c
+LEFT JOIN tbl_driver d ON c.id = d.company_id AND d.deleted = 0
+LEFT JOIN tbl_vehicle v ON c.id = v.company_id AND v.deleted = 0
+WHERE c.deleted = 0
+GROUP BY c.id
+ORDER BY c.id LIMIT $1 OFFSET $2;
 `
 
 const GetCompanyByID = `
