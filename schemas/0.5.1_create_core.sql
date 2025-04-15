@@ -217,7 +217,17 @@ VALUES
     ('company_sergei', 'PASSWORD_PLACEHOLDER', 'sergei.logistics@gmail.com', '+99365789007', 'carrier', 6, 1, 1, 0),
     ('company_natalia', 'PASSWORD_PLACEHOLDER', 'natalia.logistics@gmail.com', '+99365789008', 'carrier', 6, 1, 1, 0),
     ('sender_alex', 'PASSWORD_PLACEHOLDER', 'alex.cargo@gmail.com', '+99365789009', 'sender', 3, 1, 1, 0),
-    ('personal_maria', 'PASSWORD_PLACEHOLDER', 'maria.driver@gmail.com', '+99365789010', 'carrier', 4, 1, 1, 0);
+    ('personal_maria', 'PASSWORD_PLACEHOLDER', 'maria.driver@gmail.com', '+99365789010', 'carrier', 4, 1, 1, 0),
+    -- sender (2)
+    ('sender_hz', 'PASSWORD_PLACEHOLDER', 'hz.sender@gmail.com', '+99365789001', 'sender', 3, 1, 1, 0),
+    ('sender_sw',  'PASSWORD_PLACEHOLDER', 'sw.sender@gmail.com',  '+99365789002', 'sender', 3, 1, 1, 0),
+    -- personal (1)
+    ('personal_mn',  'PASSWORD_PLACEHOLDER', 'mn.personal@gmail.com',  '+99365789003', 'carrier', 4, 1, 1, 0),
+    -- fleet (1)
+    ('fleet_dr',    'PASSWORD_PLACEHOLDER', 'dr.fleet@gmail.com',    '+99365789004', 'carrier', 5, 1, 1, 0),
+    -- logistics (1)
+    ('logistics_dl','PASSWORD_PLACEHOLDER', 'dl.logistics@gmail.com','+99365789005', 'carrier',6, 1, 1, 0);
+
 
 INSERT INTO tbl_company (
     user_id,
@@ -247,7 +257,17 @@ INSERT INTO tbl_company (
     (10, 6, 'Sergei Logistics Group', 'Sergei', 'Popov', 'Mikhailovich', 'Gorogly street 234, Ashgabat', 'Turkmenistan', '+99365789007', 'sergei.logistics@gmail.com', 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088', 'legal', 1, 0),
     (11, 6, 'Natalia Cargo Systems', 'Natalia', 'Morozova', 'Andreevna', 'A. Niyazov street 156, Ashgabat', 'Turkmenistan', '+99365789008', 'natalia.logistics@gmail.com', 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb', 'legal', 1, 0),
     (12, 3, 'Alex Cargo Solutions', 'Alexander', 'Lebedev', 'Vladimirovich', 'Bitarap street 67, Ashgabat', 'Turkmenistan', '+99365789009', 'alex.cargo@gmail.com', 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0', 'legal', 1, 0),
-    (13, 4, 'Maria Express Delivery', 'Maria', 'Kozlova', 'Sergeevna', 'Magtymguly avenue 198, Ashgabat', 'Turkmenistan', '+99365789010', 'maria.driver@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'individual', 1, 0);
+    (13, 4, 'Maria Express Delivery', 'Maria', 'Kozlova', 'Sergeevna', 'Magtymguly avenue 198, Ashgabat', 'Turkmenistan', '+99365789010', 'maria.driver@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'individual', 1, 0),
+    -- sender (2)
+    (14, 3, 'hz.sender', 'hz', 'sender', '', 'Gorogly street 234, Ashgabat', 'Turkmenistan','+99365789001','hz.sender@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'legal', 1, 0),
+    (15, 3, 'sw.sender',  'sw', 'sender', '', 'Yunus Emre street 89, Ashgabat', 'Turkmenistan','+99365789002','sw.sender@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'individual', 1, 0),
+    -- personal (1)
+    (16, 4, 'mn.personal',  'mn', 'personal', '', 'Yunus Emre street 89, Ashgabat', 'Turkmenistan','+99365789003','mn.personal@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'individual', 1, 0),
+    -- fleet (1)
+    (17, 5, 'dr.fleet',    'dr', 'fleet', '', 'Gorogly street 234, Ashgabat',    'Turkmenistan','+99365789004','dr.fleet@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'legal', 1, 0),
+    -- logistics (1)
+    (18, 6, 'dl.logistics','dl', 'logistics', '', 'Atamurat Niyazov street 75, Ashgabat','Turkmenistan','+99365789005','dl.logistics@gmail.com', 'https://images.unsplash.com/photo-1624459294159-598de7ddcae9', 'legal', 1, 0);
+
 
 UPDATE tbl_user SET company_id = 1 WHERE id = 1;
 UPDATE tbl_user SET company_id = 2 WHERE id = 2;
@@ -262,6 +282,12 @@ UPDATE tbl_user SET company_id = 10 WHERE id = 10;
 UPDATE tbl_user SET company_id = 11 WHERE id = 11;
 UPDATE tbl_user SET company_id = 12 WHERE id = 12;
 UPDATE tbl_user SET company_id = 13 WHERE id = 13;
+
+UPDATE tbl_user SET company_id = 14 WHERE id = 14;
+UPDATE tbl_user SET company_id = 15 WHERE id = 15;
+UPDATE tbl_user SET company_id = 16 WHERE id = 16;
+UPDATE tbl_user SET company_id = 17 WHERE id = 17;
+UPDATE tbl_user SET company_id = 18 WHERE id = 18;
 
 
 INSERT INTO tbl_driver (company_id, first_name, last_name, patronymic_name, phone, email, image_url, active, deleted) VALUES
