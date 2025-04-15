@@ -7,16 +7,16 @@ Logistics related api ecosystem, written in Golang GIN, Postgres.
 Using docker-compose:
 ```sh
 # To rebuild the app container
-docker-compose up --build app
+docker compose up --build app
 
 # Or to rebuild all containers
-docker-compose up --build
+docker compose up --build
 
 # With DB initialization
-INIT_DB=true docker-compose up --build
+INIT_DB=true docker compose up --build
 
 # App-only update
-INIT_DB=false docker-compose up --build app
+INIT_DB=false docker compose up --build app
 ```
 
 ---
