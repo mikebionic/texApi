@@ -16,12 +16,12 @@ import (
 	"time"
 )
 
+// TODO: Needs refactor and SQL Fix, ANTI SQL INJECTION!!!
 func GetMyOfferListUpdate(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
-	// TODO: I like this code approach
 	filters := map[string]interface{}{
 		"o.company_id":      ctx.MustGet("companyID"),
 		"o.exec_company_id": ctx.Query("exec_company_id"),
@@ -40,7 +40,8 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		"o.payment_method":  ctx.Query("payment_method"),
 		"o.featured":        ctx.Query("featured"),
 		"o.partner":         ctx.Query("partner"),
-		"o.active":          ctx.Query("active"),
+		"o.active":          ctx.DefaultQuery("active"),
+		"o.deleted":         ctx.DefaultQuery("deleted", "0"),
 	}
 
 	validityStart := ctx.Query("validity_start")
