@@ -83,7 +83,7 @@ type OfferDetails struct {
 
 // OfferUpdate represents the structure for updating an existing offer
 type OfferUpdate struct {
-	ID               *int     `json:"id,omitempty,omitempty"`
+	ID               *int     `json:"id,omitempty"`
 	UserID           *int     `json:"user_id,omitempty"`
 	CompanyID        *int     `json:"company_id,omitempty"`
 	ExecCompanyID    *int     `json:"exec_company_id,omitempty"`
