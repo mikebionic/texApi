@@ -35,6 +35,7 @@ func InitApp() *gin.Engine {
 	router.Use(sessions.Sessions("texsession", store))
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
+		AllowOrigins:    []string{"*"},
 		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:    []string{"*"},
 		MaxAge:          12 * time.Hour,

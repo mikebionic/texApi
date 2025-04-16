@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"log"
 	"texApi/config"
 	"texApi/database"
 	"texApi/internal/chat"
@@ -41,13 +40,18 @@ func Chat(router *gin.Engine) {
 	wsRouteGroup := router.Group(config.ENV.API_PREFIX + "/ws/")
 	wsRouteGroup.Use(middlewares.Guard)
 
-	wsRouteGroup.GET("/connect/",
-		func(c *gin.Context) { log.Printf("WebSocket connection attempt from %s", c.ClientIP()) },
-		wsHandler.HandleWebSocket)
-	wsRouteGroup.GET("/join/",
-		func(c *gin.Context) { log.Printf("Conversation join attempt from %s", c.ClientIP()) },
-		wsHandler.HandleJoinConversation)
-	wsRouteGroup.GET("/leave/",
-		func(c *gin.Context) { log.Printf("Conversation leave attempt from %s", c.ClientIP()) },
-		wsHandler.HandleLeaveConversation)
+	wsRouteGroup.GET("/connect/", wsHandler.HandleWebSocket)
+	wsRouteGroup.GET("/join/", wsHandler.HandleJoinConversation)
+	wsRouteGroup.GET("/leave/", wsHandler.HandleLeaveConversation)
+
+	//
+	//wsRouteGroup.GET("/connect/",
+	//	func(c *gin.Context) { log.Printf("WebSocket connection attempt from %s", c.ClientIP()) },
+	//	wsHandler.HandleWebSocket)
+	//wsRouteGroup.GET("/join/",
+	//	func(c *gin.Context) { log.Printf("Conversation join attempt from %s", c.ClientIP()) },
+	//	wsHandler.HandleJoinConversation)
+	//wsRouteGroup.GET("/leave/",
+	//	func(c *gin.Context) { log.Printf("Conversation leave attempt from %s", c.ClientIP()) },
+	//	wsHandler.HandleLeaveConversation)
 }
