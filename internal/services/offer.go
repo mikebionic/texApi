@@ -306,7 +306,6 @@ func CreateOffer(ctx *gin.Context) {
 	if !(role == "admin" || role == "system") {
 		offer.CompanyID = companyID
 		offer.UserID = userID
-		offer.OfferRole = role
 	}
 
 	var id int
@@ -345,28 +344,60 @@ func UpdateOffer(ctx *gin.Context) {
 		companyID := ctx.MustGet("companyID").(int)
 		offer.CompanyID = &companyID
 		offer.OfferState = nil
-		offer.OfferRole = nil
 		stmt += ` AND deleted = 0`
 	}
 	stmt += ` RETURNING id;`
-
+	
 	var updatedID int
 	err := db.DB.QueryRow(
 		context.Background(),
 		stmt,
 		offerID,
-		offer.DriverID, offer.VehicleID, offer.CargoID, offer.CostPerKm, offer.Currency,
-		offer.FromCountryID, offer.FromCityID, offer.ToCountryID, offer.ToCityID,
-		offer.FromCountry, offer.FromRegion, offer.ToCountry, offer.ToRegion,
-		offer.FromAddress, offer.ToAddress,
-		offer.SenderContact, offer.RecipientContact, offer.DeliverContact,
-		offer.ValidityStart, offer.ValidityEnd, offer.DeliveryStart, offer.DeliveryEnd,
-		offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
-		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3,
-		offer.Active, offer.Deleted, offer.ExecCompanyID,
-		offer.OfferState, offer.OfferRole,
-		offer.VehicleTypeID, offer.PackagingTypeID, offer.Distance, offer.MapURL, offer.PaymentTerm,
 		offer.CompanyID,
+		offer.ExecCompanyID,
+		offer.DriverID,
+		offer.VehicleID,
+		offer.VehicleTypeID,
+		offer.CargoID,
+		offer.PackagingTypeID,
+		offer.OfferState,
+		offer.OfferRole,
+		offer.CostPerKm,
+		offer.Currency,
+		offer.FromCountryID,
+		offer.FromCityID,
+		offer.ToCountryID,
+		offer.ToCityID,
+		offer.Distance,
+		offer.FromCountry,
+		offer.FromRegion,
+		offer.ToCountry,
+		offer.ToRegion,
+		offer.FromAddress,
+		offer.ToAddress,
+		offer.MapURL,
+		offer.SenderContact,
+		offer.RecipientContact,
+		offer.DeliverContact,
+		offer.ViewCount,
+		offer.ValidityStart,
+		offer.ValidityEnd,
+		offer.DeliveryStart,
+		offer.DeliveryEnd,
+		offer.Note,
+		offer.Tax,
+		offer.TaxPrice,
+		offer.Trade,
+		offer.Discount,
+		offer.PaymentMethod,
+		offer.PaymentTerm,
+		offer.Meta,
+		offer.Meta2,
+		offer.Meta3,
+		offer.Featured,
+		offer.Partner,
+		offer.Active,
+		offer.Deleted,
 	).Scan(&updatedID)
 
 	if err != nil {
