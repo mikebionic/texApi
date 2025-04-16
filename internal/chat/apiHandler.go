@@ -218,7 +218,7 @@ func (h *APIHandler) GetMessages(c *gin.Context) {
 	orderBy := c.DefaultQuery("order_by", "id")
 	orderDir := c.DefaultQuery("order_dir", "DESC")
 
-	messages, err := h.repository.GetConversationMessages(id, userID, limit, offset)
+	messages, err := h.repository.GetConversationMessages(id, userID, limit, offset, orderBy, orderDir)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to fetch messages", err.Error()))
 		return
@@ -233,13 +233,13 @@ func (h *APIHandler) GetMessages(c *gin.Context) {
 		WHERE mr.message_id IN (
 			SELECT id FROM tbl_message 
 			WHERE conversation_id = $1
-			ORDER BY $2 $3
-			LIMIT $4 OFFSET $5
+			ORDER BY created_at DESC
+			LIMIT $2 OFFSET $3
 		)
 	`
 
 	var reactions []Reaction
-	err = pgxscan.Select(context.Background(), h.repository.db, &reactions, query, id, orderBy, orderDir, limit, offset)
+	err = pgxscan.Select(context.Background(), h.repository.db, &reactions, query, id, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to fetch reactions", err.Error()))
 		return
