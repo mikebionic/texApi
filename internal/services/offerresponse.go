@@ -232,11 +232,9 @@ func CreateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
-	// Override company_id with authenticated company's ID and set initial state
 	offerResponse.CompanyID = companyID
 	offerResponse.State = "pending"
 
-	// Verify that the offer exists and is active
 	var offerExists int
 	err := db.DB.QueryRow(
 		context.Background(),
@@ -286,7 +284,6 @@ func CreateOfferResponse(ctx *gin.Context) {
 	}))
 }
 
-// Updated UpdateOfferResponse function
 func UpdateOfferResponse(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	var offerResponse dto.OfferResponseUpdate
@@ -318,7 +315,6 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
-	// Start transaction for updating offer responses
 	tx, err := db.DB.Begin(context.Background())
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError,
@@ -327,7 +323,6 @@ func UpdateOfferResponse(ctx *gin.Context) {
 	}
 	defer tx.Rollback(context.Background())
 
-	// If accepting the offer, decline all other responses for the same offer
 	if offerResponse.State != nil && *offerResponse.State == "accepted" {
 		var offerID int
 		err := tx.QueryRow(
@@ -357,7 +352,6 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		}
 	}
 
-	// Update the current offer response
 	query := `
         UPDATE tbl_offer_response SET
             state = COALESCE($1, state),
@@ -393,8 +387,7 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
-	// Commit the transaction
-	if err := tx.Commit(context.Background()); err != nil {
+	if err = tx.Commit(context.Background()); err != nil {
 		ctx.JSON(http.StatusInternalServerError,
 			utils.FormatErrorResponse("Error committing transaction", err.Error()))
 		return
@@ -410,7 +403,6 @@ func DeleteOfferResponse(ctx *gin.Context) {
 	companyID := ctx.MustGet("companyID").(int)
 	role := ctx.MustGet("role").(string)
 
-	// If not admin, verify company ownership
 	if role != "admin" {
 		var count int
 		err := db.DB.QueryRow(
@@ -428,7 +420,6 @@ func DeleteOfferResponse(ctx *gin.Context) {
 		}
 	}
 
-	// Soft delete the offer response
 	query := `
         UPDATE tbl_offer_response 
         SET deleted = 1, updated_at = CURRENT_TIMESTAMP

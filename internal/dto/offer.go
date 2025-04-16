@@ -94,7 +94,7 @@ type OfferUpdate struct {
 	PackagingTypeID  *int     `json:"packaging_type_id,omitempty"`
 	OfferState       *string  `json:"offer_state,omitempty"`
 	OfferRole        *string  `json:"offer_role,omitempty"`
-	CostPerKm        *float64 `json:"cost_per_nkm,omitempty"`
+	CostPerKm        *float64 `json:"cost_per_km,omitempty"`
 	Currency         *string  `json:"currency,omitempty"`
 	FromCountryID    *int     `json:"from_country_id,omitempty"`
 	FromCityID       *int     `json:"from_city_id,omitempty"`
