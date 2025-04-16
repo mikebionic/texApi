@@ -34,10 +34,10 @@ func InitApp() *gin.Engine {
 	store := cookie.NewStore([]byte("secret"))
 	router.Use(sessions.Sessions("texsession", store))
 	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders: []string{"*"},
-		MaxAge:       12 * time.Hour,
+		AllowAllOrigins: true,
+		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:    []string{"*"},
+		MaxAge:          12 * time.Hour,
 	}))
 	router.Use(func(ctx *gin.Context) {
 		if ctx.Request.Method == "OPTIONS" {
@@ -46,6 +46,7 @@ func InitApp() *gin.Engine {
 		}
 		ctx.Next()
 	})
+
 	router.Use(middlewares.UpdateLastActive)
 	router.Static(fmt.Sprintf("/%s/uploads/", config.ENV.API_PREFIX), config.ENV.UPLOAD_PATH)
 	router.Static(fmt.Sprintf("/%s/assets/", config.ENV.API_PREFIX), "assets/")
@@ -63,6 +64,7 @@ func InitApp() *gin.Engine {
 	controllers.Cargo(router)
 	controllers.Media(router)
 	controllers.Chat(router)
+	controllers.WS(router)
 
 	return router
 }

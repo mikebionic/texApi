@@ -12,6 +12,29 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+func GuardURLParam(ctx *gin.Context) {
+	token := ctx.Query("token")
+	if len(token) == 0 {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, utils.FormatErrorResponse("Unauthorized", "Token is missing"))
+		return
+	}
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(
+		token, claims, func(t *jwt.Token) (interface{}, error) {
+			return []byte(config.ENV.ACCESS_KEY), nil
+		},
+	)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, utils.FormatErrorResponse("Forbidden", err.Error()))
+		return
+	}
+	ctx.Set("id", int(claims["id"].(float64)))
+	ctx.Set("roleID", int(claims["roleID"].(float64)))
+	ctx.Set("companyID", int(claims["companyID"].(float64)))
+	ctx.Set("role", claims["role"])
+	ctx.Next()
+}
+
 func Guard(ctx *gin.Context) {
 	authorization := ctx.Request.Header["Authorization"]
 	if len(authorization) == 0 {
