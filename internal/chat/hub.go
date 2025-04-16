@@ -38,7 +38,6 @@ func NewHub() *Hub {
 	}
 }
 
-// Run starts the hub and handles messages
 func (h *Hub) Run() {
 	for {
 		select {
@@ -54,7 +53,6 @@ func (h *Hub) Run() {
 	}
 }
 
-// registerClient adds a client to the hub and to specified rooms
 func (h *Hub) registerClient(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
