@@ -11,7 +11,6 @@ import (
 	"os"
 	"texApi/config"
 	"texApi/database"
-	"texApi/internal/chat"
 	"texApi/internal/controllers"
 	"texApi/pkg/middlewares"
 	"time"
@@ -63,7 +62,7 @@ func InitApp() *gin.Engine {
 	controllers.PackagingType(router)
 	controllers.Cargo(router)
 	controllers.Media(router)
-	chat.Chat(router)
+	controllers.Chat(router)
 
 	return router
 }
