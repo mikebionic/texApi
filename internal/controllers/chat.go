@@ -11,11 +11,9 @@ import (
 func Chat(router *gin.Engine) {
 	chatRepository := chat.NewRepository(database.DB)
 	jwtSecret := []byte(config.ENV.ACCESS_KEY)
+	chatHub := chat.GetHub()
 
-	ChatHub := chat.NewHub()
-	go ChatHub.Run()
-	apiHandler := chat.NewAPIHandler(chatRepository, ChatHub, jwtSecret)
-
+	apiHandler := chat.NewAPIHandler(chatRepository, chatHub, jwtSecret)
 	group := router.Group(config.ENV.API_PREFIX + "/chat/")
 	group.Use(middlewares.Guard)
 	{
@@ -35,23 +33,4 @@ func Chat(router *gin.Engine) {
 			convGroup.POST("/message/react/", apiHandler.ReactToMessage)
 		}
 	}
-
-	wsHandler := chat.NewWebSocketHandler(ChatHub, chatRepository, jwtSecret)
-	wsRouteGroup := router.Group(config.ENV.API_PREFIX + "/ws/")
-	wsRouteGroup.Use(middlewares.Guard)
-
-	wsRouteGroup.GET("/connect/", wsHandler.HandleWebSocket)
-	wsRouteGroup.GET("/join/", wsHandler.HandleJoinConversation)
-	wsRouteGroup.GET("/leave/", wsHandler.HandleLeaveConversation)
-
-	//
-	//wsRouteGroup.GET("/connect/",
-	//	func(c *gin.Context) { log.Printf("WebSocket connection attempt from %s", c.ClientIP()) },
-	//	wsHandler.HandleWebSocket)
-	//wsRouteGroup.GET("/join/",
-	//	func(c *gin.Context) { log.Printf("Conversation join attempt from %s", c.ClientIP()) },
-	//	wsHandler.HandleJoinConversation)
-	//wsRouteGroup.GET("/leave/",
-	//	func(c *gin.Context) { log.Printf("Conversation leave attempt from %s", c.ClientIP()) },
-	//	wsHandler.HandleLeaveConversation)
 }

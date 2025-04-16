@@ -38,7 +38,7 @@ func main() {
 	database.InitDB()
 	setupSMTPConfig()
 	NewGoogleAuth()
-	
+
 	server := app.InitApp()
 	address := fmt.Sprintf("%v:%v", config.ENV.API_HOST, config.ENV.API_PORT)
 	if err := server.Run(address); err != nil {

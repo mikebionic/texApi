@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"texApi/pkg/utils"
 )
 
@@ -35,6 +36,17 @@ func NewWebSocketHandler(hub *Hub, repository *Repository, jwtSecret []byte) *We
 			},
 		},
 	}
+}
+
+var SharedHub *Hub
+var hubOnce sync.Once
+
+func GetHub() *Hub {
+	hubOnce.Do(func() {
+		SharedHub = NewHub()
+		go SharedHub.Run()
+	})
+	return SharedHub
 }
 
 // HandleWebSocket upgrades HTTP connection to WebSocket Create Room
