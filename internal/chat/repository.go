@@ -178,9 +178,9 @@ func (r *Repository) GetConversationMembers(conversationID int) ([]Member, error
 	return members, err
 }
 
-func (r *Repository) GetConversationMessages(conversationID, userID, limit, offset int) ([]MessageDetails, error) {
+func (r *Repository) GetConversationMessages(conversationID, userID, limit, offset int, order_by, order_dir string) ([]MessageDetails, error) {
 	ctx := context.Background()
-	query := `
+	query := fmt.Sprintf(`
 		SELECT m.id, m.uuid, m.conversation_id, m.sender_id, m.message_type, 
 			   m.content, m.reply_to_id, m.forwarded_from_id, m.media_id, 
 			   m.sticker_id, m.is_edited, m.is_pinned, m.is_silent, m.created_at,
@@ -190,9 +190,9 @@ func (r *Repository) GetConversationMessages(conversationID, userID, limit, offs
 		JOIN tbl_user u ON m.sender_id = u.id
 		JOIN tbl_company p ON u.company_id = p.id
 		WHERE m.conversation_id = $1 AND m.active = 1 AND m.deleted = 0
-		ORDER BY m.created_at DESC
+		ORDER BY m.%s %s
 		LIMIT $2 OFFSET $3
-	`
+	`, order_by, order_dir)
 
 	var messages []MessageDetails
 	err := pgxscan.Select(ctx, r.db, &messages, query, conversationID, limit, offset)
