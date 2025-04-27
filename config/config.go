@@ -70,7 +70,7 @@ func InitConfig() {
 	ENV.API_SERVER_URL = os.Getenv("API_SERVER_URL")
 	ENV.API_PREFIX = os.Getenv("API_PREFIX")
 	ENV.API_PORT = os.Getenv("API_PORT")
-	ENV.API_DEBUG = os.Getenv("DEBUG") == "true"
+	ENV.API_DEBUG = os.Getenv("API_DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
 
@@ -121,8 +121,8 @@ func InitConfig() {
 	}
 
 	ENV.FileUpload = FileUpload{
-		MaxFileSize:      10 * 1024 * 1024, // 10MB
-		MaxFiles:         5,
+		MaxFileSize:      ENV.MAX_FILE_SIZE * 1024 * 1024,
+		MaxFiles:         ENV.MAX_FILES_UPLOAD,
 		AllowedMimeTypes: mergeAllowedTypes(),
 		StorageBasePath:  ENV.UPLOAD_PATH,
 	}
@@ -133,7 +133,7 @@ func InitConfig() {
 		RedirectURL:  ENV.GLE_CALLBACK,
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.company",
+			"https://www.googleapis.com/auth/userinfo.profile",
 		},
 		Endpoint: google.Endpoint,
 	}
