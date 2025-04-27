@@ -4,11 +4,11 @@ if [ -f .env ]; then
     export $(grep -v '^#' .env | xargs)
 fi
 
-DB_HOST="${DB_HOST:-storegram_db}"
+DB_HOST="${DB_HOST:-texApi_db}"
 DB_PORT="${DB_PORT:-5432}"
-DB_USER="${DB_USER:-storegram_db}"
-DB_PASSWORD="${DB_PASSWORD:-storegram_db}"
-DB_NAME="${DB_NAME:-storegram_db}"
+DB_USER="${DB_USER:-texApi_db}"
+DB_PASSWORD="${DB_PASSWORD:-texApi_db}"
+DB_NAME="${DB_NAME:-texApi_db}"
 DB_SCHEMASDIR=$(pwd)/"${DB_SCHEMASDIR:schemas}"
 
 echo "Checking DB connection.........."

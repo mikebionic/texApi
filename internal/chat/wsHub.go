@@ -6,28 +6,15 @@ import (
 	"time"
 )
 
-// Hub maintains the set of active clients and broadcasts messages to them
 type Hub struct {
-	// Registered clients
-	clients map[*Client]bool
-
-	// Map of conversation IDs to sets of clients
-	rooms map[int]map[*Client]bool
-
-	// Inbound messages from the clients
-	broadcast chan *Message
-
-	// Register requests from the clients
-	register chan *Client
-
-	// Unregister requests from clients
+	clients    map[*Client]bool
+	rooms      map[int]map[*Client]bool
+	broadcast  chan *Message
+	register   chan *Client
 	unregister chan *Client
-
-	// Mutex for concurrent access to maps
-	mu sync.RWMutex
+	mu         sync.RWMutex
 }
 
-// NewHub creates a new Hub instance
 func NewHub() *Hub {
 	return &Hub{
 		broadcast:  make(chan *Message),
@@ -48,7 +35,7 @@ func (h *Hub) Run() {
 			h.unregisterClient(client)
 
 		case message := <-h.broadcast:
-			h.broadcastMessage(message)
+			h.RouteMessage(message)
 		}
 	}
 }
@@ -70,7 +57,6 @@ func (h *Hub) registerClient(client *Client) {
 	}
 }
 
-// unregisterClient removes a client from the hub and all rooms
 func (h *Hub) unregisterClient(client *Client) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -93,42 +79,6 @@ func (h *Hub) unregisterClient(client *Client) {
 
 		close(client.send)
 		log.Printf("Client unregistered: UserID=%d", client.userID)
-	}
-}
-
-// broadcastMessage sends a message to all clients in a specific room
-func (h *Hub) broadcastMessage(message *Message) {
-	h.mu.RLock()
-	defer h.mu.RUnlock()
-	log.Printf("Broadcasting message: ConversationID=%d, SenderID=%d, Type=%s",
-		message.ConversationID, message.SenderID, message.MessageType)
-
-	// Get clients in the conversation room
-	clients, ok := h.rooms[message.ConversationID]
-	if !ok {
-		log.Printf("WARNING: No clients found in room for ConversationID=%d", message.ConversationID)
-		return
-	}
-
-	log.Printf("Found %d clients in room", len(clients))
-
-	// Send message to all clients in the room
-	for client := range clients {
-		if client.userID == message.SenderID && message.MessageType == "direct" {
-			continue
-		}
-		log.Printf("Attempting to send message to UserID=%d", client.userID)
-
-		select {
-		case client.send <- message:
-			log.Printf("Message sent to UserID=%d", client.userID)
-		default:
-			log.Printf("Failed to send message to UserID=%d (send channel full)", client.userID)
-			// If client's send buffer is full, we assume it's disconnected
-			h.mu.RUnlock()
-			go h.unregisterClient(client)
-			h.mu.RLock()
-		}
 	}
 }
 
@@ -183,22 +133,20 @@ func (h *Hub) RouteMessage(message *Message) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	// Get clients in the specific conversation room
 	clients, ok := h.rooms[message.ConversationID]
 	if !ok {
 		log.Printf("No clients found for conversation %d", message.ConversationID)
 		return
 	}
 
-	// Send message only to clients in this specific conversation
 	for client := range clients {
-		// Avoid sending the message back to the sender
 		if client.userID != message.SenderID {
 			select {
 			case client.send <- message:
 				log.Printf("Message routed to user %d", client.userID)
 			default:
 				log.Printf("Failed to route message to user %d (channel full)", client.userID)
+				go h.unregisterClient(client)
 			}
 		}
 	}
@@ -226,8 +174,10 @@ func (h *Hub) TrackUserStatus(client *Client, status bool) {
 	for _, conversationID := range client.conversations {
 		if clients, ok := h.rooms[conversationID]; ok {
 			statusMessage := &Message{
-				MessageType:    "user_status",
-				ConversationID: conversationID,
+				MessageCommon: MessageCommon{
+					MessageType:    "user_status",
+					ConversationID: conversationID,
+				},
 				OnlineStatus: &OnlineStatus{
 					UserID:   client.userID,
 					IsOnline: status,
@@ -257,6 +207,7 @@ func (h *Hub) StartConnectionCleanup() {
 		}
 	}()
 }
+
 func (h *Hub) cleanupStaleConnections() {
 	h.mu.Lock()
 	defer h.mu.Unlock()

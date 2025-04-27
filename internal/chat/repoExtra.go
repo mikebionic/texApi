@@ -3,6 +3,8 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
+
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
@@ -22,13 +24,16 @@ func (r *Repository) SearchMessages(userID int, searchQuery string, limit, offse
         JOIN tbl_conversation c ON m.conversation_id = c.id
         JOIN tbl_conversation_member cm ON (c.id = cm.conversation_id AND cm.user_id = $1)
         WHERE 
-            m.active = 1 AND 
+          NOT EXISTS (
+				SELECT 1
+				FROM jsonb_array_elements(m.deleted_for) AS elem
+				WHERE (elem->>'user_id')::INT = $4
+			) AND
             m.deleted = 0 AND
-            cm.active = 1 AND 
             cm.deleted = 0 AND
-            c.active = 1 AND 
             c.deleted = 0 AND
-            m.content ILIKE $2
+            (m.content ILIKE $2 OR c.title ILIKE $2 or 
+                TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) ILike $2)
         ORDER BY m.created_at DESC
         LIMIT $3 OFFSET $4
     `
@@ -41,7 +46,7 @@ func (r *Repository) SearchMessages(userID int, searchQuery string, limit, offse
 	return messages, nil
 }
 
-func (r *Repository) PinMessage(messageID, conversationID, userID int, isPinned bool) error {
+func (r *Repository) PinMessage(messageID, conversationID int, isPinned bool) error {
 	ctx := context.Background()
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -49,7 +54,6 @@ func (r *Repository) PinMessage(messageID, conversationID, userID int, isPinned 
 	}
 	defer tx.Rollback(ctx)
 
-	// Update message status
 	_, err = tx.Exec(ctx, `
             UPDATE tbl_message SET is_pinned = $3
             WHERE id = $1 AND conversation_id = $2
@@ -83,31 +87,46 @@ func (r *Repository) EditMessage(messageID, userID int, newContent string) error
 	return err
 }
 
-func (r *Repository) DeleteMessage(messageID, userID int, isAdmin bool) error {
+func (r *Repository) SetMessageRead(messageID, userID, conversationID int) error {
 	ctx := context.Background()
-	if !isAdmin {
-		var senderID int
-		err := r.db.QueryRow(ctx, `
-            SELECT sender_id FROM tbl_message 
-            WHERE id = $1 AND active = 1 AND deleted = 0
-        `, messageID).Scan(&senderID)
 
-		if err != nil {
-			return err
-		}
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
 
-		if senderID != userID {
-			return errors.New("only the sender or an admin can delete this message")
-		}
+	result, err := tx.Exec(ctx, `
+        UPDATE tbl_conversation_member 
+        SET last_read_message_id = $1, unread_count = 0,
+        updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $2 AND conversation_id = $3
+    `, messageID, userID, conversationID)
+
+	if err != nil {
+		return fmt.Errorf("failed to update conversation member: %w", err)
 	}
 
-	_, err := r.db.Exec(ctx, `
-        UPDATE tbl_message 
-        SET deleted = 1, active = 0, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1
-    `, messageID)
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		return errors.New("no conversation member found to update")
+	}
 
-	return err
+	_, err = tx.Exec(ctx, `
+		UPDATE tbl_message 
+		SET read_by = COALESCE(read_by, '[]'::jsonb) || $1::jsonb,
+		read_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+		WHERE id = $2 AND sender_id != $3
+	`, []int{userID}, messageID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update message: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
 func (r *Repository) AddReaction(messageID, userID, companyID int, emoji string) error {
@@ -134,8 +153,8 @@ func (r *Repository) AddReaction(messageID, userID, companyID int, emoji string)
 	} else {
 		// Add new reaction
 		_, err = r.db.Exec(ctx, `
-            INSERT INTO tbl_message_reaction (message_id, user_id, company_id, emoji, reaction)
-            VALUES ($1, $2, $3, $4, $4)
+            INSERT INTO tbl_message_reaction (message_id, user_id, company_id, emoji)
+            VALUES ($1, $2, $3, $4)
         `, messageID, userID, companyID, emoji)
 	}
 
@@ -181,18 +200,18 @@ func (r *Repository) IsConversationAdmin(userID, conversationID int) (bool, erro
 	return isAdmin, nil
 }
 
-func (r *Repository) GetMessageReactions(messageID int) ([]Reaction, error) {
+func (r *Repository) GetMessageReactions(messageIDs []int) ([]Reaction, error) {
 	ctx := context.Background()
 	query := `
-       SELECT mr.message_id, mr.company_id, mr.emoji, mr.user_id,
-               TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name
-       FROM tbl_message_reaction mr
-       JOIN tbl_company p ON mr.company_id = p.id
-       WHERE mr.message_id = $1
-   `
+        SELECT mr.message_id, mr.company_id, mr.emoji, mr.user_id,
+                TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name
+        FROM tbl_message_reaction mr
+        JOIN tbl_company p ON mr.company_id = p.id
+        WHERE mr.message_id = ANY($1)
+    `
 
 	var reactions []Reaction
-	err := pgxscan.Select(ctx, r.db, &reactions, query, messageID)
+	err := pgxscan.Select(ctx, r.db, &reactions, query, messageIDs)
 	if err != nil {
 		return nil, err
 	}

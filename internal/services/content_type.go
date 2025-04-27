@@ -2,10 +2,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
-	repo "texApi/internal/repositories"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetContentTypes(ctx *gin.Context) {

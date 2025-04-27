@@ -11,6 +11,7 @@ import (
 	"os"
 	"texApi/config"
 	"texApi/database"
+	"texApi/internal/chat"
 	"texApi/internal/controllers"
 	"texApi/pkg/middlewares"
 	"time"
@@ -31,8 +32,9 @@ func InitApp() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	store := cookie.NewStore([]byte("secret"))
-	router.Use(sessions.Sessions("texsession", store))
+	store := cookie.NewStore([]byte(config.ENV.API_SECRET))
+	router.Use(sessions.Sessions("google-auth-session", store))
+	router.Use(sessions.Sessions(config.ENV.API_PREFIX, store))
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins: true,
 		AllowMethods:    []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -63,8 +65,10 @@ func InitApp() *gin.Engine {
 	controllers.PackagingType(router)
 	controllers.Cargo(router)
 	controllers.Media(router)
-	controllers.Chat(router)
-	controllers.WS(router)
+	controllers.VerifyRequest(router)
+	controllers.PlanMove(router)
+	controllers.UserLog(router)
+	chat.Chat(router)
 
 	return router
 }

@@ -1,16 +1,17 @@
 package chat
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"texApi/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (h *APIHandler) ConversationAccessMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		idParam := c.Param("id")
-		conversationID, err := strconv.Atoi(idParam)
+		convIDParam := c.Param("id")
+		conversationID, err := strconv.Atoi(convIDParam)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid conversation ID", err.Error()))
 			return
@@ -31,7 +32,6 @@ func (h *APIHandler) ConversationAccessMiddleware() gin.HandlerFunc {
 
 		c.Set("conversationID", conversationID)
 		c.Set("userID", userID)
-
 		c.Next()
 	}
 }
