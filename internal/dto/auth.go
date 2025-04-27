@@ -15,6 +15,9 @@ type User struct {
 	RoleID       int       `json:"role_id"`
 	CompanyID    int       `json:"company_id"`
 	Verified     int       `json:"verified"`
+	Meta         string    `json:"meta"`
+	Meta2        string    `json:"meta2"`
+	Meta3        string    `json:"meta3"`
 	RefreshToken string    `json:"refresh_token"`
 	OTPKey       string    `json:"otp_key"`
 	VerifyTime   string    `json:"verify_time"`

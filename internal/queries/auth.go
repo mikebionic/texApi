@@ -74,7 +74,7 @@ var UserUpdate = `
 
 var SaveUserWithOTP = `
 INSERT INTO tbl_user (
-	email, phone, role_id, verified, otp_key, verify_time
+	email, phone, role, role_id, verified, otp_key, verify_time
 ) VALUES (
 	CASE WHEN $1 = 'email' THEN $2 ELSE '' END,
 	CASE WHEN $1 = 'phone' THEN $2 ELSE '' END,

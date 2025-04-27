@@ -38,9 +38,6 @@ func Auth(router *gin.Engine) {
 			// Session management
 			user.GET("/sessions/", services.ListUserSessions)
 			user.DELETE("/sessions/:id/", services.RevokeSession)
-
-			//group.GET("/company/", services.UserGetMe)
-			//group.POST("/company/update/", services.CompanyUpdate)
 		}
 
 		// Admin routes (with admin middlewares)
