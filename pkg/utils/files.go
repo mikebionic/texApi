@@ -91,7 +91,7 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, readerFile)
-		dir, err := CreateTodayDir(config.ENV.UPLOAD_PATH)
+		dir, err := CreateTodayDir(config.ENV.UPLOAD_PATH + "UploadFile_route")
 		if err != nil {
 			return nil, err
 		}

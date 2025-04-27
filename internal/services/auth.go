@@ -446,13 +446,14 @@ func OTPLoginRequest(ctx *gin.Context) {
 
 	roleID, err := strconv.Atoi(ctx.GetHeader("RoleID"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Role ID is required", ""))
-		return
+		roleID = 3
 	}
 	role := ctx.GetHeader("Role")
 	if !(role == "sender" || role == "carrier") || roleID < 3 || credentials == "" || credType == "" {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
-		return
+		role = "sender"
+		roleID = 3
+		//ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
+		//return
 	}
 
 	if ok, msg := utils.ValidateCredential(credType, credentials); !ok {
@@ -615,13 +616,14 @@ func BeginOAuth(ctx *gin.Context) {
 
 	roleID, err := strconv.Atoi(ctx.GetHeader("RoleID"))
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Role ID is required", ""))
-		return
+		roleID = 3
 	}
 	role := ctx.GetHeader("Role")
 	if !(role == "sender" || role == "carrier") || roleID < 3 {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
-		return
+		role = "sender"
+		roleID = 3
+		//ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
+		//return
 	}
 
 	session := sessions.Default(ctx)
@@ -631,6 +633,7 @@ func BeginOAuth(ctx *gin.Context) {
 	err = session.Save()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to save session", err.Error()))
+		return
 	}
 
 	authUrl := config.ENV.GoogleOAuthConfig.AuthCodeURL(state)
