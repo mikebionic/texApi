@@ -1,6 +1,12 @@
 CREATE TYPE entity_t AS ENUM ('individual', 'legal');
 CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','unknown');
+CREATE TYPE plan_t AS ENUM ('start', 'standard', 'premium');
 CREATE TYPE state_t AS ENUM ('enabled', 'disabled', 'deleted', 'pending', 'archived', 'working');
+CREATE TYPE visibility_t AS ENUM ('public', 'private', 'contacts');
+CREATE TYPE notification_preference_t AS ENUM ('all', 'mentions', 'none');
+CREATE TYPE sticker_type_t AS ENUM ('static', 'animated');
+CREATE TYPE status_type_t AS ENUM ('pending', 'approved', 'declined');
+CREATE TYPE status_t AS ENUM ('draft', 'active', 'archived', 'banned','deleted');
 
 
 CREATE TABLE tbl_role (
@@ -31,59 +37,140 @@ CREATE TABLE tbl_user
     meta                      TEXT         NOT NULL DEFAULT '',
     meta2                     TEXT         NOT NULL DEFAULT '',
     meta3                     TEXT         NOT NULL DEFAULT '',
-    created_at                TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    updated_at                TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active                    INT                   DEFAULT 1,
-    deleted                   INT                   DEFAULT 0,
-
-    oauth_provider            VARCHAR(100) NOT NULL DEFAULT '',
-    oauth_user_id             VARCHAR(100) NOT NULL DEFAULT '',
-    oauth_location            VARCHAR(200) NOT NULL DEFAULT '',
-    oauth_access_token        VARCHAR(500) NOT NULL DEFAULT '',
-    oauth_access_token_secret VARCHAR(500) NOT NULL DEFAULT '',
-    oauth_refresh_token       VARCHAR(500) NOT NULL DEFAULT '',
-    oauth_expires_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    oauth_id_token            VARCHAR(500) NOT NULL DEFAULT '',
-    refresh_token             VARCHAR(500) NOT NULL DEFAULT '',
-    otp_key                   VARCHAR(20)  NOT NULL DEFAULT '',
-    verify_time               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    refresh_token VARCHAR(500) NOT NULL DEFAULT '',
+    otp_key       VARCHAR(20)  NOT NULL DEFAULT '',
+    verify_time   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active        INT          NOT NULL DEFAULT 1,
+    deleted       INT          NOT NULL DEFAULT 0
 );
 
 
 CREATE TABLE tbl_company
 (
-    id              SERIAL PRIMARY KEY,
-    uuid            UUID                  DEFAULT gen_random_uuid(),
-    user_id         INT          NOT NULL REFERENCES tbl_user (id) ON DELETE CASCADE,
-    role_id         INT          NOT NULL REFERENCES tbl_role (id) ON DELETE CASCADE,
-    company_name    VARCHAR(100) NOT NULL DEFAULT '',
-    first_name      VARCHAR(100) NOT NULL DEFAULT '',
-    last_name       VARCHAR(100) NOT NULL DEFAULT '',
-    patronymic_name VARCHAR(100) NOT NULL DEFAULT '',
-    phone           VARCHAR(100) NOT NULL DEFAULT '',
-    phone2          VARCHAR(100) NOT NULL DEFAULT '',
-    phone3          VARCHAR(100) NOT NULL DEFAULT '',
-    email           VARCHAR(100) NOT NULL DEFAULT '',
-    email2          VARCHAR(100) NOT NULL DEFAULT '',
-    email3          VARCHAR(100) NOT NULL DEFAULT '',
-    meta            TEXT         NOT NULL DEFAULT '',
-    meta2           TEXT         NOT NULL DEFAULT '',
-    meta3           TEXT         NOT NULL DEFAULT '',
-    address         VARCHAR(200) NOT NULL DEFAULT '',
-    country         VARCHAR(200) NOT NULL DEFAULT '',
-    country_id      INT          NOT NULL DEFAULT 0,
-    city_id         INT          NOT NULL DEFAULT 0,
-    image_url       VARCHAR(200) NOT NULL DEFAULT '',
-    entity          entity_t     NOT NULL DEFAULT 'individual',
-    featured        INT          NOT NULL DEFAULT 0,
-    rating          INT          NOT NULL DEFAULT 0,
-    partner         INT          NOT NULL DEFAULT 0,
-    successful_ops  INT          NOT NULL DEFAULT 0,
-    last_active     TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    active          INT          NOT NULL DEFAULT 1,
-    deleted         INT          NOT NULL DEFAULT 0
+    id                       SERIAL PRIMARY KEY,
+    uuid                     UUID                  DEFAULT gen_random_uuid(),
+    user_id                  INT          NOT NULL REFERENCES tbl_user (id) ON DELETE CASCADE,
+    role                     role_t        NOT NULL DEFAULT 'unknown',
+    role_id                  INT          NOT NULL REFERENCES tbl_role (id) ON DELETE CASCADE,
+    plan                     plan_t        NOT NULL DEFAULT 'standard',
+    plan_active              INT           NOT NULL DEFAULT 0,
+    company_name             VARCHAR(100) NOT NULL DEFAULT '',
+    first_name               VARCHAR(100) NOT NULL DEFAULT '',
+    last_name                VARCHAR(100) NOT NULL DEFAULT '',
+    patronymic_name          VARCHAR(100) NOT NULL DEFAULT '',
+    about                    VARCHAR(2000) NOT NULL DEFAULT '',
+    phone                    VARCHAR(100) NOT NULL DEFAULT '',
+    phone2                   VARCHAR(100) NOT NULL DEFAULT '',
+    phone3                   VARCHAR(100) NOT NULL DEFAULT '',
+    email                    VARCHAR(100) NOT NULL DEFAULT '',
+    email2                   VARCHAR(100) NOT NULL DEFAULT '',
+    email3                   VARCHAR(100) NOT NULL DEFAULT '',
+    meta                     TEXT         NOT NULL DEFAULT '',
+    meta2                    TEXT         NOT NULL DEFAULT '',
+    meta3                    TEXT         NOT NULL DEFAULT '',
+    address                  VARCHAR(200) NOT NULL DEFAULT '',
+    country                  VARCHAR(200) NOT NULL DEFAULT '',
+    country_id               INT          NOT NULL DEFAULT 0,
+    city_id                  INT          NOT NULL DEFAULT 0,
+    image_url                VARCHAR(200) NOT NULL DEFAULT '',
+    verified                 INT           NOT NULL DEFAULT 0, -- VERIFIED BADGE
+    entity                   entity_t     NOT NULL DEFAULT 'individual',
+    featured                 INT          NOT NULL DEFAULT 0,
+    rating                   INT          NOT NULL DEFAULT 0,
+    partner                  INT          NOT NULL DEFAULT 0,
+    successful_ops           INT          NOT NULL DEFAULT 0,
+    view_count               INT          NOT NULL DEFAULT 0,
+
+    self_destruct_duration   INT          NOT NULL DEFAULT 0,    -- duration in minutes
+    passkey                  VARCHAR(100) NOT NULL DEFAULT '',
+    blacklist                TEXT[]                DEFAULT '{}',
+    login_devices            TEXT[]                DEFAULT '{}',
+    show_avatar              visibility_t NOT NULL DEFAULT 'public',
+    show_bio                 visibility_t NOT NULL DEFAULT 'public',
+    show_last_seen           visibility_t NOT NULL DEFAULT 'public',
+    show_phone_number        visibility_t NOT NULL DEFAULT 'public',
+    receive_calls            visibility_t NOT NULL DEFAULT 'public',
+    invite_group             visibility_t NOT NULL DEFAULT 'public',
+    notifications_chat       INT                   DEFAULT 0,
+    notifications_group      INT                   DEFAULT 0,
+    notifications_story      INT                   DEFAULT 0,
+    notifications_reactions  INT                   DEFAULT 0,
+
+    avatar_exceptions        TEXT[]                DEFAULT '{}', -- UUID of company companys
+    bio_exceptions           TEXT[]                DEFAULT '{}',
+    last_seen_exceptions     TEXT[]                DEFAULT '{}',
+    phone_number_exceptions  TEXT[]                DEFAULT '{}',
+    receive_calls_exceptions TEXT[]                DEFAULT '{}',
+    invite_group_exceptions  TEXT[]                DEFAULT '{}',
+
+    last_active              TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active                   INT          NOT NULL DEFAULT 1,
+    deleted                  INT          NOT NULL DEFAULT 0
+        CONSTRAINT rating_range CHECK (rating >= 0 AND rating <= 5)
+);
+
+CREATE TABLE tbl_sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES tbl_user(id) ON DELETE CASCADE,
+  company_id INT NOT NULL DEFAULT 0,
+  refresh_token VARCHAR(500) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  device_name VARCHAR(200) NOT NULL DEFAULT '',
+  device_model VARCHAR(200) NOT NULL DEFAULT '',
+  device_firmware VARCHAR(200) NOT NULL DEFAULT '',
+  app_name VARCHAR(100) NOT NULL DEFAULT '',
+  app_version VARCHAR(50) NOT NULL DEFAULT '',
+  user_agent TEXT NOT NULL DEFAULT '',
+  ip_address VARCHAR(50) NOT NULL DEFAULT '',
+  login_method VARCHAR(20) NOT NULL DEFAULT 'password', -- password, oauth, otp
+  last_used_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE INDEX idx_sessions_user_id ON tbl_sessions(user_id);
+CREATE INDEX idx_sessions_refresh_token ON tbl_sessions(refresh_token);
+CREATE INDEX idx_sessions_expires_at ON tbl_sessions(expires_at);
+
+
+CREATE TABLE tbl_plan_moves(
+   id SERIAL PRIMARY KEY,
+   user_id    INT           NOT NULL DEFAULT 0,
+   company_id INT           NOT NULL DEFAULT 0,
+   status     status_type_t NOT NULL DEFAULT 'pending',
+   valid_until TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP + INTERVAL '1 month'), -- month TODO: reconfigure in backend
+   created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   updated_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   deleted    INT           NOT NULL DEFAULT 0
+);
+
+CREATE TABLE tbl_verify_request
+(
+    id         SERIAL PRIMARY KEY,
+    user_id    INT           NOT NULL DEFAULT 0,
+    company_id INT           NOT NULL DEFAULT 0,
+    status     status_type_t NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted    INT           NOT NULL DEFAULT 0
+);
+
+CREATE TABLE tbl_user_log
+(
+    id         SERIAL PRIMARY KEY,
+    user_id    INT          NOT NULL DEFAULT 0,
+    company_id INT          NOT NULL DEFAULT 0,
+    role       role_t       NOT NULL DEFAULT 'unknown',
+    action     VARCHAR(200) NOT NULL DEFAULT '',
+    details     VARCHAR(500) NOT NULL DEFAULT '',
+    created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted    INT          NOT NULL DEFAULT 0
 );
 
 
@@ -112,8 +199,6 @@ CREATE TABLE tbl_driver
     active          INT          NOT NULL DEFAULT 1,
     deleted         INT          NOT NULL DEFAULT 0
 );
-
-
 
 
 
