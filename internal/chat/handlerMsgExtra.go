@@ -2,10 +2,11 @@ package chat
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"texApi/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (h *APIHandler) SearchMessages(c *gin.Context) {
@@ -40,7 +41,6 @@ func (h *APIHandler) SearchMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, utils.FormatResponse("", messages))
 }
 
-// TODO: make postman check
 func (h *APIHandler) PinMessage(c *gin.Context) {
 	userID := c.MustGet("id").(int)
 
@@ -59,7 +59,7 @@ func (h *APIHandler) PinMessage(c *gin.Context) {
 		return
 	}
 
-	err = h.repository.PinMessage(req.MessageID, messageDetails.ConversationID, userID, req.IsPinned)
+	err = h.repository.PinMessage(req.MessageID, messageDetails.ConversationID, req.IsPinned)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to pin/unpin message", err.Error()))
 		return
@@ -67,10 +67,12 @@ func (h *APIHandler) PinMessage(c *gin.Context) {
 
 	messageDetails.IsPinned = &req.IsPinned
 	notificationMsg := &Message{
-		MessageType:    "pin",
-		ConversationID: messageDetails.ConversationID,
-		SenderID:       userID,
-		Content:        fmt.Sprintf("Message has been %s", map[bool]string{true: "pinned", false: "unpinned"}[req.IsPinned]),
+		MessageCommon: MessageCommon{
+			MessageType:    "pin",
+			ConversationID: messageDetails.ConversationID,
+			SenderID:       userID,
+			Content:        fmt.Sprintf("Message has been %s", map[bool]string{true: "pinned", false: "unpinned"}[req.IsPinned]),
+		},
 		Extras: &map[string]interface{}{
 			"message_details": messageDetails,
 		},
@@ -119,10 +121,12 @@ func (h *APIHandler) EditMessage(c *gin.Context) {
 	messageDetails.IsEdited = &isEdited
 
 	notificationMsg := &Message{
-		MessageType:    "edit",
-		ConversationID: messageDetails.ConversationID,
-		SenderID:       userID,
-		Content:        "Message edited",
+		MessageCommon: MessageCommon{
+			MessageType:    "edit",
+			ConversationID: messageDetails.ConversationID,
+			SenderID:       userID,
+			Content:        "Message edited",
+		},
 		Extras: &map[string]interface{}{
 			"message_details": messageDetails,
 		},
@@ -133,52 +137,6 @@ func (h *APIHandler) EditMessage(c *gin.Context) {
 	c.JSON(http.StatusCreated, utils.FormatResponse("Message edited successfully", messageDetails))
 }
 
-// Only conversation admin or a message owner can delete message
-func (h *APIHandler) DeleteMessage(c *gin.Context) {
-	userID := c.MustGet("id").(int)
-	var req struct {
-		MessageID int `json:"message_id"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request payload", err.Error()))
-		return
-	}
-
-	messageDetails, err := h.repository.GetMessageDetails(req.MessageID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to get message details", err.Error()))
-		return
-	}
-
-	isAdmin, err := h.repository.IsConversationAdmin(userID, messageDetails.ConversationID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to check admin status", err.Error()))
-		return
-	}
-
-	err = h.repository.DeleteMessage(req.MessageID, userID, isAdmin)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to delete message", err.Error()))
-		return
-	}
-
-	notificationMsg := &Message{
-		MessageType:    "delete",
-		ConversationID: messageDetails.ConversationID,
-		SenderID:       userID,
-		Content:        "Message deleted",
-		Extras:         &map[string]interface{}{"message_id": req.MessageID},
-	}
-
-	go h.hub.RouteMessage(notificationMsg)
-
-	c.JSON(http.StatusCreated, utils.FormatResponse("Message deleted successfully", map[string]interface{}{
-		"message_id": req.MessageID,
-	}))
-}
-
-// ReactToMessage handles adding or removing a reaction to a message
 func (h *APIHandler) ReactToMessage(c *gin.Context) {
 	userID := c.MustGet("id").(int)
 	companyID := c.MustGet("companyID").(int)
@@ -210,7 +168,7 @@ func (h *APIHandler) ReactToMessage(c *gin.Context) {
 		return
 	}
 
-	reactions, err := h.repository.GetMessageReactions(req.MessageID)
+	reactions, err := h.repository.GetMessageReactions([]int{req.MessageID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to get reactions", err.Error()))
 		return
@@ -226,11 +184,13 @@ func (h *APIHandler) ReactToMessage(c *gin.Context) {
 	}
 
 	notificationMsg := &Message{
-		MessageType:    "reaction",
-		ConversationID: messageDetails.ConversationID,
-		SenderID:       userID,
-		Content:        "Reaction updated",
-		Extras:         &reactionData,
+		MessageCommon: MessageCommon{
+			MessageType:    "reaction",
+			ConversationID: messageDetails.ConversationID,
+			SenderID:       userID,
+			Content:        "Reaction updated",
+		},
+		Extras: &reactionData,
 	}
 
 	go h.hub.RouteMessage(notificationMsg)

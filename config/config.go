@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"os"
 	"strconv"
 	"time"
@@ -17,12 +19,13 @@ type Config struct {
 	API_SECRET     string
 	API_DEBUG      bool
 
-	UPLOAD_PATH           string
-	MAX_FILE_UPLOAD_COUNT int
-	STATIC_URL            string
-	COMPRESS_IMAGES       int
-	COMPRESS_SIZE         int
-	COMPRESS_QUALITY      int
+	UPLOAD_PATH      string
+	MAX_FILE_SIZE    int64
+	MAX_FILES_UPLOAD int
+	STATIC_URL       string
+	COMPRESS_IMAGES  int
+	COMPRESS_SIZE    int
+	COMPRESS_QUALITY int
 
 	ENCRYPT_PASSWORDS bool
 	SESSION_MAX_AGE   int
@@ -38,9 +41,10 @@ type Config struct {
 	REFRESH_KEY  string
 	REFRESH_TIME time.Duration
 
-	GLE_KEY      string
-	GLE_SECRET   string
-	GLE_CALLBACK string
+	GLE_KEY           string
+	GLE_SECRET        string
+	GLE_CALLBACK      string
+	GoogleOAuthConfig oauth2.Config
 
 	SMTP_HOST     string
 	SMTP_PORT     string
@@ -71,7 +75,7 @@ func InitConfig() {
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
 
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
-	ENV.MAX_FILE_UPLOAD_COUNT, _ = strconv.Atoi(os.Getenv("MAX_FILE_UPLOAD_COUNT"))
+	ENV.MAX_FILES_UPLOAD, _ = strconv.Atoi(os.Getenv("MAX_FILES_UPLOAD"))
 	ENV.STATIC_URL = fmt.Sprintf("/%s/uploads/", ENV.API_PREFIX)
 	ENV.COMPRESS_IMAGES, _ = strconv.Atoi(os.Getenv("COMPRESS_IMAGES"))
 	ENV.COMPRESS_SIZE, _ = strconv.Atoi(os.Getenv("COMPRESS_SIZE"))
@@ -88,19 +92,19 @@ func InitConfig() {
 	ENV.ACCESS_KEY = os.Getenv("ACCESS_KEY")
 	accessTime, err := time.ParseDuration(os.Getenv("ACCESS_TIME"))
 	if err != nil {
-		ENV.ACCESS_TIME = accessTime
-	} else {
-		ENV.ACCESS_TIME = 15 * time.Minute // Default
+		ENV.ACCESS_TIME = 15 * time.Minute
 		fmt.Printf("Warning: Invalid ACCESS_TIME, using default: %v\n", ENV.ACCESS_TIME)
+	} else {
+		ENV.ACCESS_TIME = accessTime
 	}
 
 	ENV.REFRESH_KEY = os.Getenv("REFRESH_KEY")
 	refreshTime, err := time.ParseDuration(os.Getenv("REFRESH_TIME"))
 	if err != nil {
-		ENV.REFRESH_TIME = refreshTime
-	} else {
-		ENV.REFRESH_TIME = 7 * 24 * time.Hour // Default
+		ENV.REFRESH_TIME = 7 * 24 * time.Hour
 		fmt.Printf("Warning: Invalid REFRESH_TIME, using default: %v\n", ENV.REFRESH_TIME)
+	} else {
+		ENV.REFRESH_TIME = refreshTime
 	}
 
 	ENV.GLE_KEY = os.Getenv("GLE_KEY")
@@ -121,6 +125,17 @@ func InitConfig() {
 		MaxFiles:         5,
 		AllowedMimeTypes: mergeAllowedTypes(),
 		StorageBasePath:  ENV.UPLOAD_PATH,
+	}
+
+	ENV.GoogleOAuthConfig = oauth2.Config{
+		ClientID:     ENV.GLE_KEY,
+		ClientSecret: ENV.GLE_SECRET,
+		RedirectURL:  ENV.GLE_CALLBACK,
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.company",
+		},
+		Endpoint: google.Endpoint,
 	}
 }
 
