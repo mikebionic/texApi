@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"texApi/config"
-	repo "texApi/internal/repositories"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
 
 	"github.com/gin-gonic/gin"

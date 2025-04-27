@@ -1,12 +1,13 @@
-package repositories
+package repo
 
 import (
 	"context"
 	"fmt"
-	"github.com/georgysavva/scany/v2/pgxscan"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
 )
 
 func GetContentTypes(withContent, langID, ctID int) ([]dto.ContentTypeWithContents, error) {

@@ -1,16 +1,17 @@
 package services
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"texApi/internal/dto"
-	"texApi/internal/repositories"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetPackagingTypes(ctx *gin.Context) {
-	types, err := repositories.GetPackagingTypes()
+	types, err := repo.GetPackagingTypes()
 	if err != nil {
 		response := utils.FormatErrorResponse("Failed to retrieve packaging types", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
@@ -28,7 +29,7 @@ func GetPackagingType(ctx *gin.Context) {
 		return
 	}
 
-	packagingType, err := repositories.GetPackagingType(id)
+	packagingType, err := repo.GetPackagingType(id)
 	if err != nil {
 		response := utils.FormatErrorResponse("Packaging type not found", err.Error())
 		ctx.JSON(http.StatusNotFound, response)
@@ -47,7 +48,7 @@ func CreatePackagingType(ctx *gin.Context) {
 		return
 	}
 
-	id, err := repositories.CreatePackagingType(packagingType)
+	id, err := repo.CreatePackagingType(packagingType)
 	if err != nil {
 		response := utils.FormatErrorResponse("Failed to create packaging type", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
@@ -73,14 +74,14 @@ func UpdatePackagingType(ctx *gin.Context) {
 		return
 	}
 
-	updatedID, err := repositories.UpdatePackagingType(packagingType, id)
+	updatedID, err := repo.UpdatePackagingType(packagingType, id)
 	if err != nil {
 		response := utils.FormatErrorResponse("Failed to update packaging type", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
-	updated, err := repositories.GetPackagingType(updatedID)
+	updated, err := repo.GetPackagingType(updatedID)
 	if err != nil {
 		response := utils.FormatErrorResponse("Failed to retrieve updated packaging type", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
@@ -99,7 +100,7 @@ func DeletePackagingType(ctx *gin.Context) {
 		return
 	}
 
-	if err := repositories.DeletePackagingType(id); err != nil {
+	if err := repo.DeletePackagingType(id); err != nil {
 		response := utils.FormatErrorResponse("Failed to delete packaging type", err.Error())
 		ctx.JSON(http.StatusInternalServerError, response)
 		return

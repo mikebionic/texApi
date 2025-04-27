@@ -1,13 +1,14 @@
 package services
 
 import (
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
 	"texApi/internal/dto"
-	repo "texApi/internal/repositories"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetContents(ctx *gin.Context) {

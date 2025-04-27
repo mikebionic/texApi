@@ -79,7 +79,7 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 		}
 
 		fileCount += 1
-		if fileCount > config.ENV.MAX_FILE_UPLOAD_COUNT {
+		if fileCount > config.ENV.MAX_FILES_UPLOAD {
 			return nil, errors.New("trying to upload too many files")
 		}
 

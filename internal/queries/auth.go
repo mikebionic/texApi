@@ -2,99 +2,84 @@ package queries
 
 var GetUser = `
 SELECT 
-    u.id,
-    u.uuid,
-    u.username,
-    u.password,
-    u.email,
-    u.phone,
-    r.role as role,
-    u.role_id,
-    u.company_id,
-    u.verified,
-    u.created_at::varchar,
-    u.updated_at::varchar,
-    u.active,
-    u.deleted,
-    u.oauth_provider,
-    u.oauth_user_id,
-    u.oauth_location,
-    u.oauth_access_token,
-    u.oauth_access_token_secret,
-    u.oauth_refresh_token,
-    u.oauth_expires_at::varchar,
-    u.oauth_id_token,
-    u.refresh_token,
-    u.verify_time::varchar,
-    u.otp_key
-FROM tbl_user u
-LEFT JOIN tbl_role r ON u.role_id = r.id`
+    id,
+    uuid,
+    username,
+    password,
+    email,
+    phone,
+    role,
+    role_id,
+    company_id,
+    verified,
+    meta,
+    meta2,
+    meta3,
+    refresh_token,
+    otp_key,
+    verify_time::varchar,
+    created_at::varchar,
+    updated_at::varchar,
+    active,
+    deleted
+FROM tbl_user`
 
 var CreateUser = `
     INSERT INTO tbl_user (
         username,
         password,
         email,
-		phone,
-		role,
+        phone,
+        role,
         role_id,
         company_id,
         verified,
-        active,
-        oauth_provider,
-        oauth_user_id,
-        oauth_location,
-        oauth_access_token,
-        oauth_access_token_secret,
-        oauth_refresh_token,
-        oauth_id_token,
-    	refresh_token
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) 
+        meta,
+        meta2,
+        meta3,
+        otp_key,
+        refresh_token,
+        active
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
     RETURNING id
 `
-
 var UpdateUser = `
     UPDATE tbl_user
     SET
-        username = $2,
-        password = $3,
-        email = $4,
-        phone = $5,
-        role = $6,
-        role_id = $7,
-        company_id = $8,
-        verified = $9,
-        active = $10,
-        oauth_provider = $11,
-        oauth_user_id = $12,
-        oauth_location = $13,
-        oauth_access_token = $14,
-        oauth_access_token_secret = $15,
-        oauth_refresh_token = $16,
-        oauth_id_token = $17
+        username = COALESCE($2,username),
+        password = COALESCE($3,password),
+        email = COALESCE($4,email),
+        phone = COALESCE($5,phone),
+        role = COALESCE($6,role),
+        role_id = COALESCE($7,role_id),
+        company_id = COALESCE($8,company_id),
+        verified = COALESCE($9,verified),
+        active = COALESCE($10,active),
+        updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING id
 `
 
-var ProfileUpdate = `
+var UserUpdate = `
     UPDATE tbl_user
     SET
         username = COALESCE($2, username),
         password = COALESCE($3, password),
         email = COALESCE($4, email),
-        phone = COALESCE($5, phone)
+        phone = COALESCE($5, phone),
+        updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING id
 `
 
 var SaveUserWithOTP = `
 INSERT INTO tbl_user (
-email, phone, role_id, verified, otp_key, verify_time
+	email, phone, role_id, verified, otp_key, verify_time
 ) VALUES (
-CASE WHEN $1 = 'email' THEN $2 ELSE '' END,
-CASE WHEN $1 = 'phone' THEN $2 ELSE '' END,
-$3,
-$4, $5, NOW()
+	CASE WHEN $1 = 'email' THEN $2 ELSE '' END,
+	CASE WHEN $1 = 'phone' THEN $2 ELSE '' END,
+	$3,
+	$4, $5, $6, NOW()
 ) RETURNING id;
 `
 var UpdateUserWithOTP = `
@@ -102,11 +87,12 @@ UPDATE tbl_user
 SET 
     email = CASE WHEN $1 = 'email' THEN $2 ELSE email END,
     phone = CASE WHEN $1 = 'phone' THEN $2 ELSE phone END,
-    role_id = $3,
-    verified = $4,
-    otp_key = $5,
+    role = $3,
+    role_id = $4,
+    verified = $5,
+    otp_key = $6,
     verify_time = NOW()
-WHERE id = $6
+WHERE id = $7
 RETURNING id;
 `
 
@@ -122,7 +108,8 @@ var VerifyUserByID = `
 UPDATE tbl_user
 SET
 	verified = 1,
-	verify_time = NOW()
+    verify_time = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id;
 `

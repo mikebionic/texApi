@@ -8,18 +8,25 @@ import (
 )
 
 func CreateToken(id, roleID, companyID int, role string) (string, string, int64) {
-	unixTime := time.Now().Add(config.ENV.REFRESH_TIME).Unix()
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	accessExp := time.Now().Add(config.ENV.ACCESS_TIME).Unix()
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":        id,
-		"roleID":    roleID,
 		"companyID": companyID,
 		"role":      role,
-		"exp":       unixTime,
+		"roleID":    roleID,
+		"exp":       accessExp,
 	})
+	tokenString, _ := accessToken.SignedString([]byte(config.ENV.ACCESS_KEY))
 
-	tokenString, _ := token.SignedString([]byte(config.ENV.ACCESS_KEY))
-	refreshString, _ := token.SignedString([]byte(config.ENV.REFRESH_KEY))
+	refreshExp := time.Now().Add(config.ENV.REFRESH_TIME).Unix()
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":        id,
+		"companyID": companyID,
+		"role":      role,
+		"roleID":    roleID,
+		"exp":       refreshExp,
+	})
+	refreshString, _ := refreshToken.SignedString([]byte(config.ENV.REFRESH_KEY))
 
-	return tokenString, refreshString, unixTime
+	return tokenString, refreshString, accessExp
 }
