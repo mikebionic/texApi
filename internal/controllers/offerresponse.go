@@ -13,7 +13,7 @@ func OfferResponse(router *gin.Engine) {
 		offerResponseGroup.GET("/", services.GetDetailedOfferResponseList)
 		offerResponseGroup.GET("/:id", services.GetOfferResponse)
 		offerResponseGroup.POST("/", services.CreateOfferResponse)
-		offerResponseGroup.PUT("/:id", services.UpdateOfferResponse)
+		offerResponseGroup.PUT("/:id", services.UpdateOfferResponse) // Accept Decline Offer Response
 		offerResponseGroup.DELETE("/:id", services.DeleteOfferResponse)
 	}
 }
