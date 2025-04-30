@@ -2,12 +2,14 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/jackc/pgx/v5"
 	"log"
 	db "texApi/database"
 	"texApi/internal/dto"
-
-	"github.com/georgysavva/scany/v2/pgxscan"
+	"texApi/internal/queries"
 )
 
 func CreateCompanyShort(company dto.CompanyCreateShort) (int, error) {
@@ -40,6 +42,17 @@ func CreateCompanyShort(company dto.CompanyCreateShort) (int, error) {
 		return 0, fmt.Errorf("user creation failed")
 	}
 	return result[0].ID, nil
+}
+
+func GetCompanyByID(id int) (company dto.CompanyDetails, err error) {
+	err = pgxscan.Get(context.Background(), db.DB, &company, queries.GetCompanyByID, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return company, fmt.Errorf("company not found")
+		}
+		return
+	}
+	return
 }
 
 func CreateCompany(company dto.CompanyCreate) (int, error) {
