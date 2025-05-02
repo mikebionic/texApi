@@ -7,6 +7,7 @@ import (
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"texApi/pkg/utils"
 	"time"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -99,7 +100,7 @@ func CreateUser(user dto.CreateUser) (int, error) {
 	var result []struct{ ID int }
 
 	if user.OTP == nil {
-		*user.OTP = ""
+		user.OTP = &utils.EmptyString
 	}
 
 	err := pgxscan.Select(
