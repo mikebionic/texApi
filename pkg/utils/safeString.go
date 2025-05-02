@@ -6,3 +6,7 @@ func SafeString(s *string) string {
 	}
 	return *s
 }
+
+var (
+	EmptyString = ""
+)
