@@ -7,6 +7,13 @@ func SafeString(s *string) string {
 	return *s
 }
 
+func SafeInt(i *int) int {
+	if i == nil {
+		return 0
+	}
+	return *i
+}
+
 var (
 	EmptyString = ""
 )

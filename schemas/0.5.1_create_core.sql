@@ -98,7 +98,7 @@ CREATE TABLE tbl_company
     notifications_story      INT                   DEFAULT 0,
     notifications_reactions  INT                   DEFAULT 0,
 
-    avatar_exceptions        TEXT[]                DEFAULT '{}', -- UUID of company companys
+    avatar_exceptions        TEXT[]                DEFAULT '{}', -- ID of company
     bio_exceptions           TEXT[]                DEFAULT '{}',
     last_seen_exceptions     TEXT[]                DEFAULT '{}',
     phone_number_exceptions  TEXT[]                DEFAULT '{}',
