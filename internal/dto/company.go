@@ -2,12 +2,6 @@ package dto
 
 import "time"
 
-//	type CompanyDetails struct {
-//		CompanyCreate
-//		Drivers    []DriverShort  `json:"drivers"`
-//		Vehicles   []VehicleShort `json:"vehicles"`
-//		TotalCount int            `json:"total_count"`
-//	}
 type CompanyDetails struct {
 	CompanyMain
 	Drivers        []DriverShort  `json:"drivers"`
