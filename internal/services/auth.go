@@ -1,6 +1,7 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -26,6 +27,48 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func sendNewLoginNotification(userID int, content string, data interface{}) {
+	payload := map[string]interface{}{
+		"userID":  userID,
+		"content": content,
+		"extras":  data,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to marshal notification payload: %s", err)
+		return
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("http://localhost:%s/%s/ws-notification/", config.ENV.API_PORT, config.ENV.API_PREFIX),
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		log.Printf("Failed to create notification request: %s", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(config.ENV.SYSTEM_HEADER, config.ENV.API_SECRET)
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Failed to send notification request %s", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf(fmt.Sprintf("Notification API returned non-OK status: %d", resp.StatusCode), nil)
+	}
+}
 
 func UserLogin(ctx *gin.Context) {
 	credType := ctx.GetHeader("CredType")
@@ -83,6 +126,8 @@ func UserLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating session", "Please try again"))
 		return
 	}
+
+	go sendNewLoginNotification(user.ID, fmt.Sprintf("%s, your account has been logged in from a new device", user.Username), session)
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Login successful", gin.H{
 		"access_token":  accessToken,
@@ -599,6 +644,8 @@ func OTPLogin(ctx *gin.Context) {
 		return
 	}
 
+	go sendNewLoginNotification(user.ID, fmt.Sprintf("%s, your account has been logged in from a new device", user.Username), session)
+
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Login successful", gin.H{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
@@ -768,6 +815,8 @@ func AuthenticateOAuthUser(ctx *gin.Context, userInfo map[string]interface{}, ro
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating session", err.Error()))
 		return
 	}
+
+	go sendNewLoginNotification(userID, fmt.Sprintf("%s, your account has been logged in from a new device", DbUser.Username), dbSession)
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Login successful", gin.H{
 		"access_token":  accessToken,
