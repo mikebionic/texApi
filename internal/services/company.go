@@ -9,6 +9,7 @@ import (
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
 )
 
@@ -40,18 +41,12 @@ func GetCompanyList(ctx *gin.Context) {
 }
 
 func GetCompany(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	var company []dto.CompanyDetails
-	err := pgxscan.Select(ctx, db.DB, &company, queries.GetCompanyByID, id)
+	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Company not found", err.Error()))
-		return
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Company ID parameter should be int", err.Error()))
 	}
-	if len(company) == 0 {
-		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Company not found", ""))
-	}
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company[0]))
+	company, err := repo.GetCompanyByID(id)
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company))
 	return
 }
 

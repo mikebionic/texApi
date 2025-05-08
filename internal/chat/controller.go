@@ -15,8 +15,12 @@ func Chat(router *gin.Engine) {
 	go ChatHub.Run()
 	apiHandler := NewAPIHandler(chatRepository, ChatHub, jwtSecret)
 
-	group := router.Group(config.ENV.API_PREFIX + "/chat/")
-	group.Use(middlewares.Guard)
+	notificationGroup := router.Group(config.ENV.API_PREFIX+"/ws-notification/", middlewares.SysGuard)
+	{
+		notificationGroup.POST("/", apiHandler.SendDirectNotification)
+	}
+
+	group := router.Group(config.ENV.API_PREFIX+"/chat/", middlewares.Guard)
 	convGroup := group.Group("/conversations/:id", apiHandler.ConversationAccessMiddleware())
 	{
 		convGroup.GET("/", apiHandler.GetConversation)
