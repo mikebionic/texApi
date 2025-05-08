@@ -35,6 +35,16 @@ func GuardURLParam(ctx *gin.Context) {
 	ctx.Next()
 }
 
+func SysGuard(ctx *gin.Context) {
+	token := ctx.GetHeader(config.ENV.SYSTEM_HEADER)
+	if token != config.ENV.API_SECRET {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized,
+			utils.FormatErrorResponse("Unauthorized", "This endpoint is for internal use only"))
+		return
+	}
+	ctx.Next()
+}
+
 func Guard(ctx *gin.Context) {
 	authorization := ctx.Request.Header["Authorization"]
 	if len(authorization) == 0 {

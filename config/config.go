@@ -17,7 +17,10 @@ type Config struct {
 	API_PREFIX     string
 	API_PORT       string
 	API_SECRET     string
-	API_DEBUG      bool
+	SYSTEM_HEADER  string
+	SYSTEM_SECRET  string
+
+	API_DEBUG bool
 
 	UPLOAD_PATH      string
 	MAX_FILE_SIZE    int64
@@ -72,6 +75,8 @@ func InitConfig() {
 	ENV.API_PORT = os.Getenv("API_PORT")
 	ENV.API_DEBUG = os.Getenv("API_DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
+	ENV.SYSTEM_HEADER = os.Getenv("SYSTEM_HEADER")
+	ENV.SYSTEM_SECRET = os.Getenv("SYSTEM_SECRET")
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
 
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")

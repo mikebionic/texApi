@@ -47,7 +47,6 @@ func (h *Hub) registerClient(client *Client) {
 	h.clients[client] = true
 	log.Printf("Client registered: UserID=%d", client.userID)
 
-	// Add client to rooms (conversations)
 	for _, conversationID := range client.conversations {
 		if _, ok := h.rooms[conversationID]; !ok {
 			h.rooms[conversationID] = make(map[*Client]bool)
@@ -64,7 +63,6 @@ func (h *Hub) unregisterClient(client *Client) {
 	if _, ok := h.clients[client]; ok {
 		delete(h.clients, client)
 
-		// Remove from all rooms
 		for conversationID, clients := range h.rooms {
 			if _, ok := clients[client]; ok {
 				delete(h.rooms[conversationID], client)
@@ -91,7 +89,6 @@ func (h *Hub) AddClientToRoom(client *Client, conversationID int) {
 	}
 	h.rooms[conversationID][client] = true
 
-	// Add to client's tracked conversations list if not already there
 	found := false
 	for _, id := range client.conversations {
 		if id == conversationID {
@@ -120,7 +117,6 @@ func (h *Hub) RemoveClientFromRoom(client *Client, conversationID int) {
 		}
 	}
 
-	// Remove from client's tracked conversations
 	for i, id := range client.conversations {
 		if id == conversationID {
 			client.conversations = append(client.conversations[:i], client.conversations[i+1:]...)

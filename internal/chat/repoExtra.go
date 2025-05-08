@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/georgysavva/scany/v2/pgxscan"
 )
 

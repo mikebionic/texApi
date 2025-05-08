@@ -1,16 +1,22 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"texApi/config"
 	db "texApi/database"
 	"texApi/internal/dto"
+	"texApi/internal/repo"
 	"texApi/pkg/utils"
+	"time"
 )
 
 func GetDetailedOfferResponseList(ctx *gin.Context) {
@@ -235,8 +241,14 @@ func CreateOfferResponse(ctx *gin.Context) {
 	offerResponse.CompanyID = companyID
 	offerResponse.State = "pending"
 
+	company, err := repo.GetCompanyByID(offerResponse.ToCompanyID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error retrieving recipient company", err.Error()))
+		return
+	}
+
 	var offerExists int
-	err := db.DB.QueryRow(
+	err = db.DB.QueryRow(
 		context.Background(),
 		`SELECT COUNT(*) FROM tbl_offer WHERE id = $1 AND deleted = 0`,
 		offerResponse.OfferID,
@@ -278,12 +290,57 @@ func CreateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
+	go sendOfferResponseNotification(company.UserID, fmt.Sprintf("New offer response: %s", utils.SafeString(offerResponse.Title)), offerResponse)
+
 	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created!", gin.H{
 		"id":   responseID,
 		"uuid": responseUUID,
 	}))
 }
 
+func sendOfferResponseNotification(userID int, content string, data interface{}) {
+	payload := map[string]interface{}{
+		"userID":  userID,
+		"content": content,
+		"extras":  data,
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to marshal notification payload: %s", err)
+		return
+	}
+
+	req, err := http.NewRequest(
+		"POST",
+		fmt.Sprintf("http://localhost:%s/%s/ws-notification/", config.ENV.API_PORT, config.ENV.API_PREFIX),
+		bytes.NewBuffer(jsonData),
+	)
+	if err != nil {
+		log.Printf("Failed to create notification request: %s", err)
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(config.ENV.SYSTEM_HEADER, config.ENV.API_SECRET)
+
+	client := &http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Failed to send notification request %s", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf(fmt.Sprintf("Notification API returned non-OK status: %d", resp.StatusCode), nil)
+	}
+}
+
+// Accept or Decline Offer Response
 func UpdateOfferResponse(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 	var offerResponse dto.OfferResponseUpdate

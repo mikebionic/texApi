@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"texApi/internal/dto"
@@ -219,4 +220,60 @@ func (h *APIHandler) DeleteMessageOfOwner(c *gin.Context) {
 	c.JSON(http.StatusCreated, utils.FormatResponse("Message deleted successfully", map[string]interface{}{
 		"message_id": req.MessageID,
 	}))
+}
+
+type NotificationPayload struct {
+	UserID  int                     `json:"userID" binding:"required"`
+	Content string                  `json:"content" binding:"required"`
+	Data    *map[string]interface{} `json:"extras"`
+}
+
+func (h *APIHandler) SendDirectNotification(c *gin.Context) {
+	var payload NotificationPayload
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
+
+	if payload.UserID <= 0 {
+		c.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid user ID", "User ID must be positive"))
+		return
+	}
+
+	notification := &Message{
+		MessageCommon: MessageCommon{
+			SenderID:    0,
+			Content:     payload.Content,
+			CreatedAt:   time.Now(),
+			MessageType: "system",
+		},
+		Type:   MessageTypeNotification,
+		Extras: payload.Data,
+	}
+
+	h.hub.mu.RLock()
+	defer h.hub.mu.RUnlock()
+
+	success := false
+	for client := range h.hub.clients {
+		if client.userID == payload.UserID {
+			select {
+			case client.send <- notification:
+				success = true
+				log.Printf("Notification sent directly to user %d", payload.UserID)
+			default:
+				log.Printf("Failed to send notification to user %d (channel full)", payload.UserID)
+				// Don't unregister in the handler - let the hub handle this elsewhere
+				// Also, we're holding the RLock, so we can't unregister here without risking deadlock
+			}
+			break
+		}
+	}
+
+	if success {
+		c.JSON(http.StatusOK, utils.FormatResponse("Notification sent successfully", nil))
+	} else {
+		c.JSON(http.StatusAccepted, utils.FormatResponse("User is not currently connected", nil))
+	}
 }
