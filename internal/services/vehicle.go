@@ -123,37 +123,6 @@ func DeleteVehicle(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted vehicle!", gin.H{"id": id}))
 }
 
-func GetVehicleList(ctx *gin.Context) {
-	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
-	offset := (page - 1) * perPage
-
-	var vehicles []dto.VehicleDetails
-	var totalCount int
-	err := pgxscan.Select(
-		context.Background(),
-		db.DB,
-		&vehicles,
-		queries.GetVehicleList,
-		perPage,
-		offset,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
-		return
-	}
-
-	response := utils.PaginatedResponse{
-		Total:   totalCount,
-		Page:    page,
-		PerPage: perPage,
-		Data:    vehicles,
-	}
-
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle list", response))
-}
-
 func GetVehicle(ctx *gin.Context) {
 	id := ctx.Param("id")
 
@@ -178,6 +147,233 @@ func GetVehicle(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle details", vehicle))
+}
+
+func GetVehicleList(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
+	offset := (page - 1) * perPage
+
+	search := ctx.Query("search")
+	companyID := ctx.Query("company_id")
+	vehicleTypeID := ctx.Query("vehicle_type_id")
+	vehicleBrandID := ctx.Query("vehicle_brand_id")
+	vehicleModelID := ctx.Query("vehicle_model_id")
+	yearOfIssue := ctx.Query("year_of_issue")
+	available := ctx.Query("available")
+	active := ctx.Query("active")
+	numberplate := ctx.Query("numberplate")
+	mileageLess := ctx.Query("mileage_less")
+	mileageMore := ctx.Query("mileage_more")
+	brandName := ctx.Query("brand_name")
+	typeName := ctx.Query("type_name")
+	modelName := ctx.Query("model_name")
+	modelYear := ctx.Query("model_year")
+	orderBy := ctx.DefaultQuery("order_by", "id")
+	orderDir := ctx.DefaultQuery("order_dir", "ASC")
+
+	query := `
+	WITH vehicle_data AS (
+		SELECT 
+			v.*,
+			COUNT(*) OVER() as total_count
+		FROM tbl_vehicle v
+		LEFT JOIN tbl_vehicle_brand vb ON v.vehicle_brand_id = vb.id
+		LEFT JOIN tbl_vehicle_model vm ON v.vehicle_model_id = vm.id
+		LEFT JOIN tbl_vehicle_type vt ON v.vehicle_type_id = vt.id
+		WHERE v.deleted = 0
+	`
+
+	args := make([]interface{}, 0)
+	paramCount := 0
+
+	if search != "" {
+		query += fmt.Sprintf(`
+			AND (LOWER(v.numberplate) LIKE LOWER($%d)
+			OR LOWER(v.trailer_numberplate) LIKE LOWER($%d)
+			OR LOWER(v.meta) LIKE LOWER($%d)
+			OR LOWER(v.meta2) LIKE LOWER($%d)
+			OR LOWER(v.meta3) LIKE LOWER($%d))
+		`, paramCount+1, paramCount+1, paramCount+1, paramCount+1, paramCount+1)
+		args = append(args, "%"+search+"%")
+		paramCount++
+	}
+
+	if companyID != "" {
+		query += fmt.Sprintf(" AND v.company_id = $%d", paramCount+1)
+		args = append(args, companyID)
+		paramCount++
+	}
+
+	if vehicleTypeID != "" {
+		query += fmt.Sprintf(" AND v.vehicle_type_id = $%d", paramCount+1)
+		args = append(args, vehicleTypeID)
+		paramCount++
+	}
+
+	if vehicleBrandID != "" {
+		query += fmt.Sprintf(" AND v.vehicle_brand_id = $%d", paramCount+1)
+		args = append(args, vehicleBrandID)
+		paramCount++
+	}
+
+	if vehicleModelID != "" {
+		query += fmt.Sprintf(" AND v.vehicle_model_id = $%d", paramCount+1)
+		args = append(args, vehicleModelID)
+		paramCount++
+	}
+
+	if yearOfIssue != "" {
+		query += fmt.Sprintf(" AND v.year_of_issue = $%d", paramCount+1)
+		args = append(args, yearOfIssue)
+		paramCount++
+	}
+
+	if available != "" {
+		query += fmt.Sprintf(" AND v.available = $%d", paramCount+1)
+		args = append(args, available)
+		paramCount++
+	}
+
+	if active != "" {
+		query += fmt.Sprintf(" AND v.active = $%d", paramCount+1)
+		args = append(args, active)
+		paramCount++
+	}
+
+	if numberplate != "" {
+		query += fmt.Sprintf(" AND LOWER(v.numberplate) LIKE LOWER($%d)", paramCount+1)
+		args = append(args, "%"+numberplate+"%")
+		paramCount++
+	}
+
+	if mileageLess != "" {
+		mileageLessVal, err := strconv.Atoi(mileageLess)
+		if err == nil {
+			query += fmt.Sprintf(" AND v.mileage <= $%d", paramCount+1)
+			args = append(args, mileageLessVal)
+			paramCount++
+		}
+	}
+
+	if mileageMore != "" {
+		mileageMoreVal, err := strconv.Atoi(mileageMore)
+		if err == nil {
+			query += fmt.Sprintf(" AND v.mileage >= $%d", paramCount+1)
+			args = append(args, mileageMoreVal)
+			paramCount++
+		}
+	}
+
+	if brandName != "" {
+		query += fmt.Sprintf(" AND LOWER(vb.name) LIKE LOWER($%d)", paramCount+1)
+		args = append(args, "%"+brandName+"%")
+		paramCount++
+	}
+
+	if typeName != "" {
+		query += fmt.Sprintf(" AND LOWER(vt.title_en) LIKE LOWER($%d)", paramCount+1)
+		args = append(args, "%"+typeName+"%")
+		paramCount++
+	}
+
+	if modelName != "" {
+		query += fmt.Sprintf(" AND LOWER(vm.name) LIKE LOWER($%d)", paramCount+1)
+		args = append(args, "%"+modelName+"%")
+		paramCount++
+	}
+
+	if modelYear != "" {
+		modelYearVal, err := strconv.Atoi(modelYear)
+		if err == nil {
+			query += fmt.Sprintf(" AND vm.year = $%d", paramCount+1)
+			args = append(args, modelYearVal)
+			paramCount++
+		}
+	}
+
+	validOrderColumns := map[string]bool{
+		"id": true, "year_of_issue": true, "mileage": true, "numberplate": true,
+		"view_count": true, "created_at": true, "updated_at": true,
+	}
+
+	if validOrderColumns[strings.ToLower(orderBy)] {
+		query += fmt.Sprintf(" ORDER BY v.%s %s", orderBy, orderDir)
+	} else {
+		query += " ORDER BY v.id ASC"
+	}
+
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", paramCount+1, paramCount+2)
+	args = append(args, perPage, offset)
+	paramCount += 2
+
+	query += `
+	)
+	SELECT 
+		vd.id, vd.uuid, vd.company_id, vd.vehicle_type_id,
+		vd.vehicle_brand_id, vd.vehicle_model_id, vd.year_of_issue,
+		vd.mileage, vd.numberplate, vd.trailer_numberplate,
+		vd.gps, vd.photo1_url, vd.photo2_url,
+		vd.photo3_url, vd.docs1_url, vd.docs2_url,
+		vd.docs3_url, vd.view_count, vd.created_at,
+		vd.updated_at, vd.active, vd.deleted, vd.total_count,
+		vd.meta, vd.meta2, vd.meta3, vd.available,
+		json_build_object(
+			'id', c.id,
+			'company_name', c.company_name,
+			'country', c.country
+		) AS company,
+		json_build_object(
+			'id', vb.id,
+			'name', vb.name,
+			'country', vb.country,
+			'founded_year', vb.founded_year
+		) AS brand,
+		json_build_object(
+			'id', vm.id,
+			'name', vm.name,
+			'year', vm.year,
+			'vehicle_type', t.title_en
+		) AS model,
+		json_build_object(
+			'id', t.id,
+			'title_en', t.title_en,
+			'desc_en', t.desc_en
+		) AS type
+	FROM vehicle_data vd
+	LEFT JOIN tbl_company c ON vd.company_id = c.id
+	LEFT JOIN tbl_vehicle_brand vb ON vd.vehicle_brand_id = vb.id
+	LEFT JOIN tbl_vehicle_model vm ON vd.vehicle_model_id = vm.id
+	LEFT JOIN tbl_vehicle_type t ON vd.vehicle_type_id = t.id
+	`
+
+	var vehicles []dto.VehicleDetails
+	err := pgxscan.Select(
+		context.Background(),
+		db.DB,
+		&vehicles,
+		query,
+		args...,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
+		return
+	}
+
+	totalCount := 0
+	if len(vehicles) > 0 {
+		totalCount = vehicles[0].TotalCount
+	}
+
+	response := utils.PaginatedResponse{
+		Total:   totalCount,
+		Page:    page,
+		PerPage: perPage,
+		Data:    vehicles,
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Vehicle list", response))
 }
 
 func GetFilteredVehicles(ctx *gin.Context) {
