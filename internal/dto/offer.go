@@ -78,7 +78,7 @@ type OfferDetails struct {
 	Company         *CompanyBasic `json:"company,omitempty"`
 	AssignedDriver  *DriverShort  `json:"assigned_driver,omitempty"`
 	AssignedVehicle *VehicleBasic `json:"assigned_vehicle,omitempty"`
-	Cargo           *Cargo        `json:"cargo,omitempty"`
+	Cargo           *CargoMain    `json:"cargo,omitempty"`
 }
 
 // OfferUpdate represents the structure for updating an existing offer
