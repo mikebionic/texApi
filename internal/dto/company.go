@@ -229,7 +229,6 @@ type CompanyUpdate struct {
 	Deleted *int `json:"deleted,omitempty"`
 }
 
-// Basic DTOs for nested responses
 type CompanyBasic struct {
 	ID          int    `json:"id"`
 	CompanyName string `json:"company_name"`
