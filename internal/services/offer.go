@@ -16,7 +16,6 @@ import (
 	"time"
 )
 
-// TODO: Needs refactor and SQL Fix, ANTI SQL INJECTION!!!
 func GetMyOfferListUpdate(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
@@ -56,7 +55,6 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 
 	for key, value := range filters {
 		if value != "" && value != nil {
-			// TODO: but needs sql fix
 			whereClauses = append(whereClauses, fmt.Sprintf("%s = $%d", key, argCounter))
 			args = append(args, value)
 			argCounter++
@@ -64,18 +62,18 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 	}
 
 	if validityStart != "" && validityEnd != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("validity_start BETWEEN $%d AND $%d", argCounter, argCounter+1))
+		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start BETWEEN $%d AND $%d", argCounter, argCounter+1))
 		startTime, _ := time.Parse(time.RFC3339, validityStart)
 		endTime, _ := time.Parse(time.RFC3339, validityEnd)
 		args = append(args, startTime, endTime)
 		argCounter += 2
 	} else if validityStart != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("validity_start >= $%d", argCounter))
+		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start >= $%d", argCounter))
 		startTime, _ := time.Parse(time.RFC3339, validityStart)
 		args = append(args, startTime)
 		argCounter++
 	} else if validityEnd != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("validity_start <= $%d", argCounter))
+		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start <= $%d", argCounter))
 		endTime, _ := time.Parse(time.RFC3339, validityEnd)
 		args = append(args, endTime)
 		argCounter++
@@ -87,13 +85,13 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 	}
 
 	query := fmt.Sprintf(`
-        SELECT 
-			o.*, 
-			COUNT(*) OVER () as total_count,
-			c as company,
-			d as assigned_driver,
-			v as assigned_vehicle,
-			cr as cargo
+		SELECT 
+			o.*,
+			COUNT(*) OVER() as total_count,
+			to_json(c) as company_json,
+			to_json(d) as driver_json,
+			to_json(v) as vehicle_json,
+			to_json(cr) as cargo_json
 		FROM tbl_offer o
 		LEFT JOIN tbl_company c ON o.company_id = c.id
 		LEFT JOIN tbl_driver d ON o.driver_id = d.id
@@ -102,7 +100,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		%s
 		ORDER BY o.%s %s
 		LIMIT $%d OFFSET $%d
-    `, whereClause, orderBy, orderDir, argCounter, argCounter+1)
+	`, whereClause, orderBy, orderDir, argCounter, argCounter+1)
 
 	args = append(args, perPage, offset)
 
@@ -118,9 +116,14 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 
 	for rows.Next() {
 		var offer dto.OfferDetails
+		offer.Company = &dto.CompanyBasic{}
+		offer.AssignedDriver = &dto.DriverShort{}
+		offer.AssignedVehicle = &dto.VehicleBasic{}
+		offer.Cargo = &dto.CargoMain{}
+
 		var companyJSON, driverJSON, vehicleJSON, cargoJSON []byte
 
-		err := rows.Scan(
+		err = rows.Scan(
 			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID,
 			&offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.VehicleTypeID,
 			&offer.CargoID, &offer.PackagingTypeID, &offer.OfferState, &offer.OfferRole,
@@ -143,11 +146,41 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			return
 		}
 
-		json.Unmarshal(companyJSON, &offer.Company)
-		json.Unmarshal(driverJSON, &offer.AssignedDriver)
-		json.Unmarshal(vehicleJSON, &offer.AssignedVehicle)
-		// Uncomment if cargo unmarshaling is needed
-		json.Unmarshal(cargoJSON, &offer.Cargo)
+		if companyJSON != nil {
+			if err := json.Unmarshal(companyJSON, &offer.Company); err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (company)", err.Error()))
+				return
+			}
+		} else {
+			offer.Company = nil
+		}
+
+		if driverJSON != nil {
+			if err := json.Unmarshal(driverJSON, &offer.AssignedDriver); err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (driver)", err.Error()))
+				return
+			}
+		} else {
+			offer.AssignedDriver = nil
+		}
+
+		if vehicleJSON != nil {
+			if err := json.Unmarshal(vehicleJSON, &offer.AssignedVehicle); err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (vehicle)", err.Error()))
+				return
+			}
+		} else {
+			offer.AssignedVehicle = nil
+		}
+
+		if cargoJSON != nil {
+			if err := json.Unmarshal(cargoJSON, &offer.Cargo); err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (cargo)", err.Error()))
+				return
+			}
+		} else {
+			offer.Cargo = nil
+		}
 
 		offers = append(offers, offer)
 	}
@@ -347,7 +380,7 @@ func UpdateOffer(ctx *gin.Context) {
 		stmt += ` AND deleted = 0`
 	}
 	stmt += ` RETURNING id;`
-	
+
 	var updatedID int
 	err := db.DB.QueryRow(
 		context.Background(),
