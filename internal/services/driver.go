@@ -42,7 +42,6 @@ func GetDriverList(ctx *gin.Context) {
 
 	args := make([]interface{}, 0)
 	paramCount := 0
-	fmt.Println(search)
 	if search != "" {
 		query += fmt.Sprintf(`
 			AND (LOWER(d.first_name) LIKE LOWER($%d)

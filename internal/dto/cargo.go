@@ -2,34 +2,37 @@ package dto
 
 import "time"
 
+type CargoMain struct {
+	ID              int    `json:"id"`
+	UUID            string `json:"uuid"`
+	CompanyID       int    `json:"company_id"`
+	Name            string `json:"name"`
+	Description     string `json:"description"`
+	Info            string `json:"info"`
+	Qty             int    `json:"qty"`
+	Weight          int    `json:"weight"`
+	WeightType      string `json:"weight_type"`
+	Meta            string `json:"meta"`
+	Meta2           string `json:"meta2"`
+	Meta3           string `json:"meta3"`
+	VehicleTypeID   int    `json:"vehicle_type_id"`
+	PackagingTypeID int    `json:"packaging_type_id"`
+	GPS             int    `json:"gps"`
+	Photo1URL       string `json:"photo1_url"`
+	Photo2URL       string `json:"photo2_url"`
+	Photo3URL       string `json:"photo3_url"`
+	Docs1URL        string `json:"docs1_url"`
+	Docs2URL        string `json:"docs2_url"`
+	Docs3URL        string `json:"docs3_url"`
+	Note            string `json:"note"`
+	Active          int    `json:"active"`
+	Deleted         int    `json:"deleted"`
+}
 type Cargo struct {
-	ID              int       `json:"id"`
-	UUID            string    `json:"uuid"`
-	CompanyID       int       `json:"company_id"`
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	Info            string    `json:"info"`
-	Qty             int       `json:"qty"`
-	Weight          int       `json:"weight"`
-	WeightType      string    `json:"weight_type"`
-	Meta            string    `json:"meta"`
-	Meta2           string    `json:"meta2"`
-	Meta3           string    `json:"meta3"`
-	VehicleTypeID   int       `json:"vehicle_type_id"`
-	PackagingTypeID int       `json:"packaging_type_id"`
-	GPS             int       `json:"gps"`
-	Photo1URL       string    `json:"photo1_url"`
-	Photo2URL       string    `json:"photo2_url"`
-	Photo3URL       string    `json:"photo3_url"`
-	Docs1URL        string    `json:"docs1_url"`
-	Docs2URL        string    `json:"docs2_url"`
-	Docs3URL        string    `json:"docs3_url"`
-	Note            string    `json:"note"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	Active          int       `json:"active"`
-	Deleted         int       `json:"deleted"`
-	TotalCount      int       `json:"total_count"`
+	CargoMain
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	TotalCount int       `json:"total_count"`
 }
 
 type CargoUpdate struct {
