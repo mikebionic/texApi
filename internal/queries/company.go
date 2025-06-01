@@ -67,6 +67,7 @@ user_id = COALESCE($21, user_id),
 role_id = COALESCE($22, role_id),
 active = COALESCE($23, active),
 deleted = COALESCE($24, deleted),
+partner = COALESCE($25, partner),
 updated_at = NOW()
 `
 

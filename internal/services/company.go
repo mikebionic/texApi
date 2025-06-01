@@ -131,6 +131,8 @@ func UpdateCompany(ctx *gin.Context) {
 	if !(role == "admin" || role == "system") {
 		company.UserID = &userID
 		company.RoleID = &roleID
+		company.Active = nil
+		company.Deleted = nil
 		stmt += ` WHERE (id = $1 AND user_id = $21) AND (active = 1 AND deleted = 0)`
 	} else {
 		stmt += ` WHERE id = $1`
@@ -166,6 +168,7 @@ func UpdateCompany(ctx *gin.Context) {
 		company.RoleID,
 		company.Active,
 		company.Deleted,
+		company.Partner,
 	).Scan(&updatedID)
 
 	if err != nil {
