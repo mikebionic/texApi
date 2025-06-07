@@ -1,93 +1,62 @@
--- Main GPS location tracking table
-CREATE TABLE tbl_gps_location
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE TABLE IF NOT EXISTS tbl_trip
 (
-    id              SERIAL PRIMARY KEY,
-    uuid            UUID                  DEFAULT gen_random_uuid(),
-    vehicle_id      INT          NOT NULL REFERENCES tbl_vehicle (id) ON DELETE CASCADE,
-    driver_id       INT          NOT NULL REFERENCES tbl_driver (id) ON DELETE CASCADE,
-    latitude        DECIMAL(10,7) NOT NULL,
-    longitude       DECIMAL(10,7) NOT NULL,
-    altitude        DECIMAL(10,2),           -- Optional altitude data in meters
-    speed           DECIMAL(5,2),            -- Speed in km/h
-    direction       DECIMAL(5,2),            -- Direction in degrees (0-359)
-    accuracy        DECIMAL(7,2),            -- Accuracy of location in meters
-    location_time   TIMESTAMP    NOT NULL,   -- When the location was recorded by device
-    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP, -- When record was added to DB
-    meta            JSONB        NOT NULL DEFAULT '{}'::jsonb -- For additional data (battery level, etc.)
+    id            BIGSERIAL PRIMARY KEY,
+    driver_id     INT       NOT NULL DEFAULT 0,
+    vehicle_id    INT       NOT NULL DEFAULT 0,
+    from_address  VARCHAR(800),
+    to_address    VARCHAR(800),
+    from_country  VARCHAR(500),
+    to_country    VARCHAR(500),
+    start_date    TIMESTAMP,
+    end_date      TIMESTAMP,
+    from_location GEOMETRY(POINT, 4326),
+    to_location   GEOMETRY(POINT, 4326),
+    distance_km   DECIMAL(10, 2), -- calculated total distance
+    status        state_t   NOT NULL DEFAULT 'active',
+    meta          TEXT      NOT NULL DEFAULT '',
+    meta2         TEXT      NOT NULL DEFAULT '',
+    meta3         TEXT      NOT NULL DEFAULT '',
+    gps_logs      JSONB     NOT NULL DEFAULT '{}',
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted       INT       NOT NULL DEFAULT 0
 );
 
--- Create index for faster location queries
-CREATE INDEX idx_gps_location_vehicle_time ON tbl_gps_location (vehicle_id, location_time);
-CREATE INDEX idx_gps_location_driver_time ON tbl_gps_location (driver_id, location_time);
-CREATE INDEX idx_gps_location_time ON tbl_gps_location (location_time);
-
--- Create spatial index for geo queries if using PostGIS extension
--- If you plan to use PostGIS (recommended), run:
--- CREATE EXTENSION postgis;
--- Then add:
--- SELECT AddGeometryColumn('tbl_gps_location', 'position', 4326, 'POINT', 2);
--- CREATE INDEX idx_gps_location_position ON tbl_gps_location USING GIST(position);
-
--- Device table for tracking which device is sending location data
-CREATE TABLE tbl_gps_device
+CREATE TABLE IF NOT EXISTS tbl_gps_log
 (
-    id              SERIAL PRIMARY KEY,
-    uuid            UUID                  DEFAULT gen_random_uuid(),
-    vehicle_id      INT REFERENCES tbl_vehicle (id) ON DELETE SET NULL,
-    driver_id       INT REFERENCES tbl_driver (id) ON DELETE SET NULL,
-    device_id       VARCHAR(100) NOT NULL, -- Device identifier (IMEI, etc.)
-    device_type     VARCHAR(50)  NOT NULL, -- Mobile, dedicated GPS tracker, etc.
-    last_ping       TIMESTAMP,             -- Last time device communicated with server
-    is_active       BOOLEAN      NOT NULL DEFAULT true,
-    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id            BIGSERIAL PRIMARY KEY,
+    company_id    INT REFERENCES tbl_company (id),
+    vehicle_id    INT                         NOT NULL DEFAULT 0,
+    driver_id     INT                         NOT NULL DEFAULT 0,
+    offer_id      INT REFERENCES tbl_offer (id),        -- optional (to specify offer, use trip_id for combining them in one trip or filter by date)
+    trip_id       INT REFERENCES tbl_trip (id),
+    battery_level SMALLINT,                             -- device battery level (0-100)
+    speed         DECIMAL(5, 2),                        -- Speed in km/h
+    heading       DECIMAL(5, 2),                        -- degrees (0-359) North 0, 0° = North 90° = East 180° = South 270° = West
+    accuracy      DECIMAL(7, 2),                        -- Accuracy of location in meters (optional)
+    coordinates   GEOMETRY(POINT, 4326)       NOT NULL,
+    status        state_t                     NOT NULL DEFAULT 'active',
+    log_dt        TIMESTAMP WITHOUT TIME ZONE NOT NULL, -- When the location was recorded by device
+    created_at    TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
--- Trip tracking table for logical grouping of GPS points
-CREATE TABLE tbl_gps_trip
+CREATE TABLE IF NOT EXISTS tbl_offer_trip
 (
-    id              SERIAL PRIMARY KEY,
-    uuid            UUID                  DEFAULT gen_random_uuid(),
-    vehicle_id      INT NOT NULL REFERENCES tbl_vehicle (id) ON DELETE CASCADE,
-    driver_id       INT NOT NULL REFERENCES tbl_driver (id) ON DELETE CASCADE,
-    start_time      TIMESTAMP NOT NULL,
-    end_time        TIMESTAMP,            -- NULL if trip is ongoing
-    start_location  JSONB,                -- Starting location details
-    end_location    JSONB,                -- Ending location details
-    distance        DECIMAL(10,2),        -- Total distance in kilometers
-    avg_speed       DECIMAL(5,2),         -- Average speed in km/h
-    max_speed       DECIMAL(5,2),         -- Maximum speed in km/h
-    status          VARCHAR(20) NOT NULL DEFAULT 'active', -- active, completed, cancelled
-    meta            JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    trip_id  INT     NOT NULL REFERENCES tbl_trip (id),
+    offer_id INT     NOT NULL REFERENCES tbl_offer (id),
+    is_main  BOOL    NOT NULL DEFAULT false,
+    status   state_t NOT NULL DEFAULT 'active',
+    deleted  INT     NOT NULL DEFAULT 0,
+    UNIQUE (trip_id, offer_id, deleted)
 );
 
--- Table for geofencing - define areas for alerts/reporting
-CREATE TABLE tbl_geofence
-(
-    id              SERIAL PRIMARY KEY,
-    uuid            UUID                  DEFAULT gen_random_uuid(),
-    company_id      INT NOT NULL REFERENCES tbl_company (id) ON DELETE CASCADE,
-    name            VARCHAR(100) NOT NULL,
-    description     TEXT,
-    fence_type      VARCHAR(20) NOT NULL, -- circle, polygon, rectangle
-    coordinates     JSONB NOT NULL,       -- Format depends on fence_type
-    radius          DECIMAL(10,2),        -- For circle type, in meters
-    is_active       BOOLEAN NOT NULL DEFAULT true,
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+CREATE INDEX idx_driver_log_dt ON tbl_gps_log(driver_id, log_dt);
+CREATE INDEX idx_trip_log_dt ON tbl_gps_log(trip_id, log_dt);
+CREATE INDEX idx_vehicle_log_dt ON tbl_gps_log(vehicle_id, log_dt);
+CREATE INDEX idx_coordinates_gist ON tbl_gps_log USING GIST(coordinates);
+CREATE INDEX idx_log_dt ON tbl_gps_log(log_dt);
 
--- Geofence alerts table
-CREATE TABLE tbl_geofence_event
-(
-    id              SERIAL PRIMARY KEY,
-    geofence_id     INT NOT NULL REFERENCES tbl_geofence (id) ON DELETE CASCADE,
-    vehicle_id      INT NOT NULL REFERENCES tbl_vehicle (id) ON DELETE CASCADE,
-    driver_id       INT NOT NULL REFERENCES tbl_driver (id) ON DELETE CASCADE,
-    event_type      VARCHAR(20) NOT NULL, -- enter, exit
-    event_time      TIMESTAMP NOT NULL,
-    location        JSONB NOT NULL,       -- Location at time of event
-    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+CREATE INDEX idx_driver_dates ON tbl_trip(driver_id, start_date, end_date);
+CREATE INDEX idx_vehicle_dates ON tbl_trip(vehicle_id, start_date, end_date);

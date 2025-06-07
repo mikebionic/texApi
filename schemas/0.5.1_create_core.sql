@@ -1,7 +1,7 @@
 CREATE TYPE entity_t AS ENUM ('individual', 'legal');
 CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','unknown');
 CREATE TYPE plan_t AS ENUM ('start', 'standard', 'premium');
-CREATE TYPE state_t AS ENUM ('enabled', 'disabled', 'deleted', 'pending', 'archived', 'working');
+CREATE TYPE state_t AS ENUM ('active', 'enabled', 'disabled', 'deleted', 'pending', 'archived', 'working', 'completed');
 CREATE TYPE visibility_t AS ENUM ('public', 'private', 'contacts');
 CREATE TYPE notification_preference_t AS ENUM ('all', 'mentions', 'none');
 CREATE TYPE sticker_type_t AS ENUM ('static', 'animated');
