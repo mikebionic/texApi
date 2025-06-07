@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:15
+    image: postgis/postgis:15-3.4
     container_name: db_tex
     environment:
       POSTGRES_USER: db_tex
