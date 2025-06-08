@@ -100,7 +100,6 @@ type UpdateMemberRequest struct {
 type MemberIDsRequest struct {
 	MemberIDs []int `json:"member_ids" binding:"required"`
 }
-
 type Conversation struct {
 	ID                 int        `json:"id"`
 	UUID               string     `json:"uuid"`
@@ -125,8 +124,9 @@ type Conversation struct {
 	Active             *int       `json:"active"`
 	Deleted            *int       `json:"deleted"`
 
-	UnreadCount *int    `json:"unread_count,omitempty"`
-	LastMessage *string `json:"last_message,omitempty"`
+	UnreadCount *int    `json:"unread_count"`
+	LastMessage *string `json:"last_message"`
+	MemberIDs   []int   `json:"member_ids"`
 }
 
 type Member struct {
