@@ -101,22 +101,29 @@ func UpdateVehicle(ctx *gin.Context) {
 }
 
 func DeleteVehicle(ctx *gin.Context) {
-	role := ctx.MustGet("role")
+	id := ctx.Param("id")
+	stmt := queries.DeleteVehicle
+
+	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
-		ctx.JSON(http.StatusForbidden, utils.FormatErrorResponse("Operation can't be done by user", ""))
-		return
+		companyID := ctx.MustGet("companyID").(int)
+		stmt += fmt.Sprintf(` AND company_id = %d`, companyID)
 	}
 
-	id := ctx.Param("id")
-
-	_, err := db.DB.Exec(
+	result, err := db.DB.Exec(
 		context.Background(),
-		queries.DeleteVehicle,
+		stmt,
 		id,
 	)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting vehicle", err.Error()))
+		return
+	}
+
+	rowsAffected := result.RowsAffected()
+	if rowsAffected == 0 {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Vehicle not found or no changes were made", ""))
 		return
 	}
 
