@@ -248,8 +248,7 @@ SET
 const DeleteVehicle = `
 UPDATE tbl_vehicle
 SET deleted = 1, updated_at = NOW(), active = 0
-WHERE id = $1;
-`
+WHERE id = $1`
 
 const GetVehicleByID = `
 SELECT 

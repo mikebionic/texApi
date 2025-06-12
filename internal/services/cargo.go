@@ -79,7 +79,7 @@ func GetCargo(ctx *gin.Context) {
 		id,
 	).Scan(
 		&cargo.ID, &cargo.UUID, &cargo.CompanyID, &cargo.Name, &cargo.Description,
-		&cargo.Info, &cargo.Qty, &cargo.Weight, &cargo.Meta, &cargo.Meta2, &cargo.Meta3,
+		&cargo.Info, &cargo.Qty, &cargo.Weight, &cargo.WeightType, &cargo.Meta, &cargo.Meta2, &cargo.Meta3,
 		&cargo.VehicleTypeID, &cargo.PackagingTypeID, &cargo.GPS, &cargo.Photo1URL,
 		&cargo.Photo2URL, &cargo.Photo3URL, &cargo.Docs1URL, &cargo.Docs2URL,
 		&cargo.Docs3URL, &cargo.Note, &cargo.CreatedAt, &cargo.UpdatedAt,

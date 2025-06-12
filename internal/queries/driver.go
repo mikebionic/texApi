@@ -130,5 +130,4 @@ SET
 const DeleteDriver = `
 UPDATE tbl_driver
 SET deleted = 1, updated_at = NOW()
-WHERE id = $1;
-`
+WHERE id = $1`
