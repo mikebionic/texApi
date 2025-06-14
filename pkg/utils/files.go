@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"texApi/config"
 	"time"
@@ -110,14 +111,14 @@ func SaveFiles(ctx *gin.Context) ([]string, error) {
 	return filePaths, nil
 }
 
-func CreateTodayDir(absPath string) (directory string, err error) {
+func CreateTodayDir(absPath string) (string, error) {
 	currentDate := time.Now().Format("2006-01-02")
-	directory = absPath + currentDate + "/"
-	if _, err = os.Stat(directory); os.IsNotExist(err) {
-		err = os.Mkdir(directory, os.ModePerm)
-		if err != nil {
-			return
+	directory := filepath.Join(absPath, currentDate)
+
+	if _, err := os.Stat(directory); os.IsNotExist(err) {
+		if err := os.MkdirAll(directory, os.ModePerm); err != nil {
+			return "", err
 		}
 	}
-	return
+	return directory + string(os.PathSeparator), nil
 }
