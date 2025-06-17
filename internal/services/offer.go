@@ -91,7 +91,8 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			to_json(c) as company_json,
 			to_json(d) as driver_json,
 			to_json(v) as vehicle_json,
-			to_json(cr) as cargo_json
+			to_json(cr) as cargo_json,
+			COALESCE((SELECT COUNT(*) FROM tbl_offer_response tor WHERE tor.offer_id = o.id AND tor.deleted = 0), 0) as response_count
 		FROM tbl_offer o
 		LEFT JOIN tbl_company c ON o.company_id = c.id
 		LEFT JOIN tbl_driver d ON o.driver_id = d.id
@@ -140,6 +141,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			&offer.CreatedAt, &offer.UpdatedAt, &offer.Active,
 			&offer.Deleted, &totalCount,
 			&companyJSON, &driverJSON, &vehicleJSON, &cargoJSON,
+			&offer.ResponseCount,
 		)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))

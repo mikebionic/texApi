@@ -75,10 +75,11 @@ type OfferDetailedResponse struct {
 
 type OfferDetails struct {
 	Offer
-	Company         *CompanyBasic `json:"company,omitempty"`
-	AssignedDriver  *DriverShort  `json:"assigned_driver,omitempty"`
-	AssignedVehicle *VehicleBasic `json:"assigned_vehicle,omitempty"`
+	Company         *CompanyBasic `json:"company"`
+	AssignedDriver  *DriverShort  `json:"assigned_driver"`
+	AssignedVehicle *VehicleBasic `json:"assigned_vehicle"`
 	Cargo           *CargoMain    `json:"cargo,omitempty"`
+	ResponseCount   int           `json:"response_count"`
 }
 
 // OfferUpdate represents the structure for updating an existing offer
