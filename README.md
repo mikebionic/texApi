@@ -13,10 +13,10 @@ docker compose up --build app
 docker compose up --build
 
 # With DB initialization
-INIT_DB=true docker compose up --build
+INIT_DB=true docker compose up --build -d
 
 # App-only update
-INIT_DB=false docker compose up --build app
+INIT_DB=false docker compose up --build app -d
 ```
 
 ---
