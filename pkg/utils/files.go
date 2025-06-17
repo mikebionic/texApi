@@ -1,115 +1,20 @@
 package utils
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"github.com/chai2010/webp"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"image"
 	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 	"strings"
 	"texApi/config"
 	"time"
 )
-
-var extensions map[string]bool = map[string]bool{
-	"jpg":  true,
-	"jpeg": true,
-	"png":  true,
-	"svg":  true,
-	"webp": true,
-	"mp4":  true,
-	"webm": true,
-	"pdf":  true,
-	"docx": true,
-	"pptx": true,
-}
-
-func WriteImage(ctx *gin.Context, dir string) string {
-	image, header, _ := ctx.Request.FormFile("image")
-
-	if image == nil {
-		return ""
-	}
-
-	splitedFileName := strings.Split(header.Filename, ".")
-	extension := splitedFileName[len(splitedFileName)-1]
-
-	if extension == "webp" || extension == "svg" || extension == "jpeg" ||
-		extension == "jpg" || extension == "png" {
-
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, image)
-		os.WriteFile(
-			config.ENV.UPLOAD_PATH+dir+header.Filename,
-			buf.Bytes(), os.ModePerm,
-		)
-
-		return header.Filename
-	}
-
-	return ""
-}
-
-func SaveFiles(ctx *gin.Context) ([]string, error) {
-	form, _ := ctx.MultipartForm()
-
-	if form == nil {
-		return nil, errors.New("didn't upload the files")
-	}
-
-	files := form.File["files"]
-
-	if len(files) == 0 {
-		return nil, errors.New("must load minimum 1 file")
-	}
-
-	var filePaths []string
-	var fileNames []string
-	var fileCount = 0
-
-	for _, file := range files {
-		splitedFileName := strings.Split(file.Filename, ".")
-		extension := splitedFileName[len(splitedFileName)-1]
-
-		extensionExists := extensions[extension]
-		if extensionExists == false {
-			return nil, errors.New(fmt.Sprintf("This file is forbidden: %s", extension))
-		}
-
-		fileCount += 1
-		if fileCount > config.ENV.MAX_FILES_UPLOAD {
-			return nil, errors.New("trying to upload too many files")
-		}
-
-		fileNames = append(fileNames, strings.ReplaceAll(splitedFileName[0]+"-"+uuid.NewString()+"."+extension, " ", "-"))
-	}
-
-	for index, file := range files {
-		readerFile, _ := file.Open()
-
-		buf := bytes.NewBuffer(nil)
-		io.Copy(buf, readerFile)
-		dir, err := CreateTodayDir(config.ENV.UPLOAD_PATH + "UploadFile_route")
-		if err != nil {
-			return nil, err
-		}
-		err = os.WriteFile(
-			dir+fileNames[index],
-			buf.Bytes(),
-			os.ModePerm,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		filePaths = append(filePaths, config.ENV.STATIC_URL+strings.ReplaceAll(dir, config.ENV.UPLOAD_PATH, "")+fileNames[index])
-	}
-
-	return filePaths, nil
-}
 
 func CreateTodayDir(absPath string) (string, error) {
 	currentDate := time.Now().Format("2006-01-02")
@@ -121,4 +26,229 @@ func CreateTodayDir(absPath string) (string, error) {
 		}
 	}
 	return directory + string(os.PathSeparator), nil
+}
+
+const (
+	TypeImage = "image"
+	TypeVideo = "video"
+	TypeDoc   = "document"
+)
+
+type FileConfig struct {
+	ImageExtensions map[string]bool
+	VideoExtensions map[string]bool
+	DocExtensions   map[string]bool
+	WebPQuality     float32
+	MaxFileSize     int64 // in bytes
+}
+
+var fileConfig = FileConfig{
+	ImageExtensions: map[string]bool{
+		"jpg":  true,
+		"jpeg": true,
+		"png":  true,
+		"gif":  true,
+		"webp": true,
+	},
+	VideoExtensions: map[string]bool{
+		"mp4":  true,
+		"webm": true,
+	},
+	DocExtensions: map[string]bool{
+		"pdf":  true,
+		"docx": true,
+		"pptx": true,
+		"svg":  true,
+		"gif":  true,
+	},
+	WebPQuality: 85,               // Good balance between quality and size
+	MaxFileSize: 10 * 1024 * 1024, // 10MB
+}
+
+func getFileType(extension string) string {
+	ext := strings.ToLower(extension)
+
+	if fileConfig.ImageExtensions[ext] {
+		return TypeImage
+	}
+	if fileConfig.VideoExtensions[ext] {
+		return TypeVideo
+	}
+	if fileConfig.DocExtensions[ext] {
+		return TypeDoc
+	}
+
+	return ""
+}
+
+func isAllowedExtension(extension string) bool {
+	return getFileType(extension) != ""
+}
+
+func generateUniqueFileName(originalName string) (string, string) {
+	parts := strings.Split(originalName, ".")
+	if len(parts) < 2 {
+		return "", ""
+	}
+
+	baseName := strings.Join(parts[:len(parts)-1], ".")
+	extension := strings.ToLower(parts[len(parts)-1])
+
+	baseName = strings.ReplaceAll(baseName, " ", "-")
+	uniqueName := fmt.Sprintf("%s-%s", baseName, uuid.NewString())
+
+	return uniqueName, extension
+}
+
+func compressImageToWebP(file multipart.File, outputPath string) error {
+	file.Seek(0, 0)
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return fmt.Errorf("failed to decode image: %w", err)
+	}
+
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	options := &webp.Options{Quality: fileConfig.WebPQuality}
+	if err := webp.Encode(outFile, img, options); err != nil {
+		return fmt.Errorf("failed to encode to WebP: %w", err)
+	}
+
+	return nil
+}
+
+func saveRegularFile(file multipart.File, outputPath string) error {
+	file.Seek(0, 0)
+
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	if _, err := io.Copy(outFile, file); err != nil {
+		return fmt.Errorf("failed to copy file content: %w", err)
+	}
+
+	return nil
+}
+
+func processFile(fileHeader *multipart.FileHeader, targetDir string) (string, error) {
+	uniqueName, extension := generateUniqueFileName(fileHeader.Filename)
+	if extension == "" {
+		return "", errors.New("invalid file name or extension")
+	}
+
+	if !isAllowedExtension(extension) {
+		return "", fmt.Errorf("file extension '%s' is not allowed", extension)
+	}
+
+	if fileHeader.Size > fileConfig.MaxFileSize {
+		return "", fmt.Errorf("file size exceeds maximum allowed size of %d bytes", fileConfig.MaxFileSize)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", fmt.Errorf("failed to open uploaded file: %w", err)
+	}
+	defer file.Close()
+
+	var finalFileName string
+	var outputPath string
+
+	fileType := getFileType(extension)
+
+	if fileType == TypeImage {
+		finalFileName = uniqueName + ".webp"
+		outputPath = filepath.Join(targetDir, finalFileName)
+
+		if err := compressImageToWebP(file, outputPath); err != nil {
+			return "", fmt.Errorf("failed to compress image: %w", err)
+		}
+	} else {
+		finalFileName = uniqueName + "." + extension
+		outputPath = filepath.Join(targetDir, finalFileName)
+
+		if err := saveRegularFile(file, outputPath); err != nil {
+			return "", fmt.Errorf("failed to save file: %w", err)
+		}
+	}
+
+	return finalFileName, nil
+}
+
+func SaveFiles(ctx *gin.Context) ([]string, error) {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return nil, errors.New("failed to parse multipart form")
+	}
+
+	if form == nil {
+		return nil, errors.New("no files uploaded")
+	}
+
+	files := form.File["files"]
+	if len(files) == 0 {
+		return nil, errors.New("must upload at least 1 file")
+	}
+
+	if len(files) > config.ENV.MAX_FILES_UPLOAD {
+		return nil, fmt.Errorf("too many files: maximum %d allowed", config.ENV.MAX_FILES_UPLOAD)
+	}
+
+	targetDir, err := CreateTodayDir(config.ENV.UPLOAD_PATH + "UploadFile_route")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create target directory: %w", err)
+	}
+
+	var filePaths []string
+
+	for _, fileHeader := range files {
+		fileName, err := processFile(fileHeader, targetDir)
+		if err != nil {
+			return nil, fmt.Errorf("failed to process file '%s': %w", fileHeader.Filename, err)
+		}
+
+		relativePath := strings.ReplaceAll(targetDir, config.ENV.UPLOAD_PATH, "")
+		publicURL := config.ENV.STATIC_URL + relativePath + fileName
+		filePaths = append(filePaths, publicURL)
+	}
+
+	return filePaths, nil
+}
+
+func WriteImage(ctx *gin.Context, dir string) (string, error) {
+	file, header, err := ctx.Request.FormFile("image")
+	if err != nil {
+		return "", errors.New("no image file provided")
+	}
+	defer file.Close()
+
+	uniqueName, extension := generateUniqueFileName(header.Filename)
+	if extension == "" {
+		return "", errors.New("invalid image file name")
+	}
+
+	if getFileType(extension) != TypeImage {
+		return "", errors.New("uploaded file is not a valid image")
+	}
+
+	targetDir := filepath.Join(config.ENV.UPLOAD_PATH, dir)
+	if err := os.MkdirAll(targetDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	fileName := uniqueName + ".webp"
+	outputPath := filepath.Join(targetDir, fileName)
+
+	if err := compressImageToWebP(file, outputPath); err != nil {
+		return "", fmt.Errorf("failed to process image: %w", err)
+	}
+
+	return fileName, nil
 }
