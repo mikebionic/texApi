@@ -240,7 +240,7 @@ func UpdateDriver(ctx *gin.Context) {
 
 	var updatedID int
 	err := pgxscan.Get(context.Background(), db.DB, &updatedID, stmt, id, driver.FirstName, driver.LastName, driver.PatronymicName,
-		driver.Phone, driver.Email, driver.ImageURL, driver.Meta, driver.Meta2, driver.Meta3, driver.CompanyID, driver.Active, driver.Deleted)
+		driver.Phone, driver.Email, driver.ImageURL, driver.Meta, driver.Meta2, driver.Meta3, driver.CompanyID, driver.BlockReason, driver.Active, driver.Deleted)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating driver", err.Error()))
 		return
@@ -403,7 +403,7 @@ func GetFilteredDriverList(ctx *gin.Context) {
 			&driver.LastName, &driver.PatronymicName, &driver.Phone,
 			&driver.Email, &driver.Featured, &driver.Rating, &driver.Partner,
 			&driver.SuccessfulOps, &driver.ImageURL, &driver.Meta, &driver.Meta2,
-			&driver.Meta3, &driver.Available, &driver.ViewCount,
+			&driver.Meta3, &driver.Available, &driver.ViewCount, &driver.BlockReason,
 			&driver.CreatedAt, &driver.UpdatedAt, &driver.Active, &driver.Deleted,
 			&totalCount, &companyJSON, &vehiclesJSON,
 		)

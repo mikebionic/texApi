@@ -194,6 +194,7 @@ CREATE TABLE tbl_driver
     meta3           TEXT         NOT NULL DEFAULT '',
     available       INT          NOT NULL DEFAULT 1,
     view_count      INT          NOT NULL DEFAULT 0,
+    block_reason    VARCHAR(500) NOT NULL DEFAULT '',
     created_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
     active          INT          NOT NULL DEFAULT 1,
@@ -201,6 +202,128 @@ CREATE TABLE tbl_driver
 );
 
 
+CREATE TABLE tbl_organization
+(
+    id               SERIAL PRIMARY KEY,
+    uuid             UUID         NOT NULL DEFAULT gen_random_uuid(),
+    name             VARCHAR(200) NOT NULL,
+    description_en   VARCHAR(200),
+    description_ru   VARCHAR(200),
+    description_tk   VARCHAR(200),
+    email            VARCHAR(200),
+    image_url        VARCHAR(500),
+    logo_url         VARCHAR(500),
+    icon_url         VARCHAR(500),
+    banner_url       VARCHAR(500),
+    website_url      VARCHAR(500),
+    about_text       TEXT,
+    refund_text      TEXT,
+    delivery_text    TEXT,
+    contact_text     TEXT,
+    terms_conditions TEXT,
+    privacy_policy   TEXT,
+    address1         VARCHAR(200),
+    address2         VARCHAR(200),
+    address3         VARCHAR(200),
+    address4         VARCHAR(200),
+    address_title1   VARCHAR(200),
+    address_title2   VARCHAR(200),
+    address_title3   VARCHAR(200),
+    address_title4   VARCHAR(200),
+    contact_phone1   VARCHAR(30),
+    contact_phone2   VARCHAR(30),
+    contact_phone3   VARCHAR(30),
+    contact_phone4   VARCHAR(30),
+    contact_title1   VARCHAR(200),
+    contact_title2   VARCHAR(200),
+    contact_title3   VARCHAR(200),
+    contact_title4   VARCHAR(200),
+    meta             TEXT,
+    meta2            TEXT,
+    meta3            TEXT,
+    created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active           INT          NOT NULL DEFAULT 1,
+    deleted          INT          NOT NULL DEFAULT 0
+);
+
+INSERT INTO tbl_organization (
+    name, description_en, description_ru, description_tk, email, image_url, logo_url, icon_url, banner_url,
+    website_url, about_text, refund_text, delivery_text, contact_text, terms_conditions, privacy_policy,
+    address1, address2, address3, address4, address_title1, address_title2, address_title3, address_title4,
+    contact_phone1, contact_phone2, contact_phone3, contact_phone4, contact_title1, contact_title2, contact_title3, contact_title4,
+    meta, meta2, meta3
+) VALUES (
+    'TEX Logistics',
+    'TEX is a revolutionary logistics platform connecting carriers, shippers, and companies worldwide. Easily find freight, optimize routes, and grow your network.',
+    'TEX - это революционная платформа в сфере логистики, соединяющая перевозчиков, отправителей и компании по всему миру. Легко находите грузы, оптимизируйте маршруты и расширяйте сеть.',
+    'TEX - bu dünýä logistikasyndaky üstünlikli täzelik. Bu platforma ýük daşamagy, müşderileri we kompaniýalary birleşdirýär.',
+    'admin@texexpress.pro',
+    'https://images.unsplash.com/photo-1551232864-3f00be7be8f5',
+    'https://cdn-icons-png.flaticon.com/512/2250/2250246.png',
+    'https://cdn-icons-png.flaticon.com/512/7436/7436887.png',
+    'https://images.unsplash.com/photo-1600650684452-8a96e7bcb7be',
+    'https://www.texexpress.pro',
+
+    '{
+     "en": "TEX is more than a logistics platform – it’s a global network. With 5,000+ companies, 20,000+ users, and 50,000+ successful deals, we transform freight management into seamless digital collaboration.",
+     "ru": "TEX - это не просто платформа, это глобальная сеть. С 5,000+ компаниями, 20,000+ пользователями и 50,000+ успешными сделками, мы делаем управление грузоперевозками цифровым и эффективным.",
+     "tk": "TEX diňe platforma däl - bu dünýä logistikasy üçin döredilen hyzmatdaşlyk ulgamydyr. 5000+ kompaniýa, 20000+ ulanyjy we 50000+ üstünlikli geleşik bilen işiňizi ýokarlandyryň."
+    }',
+
+    '{
+     "en": "Due to the nature of our service, returns are generally not applicable. For issues with transactions or agreements, please contact support.",
+     "ru": "Из-за характера наших услуг возврат, как правило, не предусмотрен. При возникновении проблем с транзакциями или соглашениями свяжитесь с нашей службой поддержки.",
+     "tk": "Hyzmat görnüşimiz sebäpli yzyna gaýtarmak mümkin däl. Töleg ýa-da şertnama bilen bagly mesele ýüze çyksa, bize ýüz tutuň."
+    }',
+
+    '{
+     "en": "Our platform facilitates freight transportation across countries and regions. Timeframes depend on the agreement between parties and selected carrier.",
+     "ru": "Наша платформа обеспечивает грузоперевозки по странам и регионам. Сроки зависят от условий соглашений и выбранных перевозчиков.",
+     "tk": "Platformamyz ýurtlar we sebitler boýunça ýük daşamagy üpjün edýär. Eltip bermegiň wagty saýlanan ýükçi bilen baglaşylan şertnama baglydyr."
+    }',
+
+    '{
+     "en": "Need help? Reach out to us via email or through our platform chat support. Our team is here to assist you.",
+     "ru": "Нужна помощь? Свяжитесь с нами по электронной почте или в чате платформы. Мы всегда рады помочь.",
+     "tk": "Kömek gerekmi? Bize e-poçta ýa-da sahypadaky söhbetdeşlik arkaly ýüz tutuň. Biz kömek etmäge taýýar."
+    }',
+
+    '{
+      "en": "By accessing or using TEX Logistic, you agree to be bound by the following terms and conditions:\n\n1. All users must provide accurate company and contact information.\n2. TEX is not liable for contractual breaches between users but facilitates secure communication and deal-making.\n3. All logistics transactions must comply with national and international trade laws.\n4. Any dispute arising from usage of the platform must be resolved via arbitration under Turkmenistan law.\n5. Platform services are subject to availability and may change without notice.\n\nBy continuing, you confirm you understand and accept these terms.",
+      "ru": "Используя платформу TEX Logistic, вы соглашаетесь со следующими условиями:\n\n1. Все пользователи обязаны предоставлять достоверную информацию о компании и контактах.\n2. TEX не несёт ответственности за нарушение договоров между пользователями, но обеспечивает безопасную коммуникацию и заключение сделок.\n3. Все логистические операции должны соответствовать национальным и международным торговым законам.\n4. Споры, возникающие в связи с использованием платформы, подлежат арбитражу по законодательству Туркменистана.\n5. Услуги платформы могут изменяться без предварительного уведомления.\n\nПродолжая работу с платформой, вы подтверждаете согласие с этими условиями.",
+      "tk": "TEX Logistic platformasyny ulanmak bilen, aşakdaky şertlere razy bolýarsyňyz:\n\n1. Ulanyjylar dogry kompaniýa we aragatnaşyk maglumatlaryny bermelidir.\n2. TEX ulanyjylar arasyndaky şertnamalaryň bozulmagyna jogapkär däl, diňe howpsuz aragatnaşyk we geleşik döretmek mümkinçiliklerini üpjün edýär.\n3. Ýük daşama amallary milli we halkara söwda kanunlaryna laýyk bolmalydyr.\n4. Ulanyşdan ýüze çykýan dawalara Türkmenistanyň kanunlaryna laýyklykda arbitraž arkaly serediler.\n5. Platformanyň hyzmatlary öňünden duýduryşsyz üýtgäp biler.\n\nPlatformany ulanmak bilen, bu şertleri kabul edýändigiňizi tassyklaýarsyňyz."
+    }',
+
+    '{
+      "en": "We take your privacy seriously. TEX Logistic collects only necessary data to provide logistics services:\n\n1. We store company registration, contact details, and usage logs.\n2. We never share personal or company data with third parties without explicit consent.\n3. Data is stored securely in compliance with international standards.\n4. Users may request data removal or review at any time.\n\nYour data is used solely to match you with logistics partners, improve service quality, and ensure transaction transparency.",
+      "ru": "Мы серьёзно относимся к вашей конфиденциальности. TEX Logistic собирает только необходимые данные для предоставления логистических услуг:\n\n1. Мы храним регистрационные данные компании, контактную информацию и логи использования.\n2. Мы не передаём личные или корпоративные данные третьим лицам без вашего согласия.\n3. Данные хранятся безопасно в соответствии с международными стандартами.\n4. Пользователи могут в любой момент запросить удаление или просмотр данных.\n\nВаши данные используются исключительно для подбора логистических партнёров, улучшения качества сервиса и прозрачности сделок.",
+      "tk": "TEX Logistic şahsy maglumatlaryňyzyň howpsuzlygyny möhüm hasaplaýar. Biz diňe zerur maglumatlary ýygnap ulanýarys:\n\n1. Kompaniýanyň hasaba alyş maglumatlary, aragatnaşyk maglumatlary we ulanma ýazgylary saklanylýar.\n2. Şahsy ýa-da kompaniýa maglumatlary siziň razylygyňyz bolmazdan üçünji taraplara berilmeýär.\n3. Maglumatlar halkara howpsuzlyk ülňülerine laýyklykda ygtybarly saklanylýar.\n4. Ulanyjylar islendik wagtda maglumatlaryny pozmagy ýa-da gözden geçirmegi haýyş edip biler.\n\nToplanan maglumatlar diňe hyzmatdaş tapmak, hyzmaty gowulandyrmak we geleşikleriň aç-açanlygyny üpjün etmek üçin ulanylýar."
+    }',
+
+    'Gorogly köçesi 100, Aşgabat, Türkmenistan',
+    'Türkmenabat şäher şahamçasy',
+    'Mary şäher ofisi',
+    'Daşoguz logistika merkezi',
+    'Baş edara - Aşgabat',
+    'Şahamça - Türkmenabat',
+    'Şahamça - Mary',
+    'Şahamça - Daşoguz',
+
+    '+993 12 34-56-78',
+    '+993 65 78-90-12',
+    '+993 63 12-34-56',
+    '+993 64 56-78-90',
+
+    'Hyzmat bölümi - Aşgabat',
+    'Tizlik hyzmaty - Türkmenabat',
+    'Ýük ugrukdyryjy - Mary',
+    'Konsultasiýa - Daşoguz',
+
+    '{"industry":"logistics", "region":"Turkmenistan", "languages":["tk","ru","en"]}',
+    '{"partners":5000, "active_users":20000, "transactions":50000, "vehicle_shipments":5000}',
+    '{"features":["freight matching", "carrier tracking", "route optimization", "real-time notifications"]}'
+);
 
 CREATE TABLE tbl_packaging_type
 (

@@ -68,7 +68,9 @@ func InitApp() *gin.Engine {
 	controllers.VerifyRequest(router)
 	controllers.PlanMove(router)
 	controllers.UserLog(router)
+	controllers.Organization(router)
 	controllers.GPS(router)
+	controllers.News(router)
 	chat.Chat(router)
 
 	return router
