@@ -144,7 +144,9 @@ CREATE TABLE tbl_article (
 
     -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    active           INT          NOT NULL DEFAULT 1,
+    deleted          INT          NOT NULL DEFAULT 0
 );
 
 -- Create comprehensive indexes for performance
