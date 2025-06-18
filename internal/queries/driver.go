@@ -122,8 +122,9 @@ SET
     meta2 = COALESCE($9, meta2),
     meta3 = COALESCE($10, meta3),
     company_id = COALESCE($11, company_id),
-    active = COALESCE($12, active),
-    deleted = COALESCE($13, deleted),
+    block_reason = COALESCE($12, block_reason),
+    active = COALESCE($13, active),
+    deleted = COALESCE($14, deleted),
     updated_at = NOW()
 `
 

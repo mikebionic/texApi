@@ -42,6 +42,7 @@ type DriverCreate struct {
 	Meta2          string    `json:"meta2"`
 	Meta3          string    `json:"meta3"`
 	Available      int       `json:"available"`
+	BlockReason    *string   `json:"block_reason"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 	Active         int       `json:"active"`
@@ -60,6 +61,7 @@ type DriverUpdate struct {
 	Meta           *string `json:"meta,omitempty"`
 	Meta2          *string `json:"meta2,omitempty"`
 	Meta3          *string `json:"meta3,omitempty"`
+	BlockReason    *string `json:"block_reason"`
 	Active         *int    `json:"active,omitempty"`
 	Deleted        *int    `json:"deleted,omitempty"`
 }
