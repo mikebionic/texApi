@@ -227,7 +227,7 @@ func UpdateDriver(ctx *gin.Context) {
 
 	if !(role == "admin" || role == "system") {
 		driver.CompanyID = &companyID
-		stmt += ` WHERE (id = $1 AND company_id = $11) AND (active = 1 AND deleted = 0)`
+		stmt += ` WHERE (id = $1 AND company_id = $11) AND deleted = 0`
 	} else {
 		stmt += ` WHERE id = $1`
 	}
