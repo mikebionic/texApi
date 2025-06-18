@@ -64,7 +64,7 @@ func UpdateVehicle(ctx *gin.Context) {
 	role := ctx.MustGet("role")
 	if !(role == "admin" || role == "system") {
 		vehicle.CompanyID = &companyID
-		stmt += ` WHERE (id = $1 AND company_id = $17) AND (active = 1 AND deleted = 0)`
+		stmt += ` WHERE (id = $1 AND company_id = $17) AND deleted = 0`
 	} else {
 		stmt += ` WHERE id = $1`
 	}
