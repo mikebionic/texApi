@@ -10,6 +10,7 @@ type Offer struct {
 	ExecCompanyID    int       `json:"exec_company_id"`
 	DriverID         int       `json:"driver_id"`
 	VehicleID        int       `json:"vehicle_id"`
+	TrailerID        int       `json:"trailer_id"`
 	VehicleTypeID    int       `json:"vehicle_type_id"`
 	CargoID          int       `json:"cargo_id"`
 	PackagingTypeID  int       `json:"packaging_type_id"`
@@ -68,6 +69,7 @@ type OfferDetailedResponse struct {
 	ExecCompany    *CompanyWithStats      `json:"exec_company,omitempty"`
 	AssignedDriver *DriverCreate          `json:"assigned_driver,omitempty"`
 	Vehicle        *VehicleCreate         `json:"vehicle,omitempty"`
+	Trailer        *VehicleCreate         `json:"trailer,omitempty"`
 	VehicleType    *VehicleType           `json:"vehicle_type,omitempty"`
 	Cargo          *Cargo                 `json:"cargo,omitempty"`
 	PackagingType  *PackagingTypeResponse `json:"packaging_type,omitempty"`
@@ -78,6 +80,7 @@ type OfferDetails struct {
 	Company         *CompanyBasic `json:"company"`
 	AssignedDriver  *DriverShort  `json:"assigned_driver"`
 	AssignedVehicle *VehicleBasic `json:"assigned_vehicle"`
+	AssignedTrailer *VehicleBasic `json:"assigned_trailer"`
 	Cargo           *CargoMain    `json:"cargo,omitempty"`
 	ResponseCount   int           `json:"response_count"`
 }
@@ -90,6 +93,7 @@ type OfferUpdate struct {
 	ExecCompanyID    *int     `json:"exec_company_id,omitempty"`
 	DriverID         *int     `json:"driver_id,omitempty"`
 	VehicleID        *int     `json:"vehicle_id,omitempty"`
+	TrailerID        *int     `json:"trailer_id,omitempty"`
 	VehicleTypeID    *int     `json:"vehicle_type_id,omitempty"`
 	CargoID          *int     `json:"cargo_id,omitempty"`
 	PackagingTypeID  *int     `json:"packaging_type_id,omitempty"`
