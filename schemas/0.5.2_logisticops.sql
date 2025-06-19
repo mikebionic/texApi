@@ -44,6 +44,7 @@ CREATE TABLE
         exec_company_id INT NOT NULL DEFAULT 0,
         driver_id INT NOT NULL DEFAULT 0,
         vehicle_id INT NOT NULL DEFAULT 0,
+        trailer_id INT NOT NULL DEFAULT 0,
         vehicle_type_id INT NOT NULL DEFAULT 0,
         cargo_id INT NOT NULL DEFAULT 0,
         packaging_type_id INT NOT NULL DEFAULT 0,
