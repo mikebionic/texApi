@@ -6,6 +6,7 @@ INSERT INTO tbl_offer (
     company_id,
     driver_id,
     vehicle_id,
+    trailer_id,
     cargo_id,
     cost_per_km,
     currency,
@@ -42,7 +43,7 @@ INSERT INTO tbl_offer (
 	distance,
 	map_url,
 	payment_term
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40)
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
 RETURNING id;
 `
 const UpdateOffer = `
@@ -93,6 +94,7 @@ SET
 	partner = COALESCE($44,partner),
 	active = COALESCE($45,active),
 	deleted = COALESCE($46,deleted),
+    trailer_id = COALESCE($47,trailer_id),
     updated_at = NOW()
 WHERE id = $1 AND company_id = $2
 `

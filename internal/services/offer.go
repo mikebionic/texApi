@@ -26,6 +26,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		"o.exec_company_id": ctx.Query("exec_company_id"),
 		"o.driver_id":       ctx.Query("driver_id"),
 		"o.vehicle_id":      ctx.Query("vehicle_id"),
+		"o.trailer_id":      ctx.Query("trailer_id"),
 		"o.cargo_id":        ctx.Query("cargo_id"),
 		"o.offer_state":     ctx.Query("offer_state"),
 		"o.offer_role":      ctx.Query("offer_role"),
@@ -91,12 +92,14 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			to_json(c) as company_json,
 			to_json(d) as driver_json,
 			to_json(v) as vehicle_json,
+			to_json(vt) as trailer_json,
 			to_json(cr) as cargo_json,
 			COALESCE((SELECT COUNT(*) FROM tbl_offer_response tor WHERE tor.offer_id = o.id AND tor.deleted = 0), 0) as response_count
 		FROM tbl_offer o
 		LEFT JOIN tbl_company c ON o.company_id = c.id
 		LEFT JOIN tbl_driver d ON o.driver_id = d.id
 		LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
+		LEFT JOIN tbl_vehicle vt ON o.trailer_id = vt.id
 		LEFT JOIN tbl_cargo cr ON o.cargo_id = cr.id
 		%s
 		ORDER BY o.%s %s
@@ -120,13 +123,14 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		offer.Company = &dto.CompanyBasic{}
 		offer.AssignedDriver = &dto.DriverShort{}
 		offer.AssignedVehicle = &dto.VehicleBasic{}
+		offer.AssignedTrailer = &dto.VehicleBasic{}
 		offer.Cargo = &dto.CargoMain{}
 
-		var companyJSON, driverJSON, vehicleJSON, cargoJSON []byte
+		var companyJSON, driverJSON, vehicleJSON, trailerJSON, cargoJSON []byte
 
 		err = rows.Scan(
 			&offer.ID, &offer.UUID, &offer.UserID, &offer.CompanyID,
-			&offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.VehicleTypeID,
+			&offer.ExecCompanyID, &offer.DriverID, &offer.VehicleID, &offer.TrailerID, &offer.VehicleTypeID,
 			&offer.CargoID, &offer.PackagingTypeID, &offer.OfferState, &offer.OfferRole,
 			&offer.CostPerKm, &offer.Currency, &offer.FromCountryID,
 			&offer.FromCityID, &offer.ToCountryID, &offer.ToCityID, &offer.Distance,
@@ -140,7 +144,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			&offer.Meta2, &offer.Meta3, &offer.Featured, &offer.Partner,
 			&offer.CreatedAt, &offer.UpdatedAt, &offer.Active,
 			&offer.Deleted, &totalCount,
-			&companyJSON, &driverJSON, &vehicleJSON, &cargoJSON,
+			&companyJSON, &driverJSON, &vehicleJSON, &trailerJSON, &cargoJSON,
 			&offer.ResponseCount,
 		)
 		if err != nil {
@@ -173,6 +177,14 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			}
 		} else {
 			offer.AssignedVehicle = nil
+		}
+		if trailerJSON != nil {
+			if err := json.Unmarshal(trailerJSON, &offer.AssignedTrailer); err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (trailer)", err.Error()))
+				return
+			}
+		} else {
+			offer.AssignedTrailer = nil
 		}
 
 		if cargoJSON != nil {
@@ -213,6 +225,7 @@ func GetOfferListUpdate(ctx *gin.Context) {
 		"exec_company_id": ctx.Query("exec_company_id"),
 		"driver_id":       ctx.Query("driver_id"),
 		"vehicle_id":      ctx.Query("vehicle_id"),
+		"trailer_id":      ctx.Query("trailer_id"),
 		"cargo_id":        ctx.Query("cargo_id"),
 		"offer_state":     ctx.Query("offer_state"),
 		"offer_role":      ctx.Query("offer_role"),
@@ -347,7 +360,7 @@ func CreateOffer(ctx *gin.Context) {
 	err := db.DB.QueryRow(
 		context.Background(),
 		queries.CreateOffer,
-		offer.UserID, offer.CompanyID, offer.DriverID, offer.VehicleID, offer.CargoID, offer.CostPerKm, offer.Currency,
+		offer.UserID, offer.CompanyID, offer.DriverID, offer.VehicleID, offer.TrailerID, offer.CargoID, offer.CostPerKm, offer.Currency,
 		offer.FromCountryID, offer.FromCityID, offer.ToCountryID, offer.ToCityID,
 		offer.FromCountry, offer.FromRegion, offer.ToCountry, offer.ToRegion, offer.FromAddress, offer.ToAddress,
 		offer.SenderContact, offer.RecipientContact, offer.DeliverContact, offer.ValidityStart, offer.ValidityEnd,
@@ -433,6 +446,7 @@ func UpdateOffer(ctx *gin.Context) {
 		offer.Partner,
 		offer.Active,
 		offer.Deleted,
+		offer.TrailerID,
 	).Scan(&updatedID)
 
 	if err != nil {
@@ -479,6 +493,14 @@ func GetOffer(ctx *gin.Context) {
                 'gps', v.gps,
                 'available', v.available
             ) as vehicle,
+			json_build_object(
+                'id', vtr.id,
+                'vehicle_type_id', vtr.vehicle_type_id,
+                'numberplate', vtr.numberplate,
+                'mileage', vtr.mileage,
+                'gps', vtr.gps,
+                'available', vtr.available
+            ) as trailer,
             json_build_object(
                 'id', vt.id,
                 'title_en', vt.title_en,
@@ -502,6 +524,7 @@ func GetOffer(ctx *gin.Context) {
         LEFT JOIN tbl_company ec ON o.exec_company_id = ec.id
         LEFT JOIN tbl_driver d ON o.driver_id = d.id
         LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
+        LEFT JOIN tbl_vehicle vtr ON o.trailer_id = vtr.id
         LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
         LEFT JOIN tbl_cargo cg ON o.cargo_id = cg.id
         LEFT JOIN tbl_packaging_type pt ON o.packaging_type_id = pt.id
@@ -674,6 +697,15 @@ func GetDetailedOfferList(ctx *gin.Context) {
                 'gps', v.gps,
                 'available', v.available
             ) as vehicle,
+			-- Trailer fields
+            json_build_object(
+                'id', vtr.id,
+                'vehicle_type_id', vtr.vehicle_type_id,
+                'numberplate', vtr.numberplate,
+                'mileage', vtr.mileage,
+                'gps', vtr.gps,
+                'available', vtr.available
+            ) as trailer,
             
             -- Vehicle type fields
             json_build_object(
@@ -710,6 +742,7 @@ func GetDetailedOfferList(ctx *gin.Context) {
         LEFT JOIN company_stats cs2 ON ec.id = cs2.company_id
         LEFT JOIN tbl_driver d ON o.driver_id = d.id
         LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
+        LEFT JOIN tbl_vehicle vtr ON o.trailer_id = vtr.id
         LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
         LEFT JOIN tbl_cargo cg ON o.cargo_id = cg.id
         LEFT JOIN tbl_packaging_type pt ON o.packaging_type_id = pt.id
@@ -724,6 +757,7 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		"exec_company_id":   ctx.Query("exec_company_id"),
 		"driver_id":         ctx.Query("driver_id"),
 		"vehicle_id":        ctx.Query("vehicle_id"),
+		"trailer_id":        ctx.Query("trailer_id"),
 		"vehicle_type_id":   ctx.Query("vehicle_type_id"),
 		"cargo_id":          ctx.Query("cargo_id"),
 		"packaging_type_id": ctx.Query("packaging_type_id"),
