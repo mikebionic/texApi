@@ -376,7 +376,6 @@ func GetFilteredDriverList(ctx *gin.Context) {
 	`
 	query += fmt.Sprintf(" WHERE %s ORDER BY %s LIMIT $1 OFFSET $2", whereClause, orderByClause)
 
-	// First add perPage and offset to the args slice
 	queryArgs := append([]interface{}{perPage, offset}, args...)
 
 	rows, err := db.DB.Query(
