@@ -30,7 +30,7 @@ services:
     ports:
       - "7000:7000"
     volumes:
-      - ~/TEX_UPLOADS:/app/uploads
+      - ~/TEX_UPLOADS:/usr/local/bin/uploads
     networks:
       - tex_project
     environment:

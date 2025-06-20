@@ -156,15 +156,6 @@ INSERT INTO tbl_vehicle_type (
     title_de, desc_de, title_ar, desc_ar, title_es, desc_es,
     title_fr, desc_fr, title_zh, desc_zh, title_ja, desc_ja
 ) VALUES
-      ('Trailer', 'Unpowered vehicle typically pulled by a truck, used to transport goods.',
-       'Прицеп', 'Несамоходное транспортное средство, как правило, буксируемое грузовиком для перевозки грузов.',
-       'Treyler', 'Ýük daşamak üçin ýük ulagynyň çekýän, hereketlendirijisiz ulag görnüşi.',
-       'Anhänger', 'Nicht angetriebenes Fahrzeug, das typischerweise von einem Lastwagen gezogen wird, um Waren zu transportieren.',
-       'مقطورة', 'مركبة غير مزودة بمحرك تُسحب عادةً بواسطة شاحنة لنقل البضائع.',
-       'Remolque', 'Vehículo sin motor que generalmente es remolcado por un camión para transportar mercancías.',
-       'Remorque', 'Véhicule non motorisé généralement tracté par un camion pour transporter des marchandises.',
-       '拖车', '通常由卡车牵引、用于运输货物的无动力车辆。',
-       'トレーラー', '通常はトラックに牽引される、貨物輸送用の動力のない車両。'),
       ('Light Duty Truck', 'Smaller trucks typically used for local deliveries or small cargo transport.',
        'Грузовик легкого класса', 'Небольшие грузовики, обычно используемые для местных поставок или перевозки небольших грузов.',
        'Ýeňil ýük ulag', 'Esasan kiçi ýük daşamak üçin ulanylýan kiçi ulaglar.',
@@ -292,7 +283,16 @@ INSERT INTO tbl_vehicle_type (
        'Camión volquete', 'Camión diseñado para transportar materiales sueltos (como arena, grava o escombros), equipado con una cama operada hidráulicamente.',
        'Camion-benne', 'Camion conçu pour transporter des matériaux en vrac (comme le sable, le gravier ou les déchets de démolition), équipé d’une benne hydraulique.',
        '翻斗卡车', '设计用于运输松散材料（如沙子、砾石或拆迁废料）的卡车，配备液压驱动车斗。',
-       'ダンプトラック', '砂、砂利、または解体廃材などのバルク材料を運ぶために設計され、油圧作動のベッドを備えたトラック。');
+       'ダンプトラック', '砂、砂利、または解体廃材などのバルク材料を運ぶために設計され、油圧作動のベッドを備えたトラック。'),
+      ('Trailer', 'Unpowered vehicle typically pulled by a truck, used to transport goods.',
+    'Прицеп', 'Несамоходное транспортное средство, как правило, буксируемое грузовиком для перевозки грузов.',
+    'Treyler', 'Ýük daşamak üçin ýük ulagynyň çekýän, hereketlendirijisiz ulag görnüşi.',
+    'Anhänger', 'Nicht angetriebenes Fahrzeug, das typischerweise von einem Lastwagen gezogen wird, um Waren zu transportieren.',
+    'مقطورة', 'مركبة غير مزودة بمحرك تُسحب عادةً بواسطة شاحنة لنقل البضائع.',
+    'Remolque', 'Vehículo sin motor que generalmente es remolcado por un camión para transportar mercancías.',
+    'Remorque', 'Véhicule non motorisé généralement tracté par un camion pour transporter des marchandises.',
+    '拖车', '通常由卡车牵引、用于运输货物的无动力车辆。',
+    'トレーラー', '通常はトラックに牽引される、貨物輸送用の動力のない車両。');
 
 
 -- Ford Models
