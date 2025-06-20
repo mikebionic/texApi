@@ -26,17 +26,17 @@ type News struct {
 }
 
 type CreateNewsRequest struct {
-	Title            string     `json:"title" binding:"required,max=500"`
+	Title            string     `json:"title" binding:"max=500"`
 	Subtitle         *string    `json:"subtitle" binding:"omitempty,max=1000"`
 	Excerpt          *string    `json:"excerpt" binding:"omitempty"`
-	Content          string     `json:"content" binding:"required"`
+	Content          string     `json:"content" binding:""`
 	ContentPlain     *string    `json:"content_plain" binding:"omitempty"`
 	FeaturedImageURL *string    `json:"featured_image_url" binding:"omitempty,max=500"`
-	AuthorName       string     `json:"author_name" binding:"required,max=200"`
-	CategoryPrimary  string     `json:"category_primary" binding:"required,max=100"`
-	ContentType      string     `json:"content_type" binding:"required,oneof=article breaking_news opinion analysis interview review"`
-	Status           string     `json:"status" binding:"required,oneof=draft published archived deleted"`
-	Priority         string     `json:"priority" binding:"required,oneof=low medium high urgent"`
+	AuthorName       string     `json:"author_name" binding:"max=200"`
+	CategoryPrimary  string     `json:"category_primary" binding:"max=100"`
+	ContentType      string     `json:"content_type" binding:"oneof=article breaking_news opinion analysis interview review"`
+	Status           string     `json:"status" binding:"oneof=draft published archived deleted"`
+	Priority         string     `json:"priority" binding:"oneof=low medium high urgent"`
 	PublishedAt      *time.Time `json:"published_at" binding:"omitempty"`
 }
 
