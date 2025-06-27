@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
@@ -285,45 +284,113 @@ func GetFilteredDriverList(ctx *gin.Context) {
 	offset := (page - 1) * perPage
 
 	companyID := ctx.DefaultQuery("company_id", "")
-	firstName := ctx.DefaultQuery("first_name", "")
-	lastName := ctx.DefaultQuery("last_name", "")
+	name := ctx.DefaultQuery("name", "") // Combined search instead of separate first_name, last_name
 	phone := ctx.DefaultQuery("phone", "")
 	email := ctx.DefaultQuery("email", "")
+	vehicleID := ctx.DefaultQuery("vehicle_id", "")
+	numberplate := ctx.DefaultQuery("numberplate", "")
+	vehicleTypeID := ctx.DefaultQuery("vehicle_type_id", "")
+	vehicleModelID := ctx.DefaultQuery("vehicle_model_id", "")
+	vehicleBrandID := ctx.DefaultQuery("vehicle_brand_id", "")
 	available := ctx.DefaultQuery("available", "")
+	active := ctx.DefaultQuery("active", "")
+	createdAtFrom := ctx.DefaultQuery("created_at_from", "")
+	createdAtTo := ctx.DefaultQuery("created_at_to", "")
+	metaSearch := ctx.DefaultQuery("meta_search", "")
 	orderBy := ctx.DefaultQuery("order_by", "date-new")
 
 	var whereClauses []string
 	var args []interface{}
-	argIndex := 3 // Start from 3 since $1 and $2 are reserved for perPage and offset
+	argIndex := 3
 
 	if companyID != "" {
 		whereClauses = append(whereClauses, "d.company_id = $"+strconv.Itoa(argIndex))
 		args = append(args, companyID)
 		argIndex++
 	}
-	if firstName != "" {
-		whereClauses = append(whereClauses, "d.first_name ILIKE $"+strconv.Itoa(argIndex))
-		args = append(args, "%"+firstName+"%")
+
+	if name != "" {
+		whereClauses = append(whereClauses, "(d.first_name ILIKE $"+strconv.Itoa(argIndex)+" OR d.last_name ILIKE $"+strconv.Itoa(argIndex)+" OR d.patronymic_name ILIKE $"+strconv.Itoa(argIndex)+" OR CONCAT(d.first_name, ' ', d.last_name) ILIKE $"+strconv.Itoa(argIndex)+")")
+		args = append(args, "%"+name+"%")
 		argIndex++
 	}
-	if lastName != "" {
-		whereClauses = append(whereClauses, "d.last_name ILIKE $"+strconv.Itoa(argIndex))
-		args = append(args, "%"+lastName+"%")
-		argIndex++
-	}
+
 	if phone != "" {
 		whereClauses = append(whereClauses, "d.phone ILIKE $"+strconv.Itoa(argIndex))
 		args = append(args, "%"+phone+"%")
 		argIndex++
 	}
+
 	if email != "" {
 		whereClauses = append(whereClauses, "d.email ILIKE $"+strconv.Itoa(argIndex))
 		args = append(args, "%"+email+"%")
 		argIndex++
 	}
+
 	if available != "" {
 		whereClauses = append(whereClauses, "d.available = $"+strconv.Itoa(argIndex))
 		args = append(args, available)
+		argIndex++
+	}
+
+	if active != "" {
+		whereClauses = append(whereClauses, "d.active = $"+strconv.Itoa(argIndex))
+		args = append(args, active)
+		argIndex++
+	}
+
+	// Vehicle-related filters using EXISTS for better performance
+	if vehicleID != "" || numberplate != "" || vehicleTypeID != "" || vehicleModelID != "" || vehicleBrandID != "" {
+		var vehicleFilters []string
+
+		if vehicleID != "" {
+			vehicleFilters = append(vehicleFilters, "v.id = $"+strconv.Itoa(argIndex))
+			args = append(args, vehicleID)
+			argIndex++
+		}
+
+		if numberplate != "" {
+			vehicleFilters = append(vehicleFilters, "v.numberplate ILIKE $"+strconv.Itoa(argIndex))
+			args = append(args, "%"+numberplate+"%")
+			argIndex++
+		}
+
+		if vehicleTypeID != "" {
+			vehicleFilters = append(vehicleFilters, "v.vehicle_type_id = $"+strconv.Itoa(argIndex))
+			args = append(args, vehicleTypeID)
+			argIndex++
+		}
+
+		if vehicleModelID != "" {
+			vehicleFilters = append(vehicleFilters, "v.vehicle_model_id = $"+strconv.Itoa(argIndex))
+			args = append(args, vehicleModelID)
+			argIndex++
+		}
+
+		if vehicleBrandID != "" {
+			vehicleFilters = append(vehicleFilters, "v.vehicle_brand_id = $"+strconv.Itoa(argIndex))
+			args = append(args, vehicleBrandID)
+			argIndex++
+		}
+
+		whereClauses = append(whereClauses, "EXISTS (SELECT 1 FROM tbl_vehicle v WHERE v.company_id = d.company_id AND v.deleted = 0 AND "+strings.Join(vehicleFilters, " AND ")+")")
+	}
+
+	if createdAtFrom != "" {
+		whereClauses = append(whereClauses, "d.created_at >= $"+strconv.Itoa(argIndex))
+		args = append(args, createdAtFrom+" 00:00:00")
+		argIndex++
+	}
+
+	if createdAtTo != "" {
+		whereClauses = append(whereClauses, "d.created_at <= $"+strconv.Itoa(argIndex))
+		args = append(args, createdAtTo+" 23:59:59")
+		argIndex++
+	}
+
+	if metaSearch != "" {
+		whereClauses = append(whereClauses, "(d.meta ILIKE $"+strconv.Itoa(argIndex)+" OR d.meta2 ILIKE $"+strconv.Itoa(argIndex)+" OR d.meta3 ILIKE $"+strconv.Itoa(argIndex)+")")
+		args = append(args, "%"+metaSearch+"%")
 		argIndex++
 	}
 
@@ -346,6 +413,10 @@ func GetFilteredDriverList(ctx *gin.Context) {
 		orderByClause = "d.successful_ops DESC"
 	case "view_count":
 		orderByClause = "d.view_count DESC"
+	case "name":
+		orderByClause = "d.first_name ASC, d.last_name ASC"
+	case "company":
+		orderByClause = "c.company_name ASC"
 	default:
 		orderByClause = "d.created_at DESC"
 	}
@@ -378,8 +449,11 @@ func GetFilteredDriverList(ctx *gin.Context) {
 
 	queryArgs := append([]interface{}{perPage, offset}, args...)
 
-	rows, err := db.DB.Query(
+	var drivers []dto.DriverDetails
+	err := pgxscan.Select(
 		context.Background(),
+		db.DB,
+		&drivers,
 		query,
 		queryArgs...,
 	)
@@ -388,36 +462,12 @@ func GetFilteredDriverList(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
 		return
 	}
-	defer rows.Close()
 
-	var drivers []dto.DriverDetails
 	var totalCount int
-
-	for rows.Next() {
-		var driver dto.DriverDetails
-		var companyJSON, vehiclesJSON []byte
-
-		err := rows.Scan(
-			&driver.ID, &driver.UUID, &driver.CompanyID, &driver.FirstName,
-			&driver.LastName, &driver.PatronymicName, &driver.Phone,
-			&driver.Email, &driver.Featured, &driver.Rating, &driver.Partner,
-			&driver.SuccessfulOps, &driver.ImageURL, &driver.Meta, &driver.Meta2,
-			&driver.Meta3, &driver.Available, &driver.ViewCount, &driver.BlockReason,
-			&driver.CreatedAt, &driver.UpdatedAt, &driver.Active, &driver.Deleted,
-			&totalCount, &companyJSON, &vehiclesJSON,
-		)
-
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Scan error", err.Error()))
-			return
-		}
-
-		json.Unmarshal(companyJSON, &driver.Company)
-		json.Unmarshal(vehiclesJSON, &driver.AssignedVehicles)
-		drivers = append(drivers, driver)
+	if len(drivers) > 0 {
+		totalCount, _ = strconv.Atoi(drivers[0].TotalCount)
 	}
 
-	// Prepare the response
 	response := utils.PaginatedResponse{
 		Total:   totalCount,
 		Page:    page,
