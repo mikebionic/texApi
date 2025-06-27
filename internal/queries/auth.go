@@ -11,6 +11,7 @@ SELECT
     role,
     role_id,
     company_id,
+    driver_id,
     verified,
     meta,
     meta2,
@@ -33,6 +34,7 @@ var CreateUser = `
         role,
         role_id,
         company_id,
+    	driver_id,
         verified,
         meta,
         meta2,
@@ -40,7 +42,7 @@ var CreateUser = `
         otp_key,
         refresh_token,
         active
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
     RETURNING id
 `
 var UpdateUser = `
@@ -53,8 +55,9 @@ var UpdateUser = `
         role = COALESCE($6,role),
         role_id = COALESCE($7,role_id),
         company_id = COALESCE($8,company_id),
-        verified = COALESCE($9,verified),
-        active = COALESCE($10,active),
+        driver_id = COALESCE($9,driver_id),
+        verified = COALESCE($10,verified),
+        active = COALESCE($11,active),
         updated_at = CURRENT_TIMESTAMP
     WHERE id = $1
     RETURNING id

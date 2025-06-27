@@ -9,6 +9,7 @@ import (
 type MessageType string
 
 const (
+	MessageTypeText         MessageType = "text"
 	MessageTypeMessage      MessageType = "message"
 	MessageTypeJoin         MessageType = "user_joined"
 	MessageTypeLeave        MessageType = "user_left"

@@ -13,13 +13,18 @@ func (r *Repository) SearchMessages(userID int, searchQuery string, limit, offse
         SELECT m.id, m.uuid, m.conversation_id, m.sender_id, m.message_type, 
                m.content, m.reply_to_id, m.forwarded_from_id, m.media_id, 
                m.sticker_id, m.is_edited, m.is_pinned, m.is_silent, m.created_at,
-               TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name,
-               p.image_url as sender_avatar,
-               c.title as conversation_title,
+				TRIM(
+					COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '') || 
+					COALESCE(d.first_name,'') || ' ' || COALESCE(d.last_name,'') 
+				) AS sender_name,
+				COALESCE(p.image_url, d.image_url) AS sender_avatar,
+			   c.title as conversation_title,
                c.chat_type as conversation_type
-        FROM tbl_message m
-        JOIN tbl_user u ON m.sender_id = u.id
-        JOIN tbl_company p ON u.company_id = p.id
+		FROM tbl_message m
+		JOIN tbl_user u ON m.sender_id = u.id
+		LEFT JOIN tbl_company p ON u.company_id = p.id
+		LEFT JOIN tbl_driver d ON u.driver_id = d.id
+
         JOIN tbl_conversation c ON m.conversation_id = c.id
         JOIN tbl_conversation_member cm ON (c.id = cm.conversation_id AND cm.user_id = $1)
         WHERE 
@@ -166,11 +171,16 @@ func (r *Repository) GetMessageDetails(messageID int) (*MessageDetails, error) {
         SELECT m.id, m.uuid, m.conversation_id, m.sender_id, m.message_type, 
                m.content, m.reply_to_id, m.forwarded_from_id, m.media_id, 
                m.sticker_id, m.is_edited, m.is_pinned, m.is_silent, m.created_at,
-               TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name,
-               p.image_url as sender_avatar
-        FROM tbl_message m
-        JOIN tbl_user u ON m.sender_id = u.id
-        JOIN tbl_company p ON u.company_id = p.id
+		TRIM(
+				COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '') || 
+				COALESCE(d.first_name,'') || ' ' || COALESCE(d.last_name,'') 
+			) AS sender_name,
+			COALESCE(p.image_url, d.image_url) AS sender_avatar
+		FROM tbl_message m
+		JOIN tbl_user u ON m.sender_id = u.id
+		LEFT JOIN tbl_company p ON u.company_id = p.id
+		LEFT JOIN tbl_driver d ON u.driver_id = d.id
+
         WHERE m.id = $1 AND m.active = 1
     `
 
@@ -205,7 +215,7 @@ func (r *Repository) GetMessageReactions(messageIDs []int) ([]Reaction, error) {
         SELECT mr.message_id, mr.company_id, mr.emoji, mr.user_id,
                 TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name
         FROM tbl_message_reaction mr
-        JOIN tbl_company p ON mr.company_id = p.id
+        LEFT JOIN tbl_company p ON mr.company_id = p.id
         WHERE mr.message_id = ANY($1)
     `
 
@@ -223,11 +233,15 @@ func (r *Repository) GetPinnedMessages(conversationID int) ([]MessageDetails, er
         SELECT m.id, m.uuid, m.conversation_id, m.sender_id, m.message_type, 
                m.content, m.reply_to_id, m.forwarded_from_id, m.media_id, 
                m.sticker_id, m.is_edited, m.is_pinned, m.is_silent, m.created_at,
-               TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name,
-               p.image_url as sender_avatar
-        FROM tbl_message m
-        JOIN tbl_user u ON m.sender_id = u.id
-        JOIN tbl_company p ON u.company_id = p.id
+		TRIM(
+				COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '') || 
+				COALESCE(d.first_name,'') || ' ' || COALESCE(d.last_name,'') 
+			) AS sender_name,
+			COALESCE(p.image_url, d.image_url) AS sender_avatar
+		FROM tbl_message m
+		JOIN tbl_user u ON m.sender_id = u.id
+		LEFT JOIN tbl_company p ON u.company_id = p.id
+		LEFT JOIN tbl_driver d ON u.driver_id = d.id
         WHERE m.conversation_id = $1 AND m.active = 1 AND m.is_pinned = true
         ORDER BY m.created_at DESC
     `

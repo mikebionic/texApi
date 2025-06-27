@@ -102,7 +102,7 @@ func UserLogin(ctx *gin.Context) {
 		}
 	}
 
-	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
 	deviceName, deviceModel, deviceFirmware, appName, appVersion := ExtractDeviceInfo(ctx)
 
 	refreshExp := time.Now().Add(config.ENV.REFRESH_TIME)
@@ -187,7 +187,7 @@ func RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Token refreshed", gin.H{
 		"access_token":  accessToken,
@@ -439,7 +439,7 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, accessExp := utils.CreateToken(userID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
 	err = repo.ManageToken(userID, refreshToken, "create")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("User created, but found error creating token, try logging in now", err.Error()))
@@ -619,7 +619,7 @@ func OTPLogin(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.Role)
+	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
 	deviceName, deviceModel, deviceFirmware, appName, appVersion := ExtractDeviceInfo(ctx)
 
 	refreshExp := time.Now().Add(config.ENV.REFRESH_TIME)
@@ -750,6 +750,7 @@ func AuthenticateOAuthUser(ctx *gin.Context, userInfo map[string]interface{}, ro
 	DbUser, _ := repo.GetUser(authUser.Email, "email")
 	var userID int
 	var companyID int
+	var driverID int
 	if DbUser.ID == 0 {
 		newUser := dto.CreateUser{
 			Username: fmt.Sprintf("%s%s", strings.Split(authUser.Email, "@")[0], utils.GenerateOTP(6)),
@@ -789,9 +790,10 @@ func AuthenticateOAuthUser(ctx *gin.Context, userInfo map[string]interface{}, ro
 	} else {
 		userID = DbUser.ID
 		companyID = DbUser.CompanyID
+		driverID = DbUser.DriverID
 	}
 
-	accessToken, refreshToken, accessExp := utils.CreateToken(userID, roleID, companyID, DbUser.Role)
+	accessToken, refreshToken, accessExp := utils.CreateToken(userID, roleID, companyID, driverID, DbUser.Role)
 	deviceName, deviceModel, deviceFirmware, appName, appVersion := ExtractDeviceInfo(ctx)
 
 	refreshExp := time.Now().Add(config.ENV.REFRESH_TIME)

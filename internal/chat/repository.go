@@ -476,11 +476,15 @@ func (r *Repository) GetConversationMessages(conversationID, userID, limit, offs
 	ctx := context.Background()
 	query := `
 		SELECT m.*,
-               TRIM(COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '')) AS sender_name,
-			   p.image_url as sender_avatar
+			TRIM(
+				COALESCE(p.first_name,'') || ' ' || COALESCE(p.last_name,'') || ' ' || COALESCE(p.company_name, '') || 
+				COALESCE(d.first_name,'') || ' ' || COALESCE(d.last_name,'') 
+			) AS sender_name,
+			COALESCE(p.image_url, d.image_url) AS sender_avatar
 		FROM tbl_message m
 		JOIN tbl_user u ON m.sender_id = u.id
-		JOIN tbl_company p ON u.company_id = p.id
+		LEFT JOIN tbl_company p ON u.company_id = p.id
+		LEFT JOIN tbl_driver d ON u.driver_id = d.id
 		WHERE m.conversation_id = $1 AND m.active = 1 AND m.deleted = 0
 		AND NOT EXISTS (
 			SELECT 1
