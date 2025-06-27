@@ -115,6 +115,7 @@ func CreateUser(user dto.CreateUser) (int, error) {
 		user.Role,
 		user.RoleID,
 		user.CompanyID,
+		user.DriverID,
 		user.Verified,
 		user.Meta,
 		user.Meta2,
@@ -147,6 +148,7 @@ func UpdateUser(user dto.CreateUser, userID int) (int, error) {
 		user.Role,
 		user.RoleID,
 		user.CompanyID,
+		user.DriverID,
 		user.Verified,
 		user.Active,
 	).Scan(&id)

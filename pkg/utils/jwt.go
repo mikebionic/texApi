@@ -7,11 +7,12 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func CreateToken(id, roleID, companyID int, role string) (string, string, int64) {
+func CreateToken(id, roleID, companyID, driverID int, role string) (string, string, int64) {
 	accessExp := time.Now().Add(config.ENV.ACCESS_TIME).Unix()
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":        id,
 		"companyID": companyID,
+		"driverID":  driverID,
 		"role":      role,
 		"roleID":    roleID,
 		"exp":       accessExp,
@@ -22,6 +23,7 @@ func CreateToken(id, roleID, companyID int, role string) (string, string, int64)
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":        id,
 		"companyID": companyID,
+		"driverID":  driverID,
 		"role":      role,
 		"roleID":    roleID,
 		"exp":       refreshExp,
