@@ -95,6 +95,9 @@ func (c *Client) ReadPump(repository *Repository) {
 		switch msg.Type {
 		case MessageTypeMessage:
 			c.handleSendMessage(msg, repository)
+			
+		case MessageTypeText:
+			c.handleSendMessage(msg, repository)
 
 		case MessageTypeMessageRead:
 			c.handleMessageRead(msg, repository)
