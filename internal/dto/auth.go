@@ -14,6 +14,7 @@ type User struct {
 	Role         string    `json:"role"`
 	RoleID       int       `json:"role_id"`
 	CompanyID    int       `json:"company_id"`
+	DriverID     int       `json:"driver_id"`
 	Verified     int       `json:"verified"`
 	Meta         string    `json:"meta"`
 	Meta2        string    `json:"meta2"`
@@ -35,6 +36,7 @@ type CreateUser struct {
 	Role         string  `json:"role,omitempty"`
 	RoleID       int     `json:"role_id,omitempty"`
 	CompanyID    int     `json:"company_id,omitempty"`
+	DriverID     int     `json:"driver_id,omitempty"`
 	Verified     int     `json:"verified,omitempty"`
 	Meta         string  `json:"meta"`
 	Meta2        string  `json:"meta2"`

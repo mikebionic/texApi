@@ -1,5 +1,5 @@
 CREATE TYPE entity_t AS ENUM ('individual', 'legal');
-CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','unknown');
+CREATE TYPE role_t AS ENUM ('system','admin','sender','carrier','driver','unknown');
 CREATE TYPE plan_t AS ENUM ('start', 'standard', 'premium');
 CREATE TYPE state_t AS ENUM ('active', 'enabled', 'disabled', 'deleted', 'pending', 'archived', 'working', 'completed');
 CREATE TYPE visibility_t AS ENUM ('public', 'private', 'contacts');
@@ -24,19 +24,20 @@ CREATE TABLE tbl_role (
 
 CREATE TABLE tbl_user
 (
-    id                        SERIAL PRIMARY KEY,
-    uuid                      UUID                  DEFAULT gen_random_uuid(),
-    username                  VARCHAR(200) NOT NULL DEFAULT '',
-    password                  VARCHAR(200) NOT NULL DEFAULT '',
-    email                     VARCHAR(100) NOT NULL DEFAULT '',
-    phone                     VARCHAR(100) NOT NULL DEFAULT '',
-    role                      role_t       NOT NULL DEFAULT 'unknown',
-    role_id                   INT REFERENCES tbl_role (id) ON DELETE CASCADE,
-    company_id                INT          NOT NULL DEFAULT 0,
-    verified                  INT          NOT NULL DEFAULT 0,
-    meta                      TEXT         NOT NULL DEFAULT '',
-    meta2                     TEXT         NOT NULL DEFAULT '',
-    meta3                     TEXT         NOT NULL DEFAULT '',
+    id            SERIAL PRIMARY KEY,
+    uuid          UUID                  DEFAULT gen_random_uuid(),
+    username      VARCHAR(200) NOT NULL DEFAULT '',
+    password      VARCHAR(200) NOT NULL DEFAULT '',
+    email         VARCHAR(100) NOT NULL DEFAULT '',
+    phone         VARCHAR(100) NOT NULL DEFAULT '',
+    role          role_t       NOT NULL DEFAULT 'unknown',
+    role_id       INT REFERENCES tbl_role (id) ON DELETE CASCADE,
+    company_id    INT          NOT NULL DEFAULT 0,
+    driver_id     INT          NOT NULL DEFAULT 0,
+    verified      INT          NOT NULL DEFAULT 0,
+    meta          TEXT         NOT NULL DEFAULT '',
+    meta2         TEXT         NOT NULL DEFAULT '',
+    meta3         TEXT         NOT NULL DEFAULT '',
     refresh_token VARCHAR(500) NOT NULL DEFAULT '',
     otp_key       VARCHAR(20)  NOT NULL DEFAULT '',
     verify_time   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -435,6 +436,10 @@ VALUES
     ('fleet_dr',    'PASSWORD_PLACEHOLDER', 'dr.fleet@gmail.com',    '+99365789004', 'carrier', 5, 1, 1, 0),
     -- logistics (1)
     ('logistics_dl','PASSWORD_PLACEHOLDER', 'dl.logistics@gmail.com','+99365789005', 'carrier',6, 1, 1, 0);
+
+INSERT INTO tbl_user (username, password, email, phone, role, role_id, verified, active, deleted, driver_id)
+VALUES
+    ('driver-test','test', 'test.driver@gmail.com','+99361234567', 'driver',6, 1, 1, 0, 1);
 
 
 INSERT INTO tbl_company (
