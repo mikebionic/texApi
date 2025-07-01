@@ -161,10 +161,8 @@ CREATE INDEX idx_tbl_article_slug ON tbl_article(slug);
 CREATE INDEX idx_tbl_article_external_id ON tbl_article(external_id);
 
 -- Full-text search index
--- Add column manually (not GENERATED)
 ALTER TABLE tbl_article ADD COLUMN search_vector tsvector;
 
--- Create a trigger to update it
 CREATE FUNCTION tbl_article_search_vector_trigger() RETURNS trigger AS $$
 BEGIN
     NEW.search_vector := to_tsvector(
@@ -181,24 +179,17 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE
     ON tbl_article FOR EACH ROW EXECUTE FUNCTION tbl_article_search_vector_trigger();
 
--- Then index it:
 CREATE INDEX idx_tbl_article_search_vector ON tbl_article USING GIN (search_vector);
 
-
-
--- Array indexes for tags and categories
 CREATE INDEX idx_tbl_article_tags ON tbl_article USING gin(tags);
 CREATE INDEX idx_tbl_article_categories ON tbl_article USING gin(categories);
 CREATE INDEX idx_tbl_article_keywords ON tbl_article USING gin(meta_keywords);
 
--- JSONB indexes for flexible queries
 CREATE INDEX idx_tbl_article_comments ON tbl_article USING gin(comments);
 CREATE INDEX idx_tbl_article_custom_fields ON tbl_article USING gin(custom_fields);
 
--- Geographic index
 CREATE INDEX idx_tbl_article_location ON tbl_article USING gist(location_coordinates);
 
--- Composite indexes for common queries
 CREATE INDEX idx_tbl_article_status_published ON tbl_article(status, published_at DESC)
     WHERE status = 'published';
 CREATE INDEX idx_tbl_article_category_status ON tbl_article(category_primary, status, published_at DESC);
@@ -220,7 +211,6 @@ SELECT view_count * 0.4 + like_count * 0.3 + share_count * 0.2 + comment_count *
 $$;
 
 
--- Create trigger function for updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
     RETURNS TRIGGER AS $$
 BEGIN
@@ -422,7 +412,7 @@ VALUES (
    'amazon-drone-delivery-kazakhstan',
    'A major logistics shift is coming to Central Asia',
    'Amazon begins pilot drone delivery program in Almaty, aiming for faster rural delivery.',
-   '<p>Amazon has started testing drone deliveries in Almaty, Kazakhstan, partnering with local logistics providers to speed up last-mile delivery. The pilot is expected to reduce delivery time in rural areas by over 60%.</p>',
+   '### Amazon has started testing drone deliveries in Almaty, Kazakhstan, partnering with local logistics providers to speed up last-mile delivery. The pilot is expected to reduce delivery time in rural areas by over 60%.',
    'Amazon has started testing drone deliveries in Almaty, Kazakhstan, partnering with local logistics providers to speed up last-mile delivery. The pilot is expected to reduce delivery time in rural areas by over 60%.',
    'Leyla Akhmetova',
    'leyla.akhmetova@logisticsnews.kz',
