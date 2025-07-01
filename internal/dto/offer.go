@@ -73,6 +73,7 @@ type OfferDetailedResponse struct {
 	VehicleType    *VehicleType           `json:"vehicle_type,omitempty"`
 	Cargo          *Cargo                 `json:"cargo,omitempty"`
 	PackagingType  *PackagingTypeResponse `json:"packaging_type,omitempty"`
+	OfferResponses []OfferResponseDetails `json:"offer_responses,omitempty"`
 }
 
 type OfferDetails struct {

@@ -139,32 +139,32 @@ type CompanyCreate struct {
 	SuccessfulOps       int    `json:"successful_ops"`
 
 	// Privacy settings
-	ShowAvatar      string `json:"show_avatar"`
-	ShowBio         string `json:"show_bio"`
-	ShowLastSeen    string `json:"show_last_seen"`
-	ShowPhoneNumber string `json:"show_phone_number"`
-	ReceiveCalls    string `json:"receive_calls"`
-	InviteGroup     string `json:"invite_group"`
+	ShowAvatar      string `json:"show_avatar,omitempty"`
+	ShowBio         string `json:"show_bio,omitempty"`
+	ShowLastSeen    string `json:"show_last_seen,omitempty"`
+	ShowPhoneNumber string `json:"show_phone_number,omitempty"`
+	ReceiveCalls    string `json:"receive_calls,omitempty"`
+	InviteGroup     string `json:"invite_group,omitempty"`
 
 	// Security settings
-	SelfDestructDuration int      `json:"self_destruct_duration"`
-	Passkey              string   `json:"passkey"`
-	Blacklist            []string `json:"blacklist"`
-	LoginDevices         []string `json:"login_devices"`
+	SelfDestructDuration int      `json:"self_destruct_duration,omitempty"`
+	Passkey              string   `json:"passkey,omitempty"`
+	Blacklist            []string `json:"blacklist,omitempty"`
+	LoginDevices         []string `json:"login_devices,omitempty"`
 
 	// Notification settings
-	NotificationsChat      int `json:"notifications_chat"`
-	NotificationsGroup     int `json:"notifications_group"`
-	NotificationsStory     int `json:"notifications_story"`
-	NotificationsReactions int `json:"notifications_reactions"`
+	NotificationsChat      int `json:"notifications_chat,omitempty"`
+	NotificationsGroup     int `json:"notifications_group,omitempty"`
+	NotificationsStory     int `json:"notifications_story,omitempty"`
+	NotificationsReactions int `json:"notifications_reactions,omitempty"`
 
 	// Exceptions lists
-	AvatarExceptions       []string `json:"avatar_exceptions"`
-	BioExceptions          []string `json:"bio_exceptions"`
-	LastSeenExceptions     []string `json:"last_seen_exceptions"`
-	PhoneNumberExceptions  []string `json:"phone_number_exceptions"`
-	ReceiveCallsExceptions []string `json:"receive_calls_exceptions"`
-	InviteGroupExceptions  []string `json:"invite_group_exceptions"`
+	AvatarExceptions       []string `json:"avatar_exceptions,omitempty"`
+	BioExceptions          []string `json:"bio_exceptions,omitempty"`
+	LastSeenExceptions     []string `json:"last_seen_exceptions,omitempty"`
+	PhoneNumberExceptions  []string `json:"phone_number_exceptions,omitempty"`
+	ReceiveCallsExceptions []string `json:"receive_calls_exceptions,omitempty"`
+	InviteGroupExceptions  []string `json:"invite_group_exceptions,omitempty"`
 }
 
 type CompanyUpdate struct {
