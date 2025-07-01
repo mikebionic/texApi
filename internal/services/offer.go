@@ -462,28 +462,97 @@ func GetOffer(ctx *gin.Context) {
         SELECT 
             o.*,
             json_build_object(
-                'id', c.id,
-                'company_name', c.company_name,
-                'email', c.email,
-                'phone', c.phone,
-                'address', c.address,
-                'country', c.country
+				'id',c.id,
+				'uuid',c.uuid,
+				'user_id',c.user_id,
+				'role',c.role,
+				'role_id',c.role_id,
+				'plan',c.plan,
+				'plan_active',c.plan_active,
+				'company_name',c.company_name,
+				'first_name',c.first_name,
+				'last_name',c.last_name,
+				'patronymic_name',c.patronymic_name,
+				'about',c.about,
+				'phone',c.phone,
+				'phone2',c.phone2,
+				'phone3',c.phone3,
+				'email',c.email,
+				'email2',c.email2,
+				'email3',c.email3,
+				'meta',c.meta,
+				'meta2',c.meta2,
+				'meta3',c.meta3,
+				'address',c.address,
+				'country',c.country,
+				'country_id',c.country_id,
+				'city_id',c.city_id,
+				'image_url',c.image_url,
+				'verified',c.verified,
+				'entity',c.entity,
+				'featured',c.featured,
+				'rating',c.rating,
+				'partner',c.partner,
+				'view_count',c.view_count,
+				'successful_ops',c.successful_ops
             ) as company,
             json_build_object(
-                'id', ec.id,
-                'company_name', ec.company_name,
-                'email', ec.email,
-                'phone', ec.phone,
-                'address', ec.address,
-                'country', ec.country
+                'id',c.id,
+				'uuid',c.uuid,
+				'user_id',c.user_id,
+				'role',c.role,
+				'role_id',c.role_id,
+				'plan',c.plan,
+				'plan_active',c.plan_active,
+				'company_name',c.company_name,
+				'first_name',c.first_name,
+				'last_name',c.last_name,
+				'patronymic_name',c.patronymic_name,
+				'about',c.about,
+				'phone',c.phone,
+				'phone2',c.phone2,
+				'phone3',c.phone3,
+				'email',c.email,
+				'email2',c.email2,
+				'email3',c.email3,
+				'meta',c.meta,
+				'meta2',c.meta2,
+				'meta3',c.meta3,
+				'address',c.address,
+				'country',c.country,
+				'country_id',c.country_id,
+				'city_id',c.city_id,
+				'image_url',c.image_url,
+				'verified',c.verified,
+				'entity',c.entity,
+				'featured',c.featured,
+				'rating',c.rating,
+				'partner',c.partner,
+				'view_count',c.view_count,
+				'successful_ops',c.successful_ops
             ) as exec_company,
             json_build_object(
-                'id', d.id,
-                'first_name', d.first_name,
-                'last_name', d.last_name,
-                'phone', d.phone,
-                'email', d.email,
-                'image_url', d.image_url
+				'id',d.id,
+				'uuid',d.uuid,
+				'company_id',d.company_id,
+				'first_name',d.first_name,
+				'last_name',d.last_name,
+				'patronymic_name',d.patronymic_name,
+				'phone',d.phone,
+				'email',d.email,
+				'featured',d.featured,
+				'rating',d.rating,
+				'partner',d.partner,
+				'successful_ops',d.successful_ops,
+				'image_url',d.image_url,
+				'view_count',d.view_count,
+				'meta',d.meta,
+				'meta2',d.meta2,
+				'meta3',d.meta3,
+				'available',d.available,
+				'block_reason',d.block_reason,
+				'active',d.active,
+				'deleted',d.deleted
             ) as assigned_driver,
             json_build_object(
                 'id', v.id,
@@ -539,9 +608,25 @@ func GetOffer(ctx *gin.Context) {
             ) as trailer,
             json_build_object(
                 'id', vt.id,
-                'title_en', vt.title_en,
-                'title_ru', vt.title_ru,
-                'title_tk', vt.title_tk
+				'title_en', vt.title_en,
+				'desc_en', vt.desc_en,
+				'title_ru', vt.title_ru,
+				'desc_ru', vt.desc_ru,
+				'title_tk', vt.title_tk,
+				'desc_tk', vt.desc_tk,
+				'title_de', vt.title_de,
+				'desc_de', vt.desc_de,
+				'title_ar', vt.title_ar,
+				'desc_ar', vt.desc_ar,
+				'title_es', vt.title_es,
+				'desc_es', vt.desc_es,
+				'title_fr', vt.title_fr,
+				'desc_fr', vt.desc_fr,
+				'title_zh', vt.title_zh,
+				'desc_zh', vt.desc_zh,
+				'title_ja', vt.title_ja,
+				'desc_ja', vt.desc_ja,
+				'deleted', vt.deleted
             ) as vehicle_type,
             json_build_object(
                 'id', cg.id,
@@ -812,9 +897,25 @@ func GetDetailedOfferList(ctx *gin.Context) {
             -- Vehicle type fields
             json_build_object(
                 'id', vt.id,
-                'title_en', vt.title_en,
-                'title_ru', vt.title_ru,
-                'title_tk', vt.title_tk
+				'title_en', vt.title_en,
+				'desc_en', vt.desc_en,
+				'title_ru', vt.title_ru,
+				'desc_ru', vt.desc_ru,
+				'title_tk', vt.title_tk,
+				'desc_tk', vt.desc_tk,
+				'title_de', vt.title_de,
+				'desc_de', vt.desc_de,
+				'title_ar', vt.title_ar,
+				'desc_ar', vt.desc_ar,
+				'title_es', vt.title_es,
+				'desc_es', vt.desc_es,
+				'title_fr', vt.title_fr,
+				'desc_fr', vt.desc_fr,
+				'title_zh', vt.title_zh,
+				'desc_zh', vt.desc_zh,
+				'title_ja', vt.title_ja,
+				'desc_ja', vt.desc_ja,
+				'deleted', vt.deleted
             ) as vehicle_type,
             
             -- Cargo fields
@@ -969,11 +1070,11 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	searchTerm := ctx.Query("search")
 	if searchTerm != "" {
 		searchClause := fmt.Sprintf(`(
-                    o.note ILIKE $%d OR 
-                    o.sender_contact ILIKE $%d OR
-                    o.recipient_contact ILIKE $%d OR
-                    o.deliver_contact ILIKE $%d
-                )`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
+			o.note ILIKE $%d OR 
+			o.sender_contact ILIKE $%d OR
+			o.recipient_contact ILIKE $%d OR
+			o.deliver_contact ILIKE $%d
+		)`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
 		whereClauses = append(whereClauses, searchClause)
 		args = append(args, "%"+searchTerm+"%")
 		argCounter++
