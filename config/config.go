@@ -198,6 +198,9 @@ var (
 		"application/json":       false,
 		"text/x-python":          false,
 	}
+
+	AppTZ, _   = time.LoadLocation("Asia/Ashgabat")
+	TZAddHours = 5 * time.Hour
 )
 
 func mergeAllowedTypes() map[string]bool {
