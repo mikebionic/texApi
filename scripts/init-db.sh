@@ -22,6 +22,7 @@ if [ $? -ne 0 ]; then
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.4.1_create_landing.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.4.2_insert_landing.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.5.1_create_core.sql
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.5.1_insert_core.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.5.2_logisticops.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.5.5_messaging.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.6.0_gps.sql
