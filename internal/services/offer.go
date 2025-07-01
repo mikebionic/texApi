@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"net/http"
 	"strconv"
 	"strings"
@@ -497,39 +498,39 @@ func GetOffer(ctx *gin.Context) {
 				'successful_ops',c.successful_ops
             ) as company,
             json_build_object(
-                'id',c.id,
-				'uuid',c.uuid,
-				'user_id',c.user_id,
-				'role',c.role,
-				'role_id',c.role_id,
-				'plan',c.plan,
-				'plan_active',c.plan_active,
-				'company_name',c.company_name,
-				'first_name',c.first_name,
-				'last_name',c.last_name,
-				'patronymic_name',c.patronymic_name,
-				'about',c.about,
-				'phone',c.phone,
-				'phone2',c.phone2,
-				'phone3',c.phone3,
-				'email',c.email,
-				'email2',c.email2,
-				'email3',c.email3,
-				'meta',c.meta,
-				'meta2',c.meta2,
-				'meta3',c.meta3,
-				'address',c.address,
-				'country',c.country,
-				'country_id',c.country_id,
-				'city_id',c.city_id,
-				'image_url',c.image_url,
-				'verified',c.verified,
-				'entity',c.entity,
-				'featured',c.featured,
-				'rating',c.rating,
-				'partner',c.partner,
-				'view_count',c.view_count,
-				'successful_ops',c.successful_ops
+                'id',ec.id,
+				'uuid',ec.uuid,
+				'user_id',ec.user_id,
+				'role',ec.role,
+				'role_id',ec.role_id,
+				'plan',ec.plan,
+				'plan_active',ec.plan_active,
+				'company_name',ec.company_name,
+				'first_name',ec.first_name,
+				'last_name',ec.last_name,
+				'patronymic_name',ec.patronymic_name,
+				'about',ec.about,
+				'phone',ec.phone,
+				'phone2',ec.phone2,
+				'phone3',ec.phone3,
+				'email',ec.email,
+				'email2',ec.email2,
+				'email3',ec.email3,
+				'meta',ec.meta,
+				'meta2',ec.meta2,
+				'meta3',ec.meta3,
+				'address',ec.address,
+				'country',ec.country,
+				'country_id',ec.country_id,
+				'city_id',ec.city_id,
+				'image_url',ec.image_url,
+				'verified',ec.verified,
+				'entity',ec.entity,
+				'featured',ec.featured,
+				'rating',ec.rating,
+				'partner',ec.partner,
+				'view_count',ec.view_count,
+				'successful_ops',ec.successful_ops
             ) as exec_company,
             json_build_object(
 				'id',d.id,
@@ -688,9 +689,40 @@ func GetOffer(ctx *gin.Context) {
 		return
 	}
 
+	if offer.CompanyID == ctx.MustGet("companyID") {
+		const responseQuery = `
+        SELECT 
+            or_tbl.*,
+            json_build_object(
+                'id', c.id,
+                'company_name', c.company_name,
+                'first_name', c.first_name,
+                'last_name', c.last_name
+            ) as company,
+            json_build_object(
+                'id', tc.id,
+                'company_name', tc.company_name,
+                'first_name', tc.first_name,
+                'last_name', tc.last_name
+            ) as to_company
+        FROM tbl_offer_response or_tbl
+        LEFT JOIN tbl_company c ON or_tbl.company_id = c.id
+        LEFT JOIN tbl_company tc ON or_tbl.to_company_id = tc.id
+        WHERE or_tbl.offer_id = $1 AND or_tbl.deleted = 0
+        ORDER BY or_tbl.created_at DESC`
+
+		var offerResponses []dto.OfferResponseDetails
+		err = pgxscan.Select(context.Background(), db.DB, &offerResponses, responseQuery, ctx.Param("id"))
+		if err != nil && err != pgx.ErrNoRows {
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error fetching offer responses", err.Error()))
+			return
+		}
+
+		offer.OfferResponses = offerResponses
+	}
+
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Offer details", offer))
 }
-
 func DeleteOffer(ctx *gin.Context) {
 	id := ctx.Param("id")
 	companyID := ctx.MustGet("companyID").(int)
