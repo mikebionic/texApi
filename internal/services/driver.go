@@ -222,20 +222,62 @@ func CreateDriver(ctx *gin.Context) {
 		driver.CompanyID = companyID
 	}
 
-	var id int
-	err := pgxscan.Get(context.Background(), db.DB, &id, queries.CreateDriver, driver.CompanyID, driver.FirstName, driver.LastName,
-		driver.PatronymicName, driver.Phone, driver.Email, driver.ImageURL, driver.Meta, driver.Meta2, driver.Meta3)
+	tx, err := db.DB.Begin(context.Background())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error starting transaction", err.Error()))
+		return
+	}
+	defer tx.Rollback(context.Background())
+
+	var driverID int
+	err = pgxscan.Get(context.Background(), tx, &driverID, queries.CreateDriver,
+		driver.CompanyID, driver.FirstName, driver.LastName,
+		driver.PatronymicName, driver.Phone, driver.Email, driver.ImageURL,
+		driver.Meta, driver.Meta2, driver.Meta3)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating driver", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created driver!", gin.H{"id": id}))
+	username := fmt.Sprintf("driver-%d", driverID)
+	password := utils.GenerateOTP(8)
+
+	var userID int
+	err = pgxscan.Get(context.Background(), tx, &userID, queries.CreateDriverUser,
+		username, password, driver.Email, driver.Phone, "driver", 6, 1, 1, 0, driverID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error creating driver user account", err.Error()))
+		return
+	}
+
+	if err = tx.Commit(context.Background()); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error committing transaction", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created driver with user account!", gin.H{
+		"id":        userID,
+		"driver_id": driverID,
+		"username":  username,
+		"email":     driver.Email,
+		"phone":     driver.Phone,
+		"password":  password,
+	}))
 }
 
 func UpdateDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
+	driverID, err := strconv.Atoi(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid driver ID", err.Error()))
+		return
+	}
+
 	var driver dto.DriverUpdate
+	if err = ctx.ShouldBindJSON(&driver); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+		return
+	}
 
 	companyID := ctx.MustGet("companyID").(int)
 	role := ctx.MustGet("role")
@@ -249,38 +291,68 @@ func UpdateDriver(ctx *gin.Context) {
 	}
 	stmt += ` RETURNING id;`
 
-	if err := ctx.ShouldBindJSON(&driver); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid request body", err.Error()))
+	tx, err := db.DB.Begin(context.Background())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error starting transaction", err.Error()))
 		return
 	}
+	defer tx.Rollback(context.Background())
 
 	var updatedID int
-	err := pgxscan.Get(context.Background(), db.DB, &updatedID, stmt, id, driver.FirstName, driver.LastName, driver.PatronymicName,
-		driver.Phone, driver.Email, driver.ImageURL, driver.Meta, driver.Meta2, driver.Meta3, driver.CompanyID, driver.BlockReason, driver.Active, driver.Deleted)
+	err = pgxscan.Get(context.Background(), tx, &updatedID, stmt, id,
+		driver.FirstName, driver.LastName, driver.PatronymicName,
+		driver.Phone, driver.Email, driver.ImageURL, driver.Meta,
+		driver.Meta2, driver.Meta3, driver.CompanyID, driver.BlockReason,
+		driver.Active, driver.Deleted)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating driver", err.Error()))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated driver!", gin.H{"id": updatedID}))
+	_, err = tx.Exec(context.Background(), queries.UpdateDriverUser,
+		driver.Email, driver.Phone, driver.Active, driver.Deleted, driverID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error updating driver user account", err.Error()))
+		return
+	}
+
+	if err = tx.Commit(context.Background()); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error committing transaction", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully updated driver and user account!", gin.H{
+		"id":    updatedID,
+		"email": driver.Email,
+		"phone": driver.Phone,
+	}))
 }
 
 func DeleteDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
-	stmt := queries.DeleteDriver
+	driverID, err := strconv.Atoi(id)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid driver ID", err.Error()))
+		return
+	}
 
+	stmt := queries.DeleteDriver
 	role := ctx.MustGet("role").(string)
 	if !(role == "admin" || role == "system") {
 		companyID := ctx.MustGet("companyID").(int)
 		stmt += fmt.Sprintf(` AND company_id = %d`, companyID)
 	}
 
-	result, err := db.DB.Exec(
-		context.Background(),
-		stmt,
-		id,
-	)
+	// Start transaction
+	tx, err := db.DB.Begin(context.Background())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error starting transaction", err.Error()))
+		return
+	}
+	defer tx.Rollback(context.Background())
 
+	// Delete driver (soft delete)
+	result, err := tx.Exec(context.Background(), stmt, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting driver", err.Error()))
 		return
@@ -292,7 +364,20 @@ func DeleteDriver(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted driver!", gin.H{"id": id}))
+	// Delete corresponding user account (soft delete)
+	_, err = tx.Exec(context.Background(), queries.DeleteDriverUser, driverID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error deleting driver user account", err.Error()))
+		return
+	}
+
+	// Commit transaction
+	if err = tx.Commit(context.Background()); err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error committing transaction", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Successfully deleted driver and user account!", gin.H{"id": id}))
 }
 
 func GetFilteredDriverList(ctx *gin.Context) {
@@ -510,4 +595,19 @@ func GetFilteredDriverList(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Filtered driver list", response))
+}
+
+func CheckDriverNotBlocked(ctx *gin.Context, id int) bool {
+	var driver dto.DriverDetails
+	err := pgxscan.Get(context.Background(), db.DB, &driver, queries.GetDriverByID, id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Driver not found", err.Error()))
+		return false
+	}
+
+	if driver.Active == 0 {
+		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Driver is blocked", utils.SafeString(driver.BlockReason)))
+		return false
+	}
+	return true
 }

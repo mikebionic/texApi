@@ -150,3 +150,28 @@ const DeleteDriver = `
 UPDATE tbl_driver
 SET deleted = 1, updated_at = NOW()
 WHERE id = $1`
+
+const CreateDriverUser = `
+INSERT INTO tbl_user (
+    username, password, email, phone, role, role_id, 
+    verified, active, deleted, driver_id
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id;
+`
+
+const UpdateDriverUser = `
+UPDATE tbl_user
+SET 
+    email = COALESCE($1, email),
+    phone = COALESCE($2, phone),
+    active = COALESCE($3, active),
+    deleted = COALESCE($4, deleted),
+    updated_at = NOW()
+WHERE driver_id = $5 AND deleted = 0;
+`
+
+const DeleteDriverUser = `
+UPDATE tbl_user
+SET deleted = 1, updated_at = NOW()
+WHERE driver_id = $1;
+`
