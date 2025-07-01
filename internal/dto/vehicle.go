@@ -159,10 +159,27 @@ type VehicleModelUpdate struct {
 }
 
 type VehicleBasic struct {
-	ID             int    `json:"id"`
-	VehicleTypeID  int    `json:"vehicle_type_id"`
-	VehicleBrandID int    `json:"vehicle_brand_id"`
-	Numberplate    string `json:"numberplate"`
+	ID                 int    `json:"id"`
+	CompanyID          int    `json:"company_id,omitempty"`
+	VehicleTypeID      int    `json:"vehicle_type_id"`
+	VehicleBrandID     int    `json:"vehicle_brand_id"`
+	VehicleModelID     int    `json:"vehicle_model_id,omitempty"`
+	YearOfIssue        string `json:"year_of_issue,omitempty"`
+	Mileage            int    `json:"mileage,omitempty"`
+	Numberplate        string `json:"numberplate"`
+	TrailerNumberplate string `json:"trailer_numberplate,omitempty"`
+	Gps                int    `json:"gps,omitempty"`
+	Photo1URL          string `json:"photo1_url,omitempty"`
+	Photo2URL          string `json:"photo2_url,omitempty"`
+	Photo3URL          string `json:"photo3_url,omitempty"`
+	Docs1URL           string `json:"docs1_url,omitempty"`
+	Docs2URL           string `json:"docs2_url,omitempty"`
+	Docs3URL           string `json:"docs3_url,omitempty"`
+	ViewCount          int    `json:"view_count,omitempty"`
+	Meta               string `json:"meta,omitempty"`
+	Meta2              string `json:"meta2,omitempty"`
+	Meta3              string `json:"meta3,omitempty"`
+	Available          int    `json:"available,omitempty"`
 }
 
 type VehicleModelDetailed struct {

@@ -46,9 +46,27 @@ SELECT
         (
             SELECT json_agg(
                 json_build_object(
-                    'id', v.id,
-                    'vehicle_type_id', v.vehicle_type_id,
-                    'numberplate', v.numberplate
+					'id', v.id,
+					'company_id',v.company_id,
+					'vehicle_type_id',v.vehicle_type_id,
+					'vehicle_brand_id',v.vehicle_brand_id,
+					'vehicle_model_id',v.vehicle_model_id,
+					'year_of_issue',v.year_of_issue,
+					'mileage',v.mileage,
+					'numberplate',v.numberplate,
+					'trailer_numberplate',v.trailer_numberplate,
+					'gps',v.gps,
+					'photo1_url',v.photo1_url,
+					'photo2_url',v.photo2_url,
+					'photo3_url',v.photo3_url,
+					'docs1_url',v.docs1_url,
+					'docs2_url',v.docs2_url,
+					'docs3_url',v.docs3_url,
+					'view_count',v.view_count,
+					'meta',v.meta,
+					'meta2',v.meta2,
+					'meta3',v.meta3,
+					'available',v.available
                 )
             )
             FROM tbl_vehicle v
