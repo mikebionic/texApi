@@ -102,6 +102,12 @@ func UserLogin(ctx *gin.Context) {
 		}
 	}
 
+	if user.Role == "driver" {
+		if CheckDriverNotBlocked(ctx, user.DriverID) == false {
+			return
+		}
+	}
+
 	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
 	deviceName, deviceModel, deviceFirmware, appName, appVersion := ExtractDeviceInfo(ctx)
 
@@ -176,7 +182,7 @@ func RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Invalid session", "Session not found or expired"))
 		return
 	}
-	if time.Now().After(session.ExpiresAt) {
+	if time.Now().Add(config.TZAddHours).After(session.ExpiresAt) {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Session expired", ""))
 		return
 	}
@@ -185,6 +191,12 @@ func RefreshToken(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("User not found", "Cannot refresh token for invalid user"))
 		return
+	}
+
+	if user.Role == "driver" {
+		if CheckDriverNotBlocked(ctx, user.DriverID) == false {
+			return
+		}
 	}
 
 	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
@@ -291,7 +303,7 @@ func UpdatePasswordOTP(ctx *gin.Context) {
 		return
 	}
 
-	if time.Now().After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
+	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired or wrong token!", ""))
 		return
 	}
@@ -402,7 +414,7 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	if time.Now().After(parsedTime.Add(15*time.Minute)) || promptOTP != currentUser.OTPKey {
+	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != currentUser.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired or wrong token!", ""))
 		return
 	}
@@ -494,7 +506,7 @@ func OTPLoginRequest(ctx *gin.Context) {
 		roleID = 3
 	}
 	role := ctx.GetHeader("Role")
-	if !(role == "sender" || role == "carrier") || roleID < 3 || credentials == "" || credType == "" {
+	if !(role == "sender" || role == "carrier" || role == "driver") || roleID < 3 || credentials == "" || credType == "" {
 		role = "sender"
 		roleID = 3
 		//ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
@@ -515,7 +527,7 @@ func OTPLoginRequest(ctx *gin.Context) {
 	dbUser, err := repo.GetUser(credentials, credType)
 	var userID int
 	if err == nil {
-		userID, err = repo.SaveUserWithOTP(dbUser.ID, dbUser.RoleID, dbUser.Verified, credType, credentials, otp, role)
+		userID, err = repo.SaveUserWithOTP(dbUser.ID, dbUser.RoleID, dbUser.Verified, credType, credentials, otp, dbUser.Role)
 	} else {
 		newUser := dto.CreateUser{
 			Password: xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), credentials)),
@@ -610,13 +622,18 @@ func OTPLogin(ctx *gin.Context) {
 
 	parsedTime, err := time.Parse("2006-01-02 15:04:05", user.VerifyTime)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error validating OTP", ""))
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error validating OTP", err.Error()))
+	}
+
+	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid or expired OTP", ""))
 		return
 	}
 
-	if time.Now().After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
-		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid or expired OTP", ""))
-		return
+	if user.Role == "driver" {
+		if CheckDriverNotBlocked(ctx, user.DriverID) == false {
+			return
+		}
 	}
 
 	accessToken, refreshToken, accessExp := utils.CreateToken(user.ID, user.RoleID, user.CompanyID, user.DriverID, user.Role)
@@ -666,7 +683,7 @@ func BeginOAuth(ctx *gin.Context) {
 		roleID = 3
 	}
 	role := ctx.GetHeader("Role")
-	if !(role == "sender" || role == "carrier") || roleID < 3 {
+	if !(role == "sender" || role == "carrier" || role == "driver") || roleID < 3 {
 		role = "sender"
 		roleID = 3
 		//ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
@@ -720,7 +737,7 @@ func CompleteOAuth(ctx *gin.Context) {
 	}
 
 	role, ok := session.Get("role").(string)
-	if !ok || !(role == "sender" || role == "carrier" || role == "admin") {
+	if !ok || !(role == "sender" || role == "carrier" || role == "driver" || role == "admin") {
 		role = "sender"
 	}
 

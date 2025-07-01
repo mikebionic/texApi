@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"texApi/config"
 	db "texApi/database"
 	"texApi/internal/dto"
 	"texApi/internal/queries"
@@ -268,7 +269,7 @@ func ValidateOTPAndTime(registerType, credentials, promptOTP string) error {
 	}
 
 	expirationTime := otpInfo.VerifyTime.Add(15 * time.Minute)
-	if time.Now().After(expirationTime) {
+	if time.Now().Add(config.TZAddHours).After(expirationTime) {
 		return ErrOTPExpired
 	}
 
