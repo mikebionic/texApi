@@ -182,7 +182,7 @@ func RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Invalid session", "Session not found or expired"))
 		return
 	}
-	if time.Now().Add(config.TZAddHours).After(session.ExpiresAt) {
+	if time.Now().Add(config.ENV.TZAddHours).After(session.ExpiresAt) {
 		ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Session expired", ""))
 		return
 	}
@@ -303,7 +303,7 @@ func UpdatePasswordOTP(ctx *gin.Context) {
 		return
 	}
 
-	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
+	if time.Now().Add(config.ENV.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired or wrong token!", ""))
 		return
 	}
@@ -414,7 +414,7 @@ func Register(ctx *gin.Context) {
 		return
 	}
 
-	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != currentUser.OTPKey {
+	if time.Now().Add(config.ENV.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != currentUser.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Register time expired or wrong token!", ""))
 		return
 	}
@@ -625,7 +625,7 @@ func OTPLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Error validating OTP", err.Error()))
 	}
 
-	if time.Now().Add(config.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
+	if time.Now().Add(config.ENV.TZAddHours).After(parsedTime.Add(15*time.Minute)) || promptOTP != user.OTPKey {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid or expired OTP", ""))
 		return
 	}

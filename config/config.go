@@ -44,6 +44,9 @@ type Config struct {
 	REFRESH_KEY  string
 	REFRESH_TIME time.Duration
 
+	AppTZ      *time.Location
+	TZAddHours time.Duration
+
 	GLE_KEY           string
 	GLE_SECRET        string
 	GLE_CALLBACK      string
@@ -110,6 +113,15 @@ func InitConfig() {
 		fmt.Printf("Warning: Invalid REFRESH_TIME, using default: %v\n", ENV.REFRESH_TIME)
 	} else {
 		ENV.REFRESH_TIME = refreshTime
+	}
+
+	ENV.AppTZ, err = time.LoadLocation(os.Getenv("APP_TZ"))
+	if err != nil {
+		ENV.AppTZ, _ = time.LoadLocation("Asia/Ashgabat")
+	}
+	ENV.TZAddHours, err = time.ParseDuration(os.Getenv("TZ_ADD_HOURS"))
+	if err != nil {
+		ENV.TZAddHours = 0 * time.Second
 	}
 
 	ENV.GLE_KEY = os.Getenv("GLE_KEY")
@@ -198,9 +210,6 @@ var (
 		"application/json":       false,
 		"text/x-python":          false,
 	}
-
-	AppTZ, _   = time.LoadLocation("Asia/Ashgabat")
-	TZAddHours = 5 * time.Hour
 )
 
 func mergeAllowedTypes() map[string]bool {
