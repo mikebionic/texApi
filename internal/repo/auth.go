@@ -269,7 +269,7 @@ func ValidateOTPAndTime(registerType, credentials, promptOTP string) error {
 	}
 
 	expirationTime := otpInfo.VerifyTime.Add(15 * time.Minute)
-	if time.Now().Add(config.TZAddHours).After(expirationTime) {
+	if time.Now().Add(config.ENV.TZAddHours).After(expirationTime) {
 		return ErrOTPExpired
 	}
 
