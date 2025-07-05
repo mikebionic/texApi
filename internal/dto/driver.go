@@ -19,8 +19,17 @@ type DriverShort struct {
 
 type DriverDetails struct {
 	DriverCreate
-	Company          *CompanyBasic  `json:"company,omitempty"`
-	AssignedVehicles []VehicleBasic `json:"assigned_vehicles,omitempty"`
+	Company          *CompanyBasic    `json:"company,omitempty"`
+	AssignedVehicles []VehicleBasic   `json:"assigned_vehicles,omitempty"`
+	UserCredentials  *UserCredentials `json:"user,omitempty"`
+}
+
+type UserCredentials struct {
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
 }
 
 type DriverCreate struct {

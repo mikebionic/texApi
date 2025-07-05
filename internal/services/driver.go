@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -197,6 +198,7 @@ func GetDriverList(ctx *gin.Context) {
 
 func GetDriver(ctx *gin.Context) {
 	id := ctx.Param("id")
+	companyID := ctx.MustGet("companyID").(int)
 
 	var driver dto.DriverDetails
 
@@ -206,9 +208,18 @@ func GetDriver(ctx *gin.Context) {
 		return
 	}
 
+	if driver.CompanyID == companyID {
+		var userCredentials dto.UserCredentials
+		err = pgxscan.Get(context.Background(), db.DB, &userCredentials, queries.GetUserCredentialsByDriverID, id)
+		if err != nil {
+			log.Printf("Warning: Could not fetch user credentials for driver %s: %v", id, err)
+		} else {
+			driver.UserCredentials = &userCredentials
+		}
+	}
+
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Driver details", driver))
 }
-
 func CreateDriver(ctx *gin.Context) {
 	var driver dto.DriverCreate
 	if err := ctx.ShouldBindJSON(&driver); err != nil {
@@ -256,7 +267,7 @@ func CreateDriver(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, utils.FormatResponse("Successfully created driver with user account!", gin.H{
-		"id":        userID,
+		"user_id":   userID,
 		"driver_id": driverID,
 		"username":  username,
 		"email":     driver.Email,

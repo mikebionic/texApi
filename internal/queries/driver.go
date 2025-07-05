@@ -79,6 +79,18 @@ LEFT JOIN tbl_company c ON d.company_id = c.id
 WHERE d.id = $1 AND d.deleted = 0;
 `
 
+// New query to fetch user credentials by driver ID
+const GetUserCredentialsByDriverID = `
+SELECT 
+    u.id,
+    u.username,
+    u.email,
+    u.phone,
+    u.password
+FROM tbl_user u
+WHERE u.driver_id = $1 AND u.deleted = 0;
+`
+
 const GetFilteredDriverList = `
 WITH driver_data AS (
     SELECT 
