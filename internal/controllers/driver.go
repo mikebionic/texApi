@@ -11,8 +11,8 @@ import (
 func Driver(router *gin.Engine) {
 	group := router.Group(config.ENV.API_PREFIX + "/driver/")
 
-	group.GET("/", services.GetDriverList)
-	group.GET("/:id", middlewares.ViewCounterMiddleware("tbl_driver"), services.GetDriver)
+	group.GET("/", middlewares.Guard, services.GetDriverList)
+	group.GET("/:id", middlewares.Guard, middlewares.ViewCounterMiddleware("tbl_driver"), services.GetDriver)
 	group.POST("/", middlewares.Guard, services.CreateDriver)
 	group.PUT("/:id", middlewares.Guard, services.UpdateDriver)
 	group.DELETE("/:id", middlewares.Guard, services.DeleteDriver)

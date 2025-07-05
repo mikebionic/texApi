@@ -86,7 +86,6 @@ type OfferDetails struct {
 	ResponseCount   int           `json:"response_count"`
 }
 
-// OfferUpdate represents the structure for updating an existing offer
 type OfferUpdate struct {
 	ID               *int     `json:"id,omitempty"`
 	UserID           *int     `json:"user_id,omitempty"`
