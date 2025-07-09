@@ -176,10 +176,28 @@ type TripQuery struct {
 	ToLocation   *Point     `form:"to_location"`
 	DistanceKM   *float64   `form:"distance_km"`
 	TripOfferID  *int       `form:"trip_offer_id"`
-	Offset       int        `form:"offset" binding:"omitempty,min=0"`
-	Limit        int        `form:"limit" binding:"omitempty,min=1,max=1000"`
-	OrderBy      *string    `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
-	OrderDir     *string    `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
+
+	OfferCompanyID     *int       `form:"offer_company_id"`
+	OfferExecCompanyID *int       `form:"offer_exec_company_id"`
+	OfferDriverID      *int       `form:"offer_driver_id"`
+	OfferVehicleID     *int       `form:"offer_vehicle_id"`
+	OfferFromCountryID *int       `form:"offer_from_country_id"`
+	OfferToCountryID   *int       `form:"offer_to_country_id"`
+	OfferFromAddress   *string    `form:"offer_from_address"`
+	OfferToAddress     *string    `form:"offer_to_address"`
+	OfferFromCountry   *string    `form:"offer_from_country"`
+	OfferToCountry     *string    `form:"offer_to_country"`
+	OfferState         *string    `form:"offer_state"`
+	OfferRole          *string    `form:"offer_role"`
+	OfferValidityStart *time.Time `form:"offer_validity_start" time_format:"2006-01-02"`
+	OfferValidityEnd   *time.Time `form:"offer_validity_end" time_format:"2006-01-02"`
+	OfferDeliveryStart *time.Time `form:"offer_delivery_start" time_format:"2006-01-02"`
+	OfferDeliveryEnd   *time.Time `form:"offer_delivery_end" time_format:"2006-01-02"`
+
+	Offset   int     `form:"offset" binding:"omitempty,min=0"`
+	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
+	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
+	OrderDir *string `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
 }
 
 type TripDetailed struct {
