@@ -58,6 +58,9 @@ type Config struct {
 	SMTP_PASSWORD string
 	APP_LOGO_URL  string
 
+	OTP_SERVICE_ROUTE string
+	OTP_SERVICE_TEXT  string
+
 	FileUpload FileUpload
 }
 
@@ -136,6 +139,8 @@ func InitConfig() {
 	if len(os.Getenv("APP_LOGO_URL")) > 8 {
 		ENV.APP_LOGO_URL = os.Getenv("APP_LOGO_URL")
 	}
+	ENV.OTP_SERVICE_ROUTE = os.Getenv("OTP_SERVICE_ROUTE")
+	ENV.OTP_SERVICE_TEXT = os.Getenv("OTP_SERVICE_TEXT")
 
 	ENV.FileUpload = FileUpload{
 		MaxFileSize:      ENV.MAX_FILE_SIZE * 1024 * 1024,
