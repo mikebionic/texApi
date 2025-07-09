@@ -600,3 +600,306 @@ func getStringValue(input *string, fallback *string) *string {
 	}
 	return fallback
 }
+
+type TripDetailedScan struct {
+	ID              int64            `db:"id"`
+	DriverID        int              `db:"driver_id"`
+	VehicleID       int              `db:"vehicle_id"`
+	FromAddress     *string          `db:"from_address"`
+	ToAddress       *string          `db:"to_address"`
+	FromCountry     *string          `db:"from_country"`
+	ToCountry       *string          `db:"to_country"`
+	StartDate       *time.Time       `db:"start_date"`
+	EndDate         *time.Time       `db:"end_date"`
+	FromLocationTxt *string          `db:"from_location_txt"`
+	ToLocationTxt   *string          `db:"to_location_txt"`
+	DistanceKM      *float64         `db:"distance_km"`
+	Status          string           `db:"status"`
+	Meta            string           `db:"meta"`
+	Meta2           string           `db:"meta2"`
+	Meta3           string           `db:"meta3"`
+	GPSLogs         string           `db:"gps_logs"`
+	CreatedAt       time.Time        `db:"created_at"`
+	UpdatedAt       time.Time        `db:"updated_at"`
+	Deleted         int              `db:"deleted"`
+	TotalCount      int              `db:"total_count"`
+	Driver          *json.RawMessage `db:"driver"`
+	Vehicle         *json.RawMessage `db:"vehicle"`
+	Offers          *json.RawMessage `db:"offers"`
+}
+
+func (ts *TripDetailedScan) ToTripDetailed() dto.TripDetailed {
+	trip := dto.TripDetailed{
+		ID:          ts.ID,
+		DriverID:    ts.DriverID,
+		VehicleID:   ts.VehicleID,
+		FromAddress: ts.FromAddress,
+		ToAddress:   ts.ToAddress,
+		FromCountry: ts.FromCountry,
+		ToCountry:   ts.ToCountry,
+		StartDate:   ts.StartDate,
+		EndDate:     ts.EndDate,
+		DistanceKM:  ts.DistanceKM,
+		Status:      ts.Status,
+		Meta:        ts.Meta,
+		Meta2:       ts.Meta2,
+		Meta3:       ts.Meta3,
+		GPSLogs:     ts.GPSLogs,
+		CreatedAt:   ts.CreatedAt,
+		UpdatedAt:   ts.UpdatedAt,
+		Deleted:     ts.Deleted,
+		TotalCount:  ts.TotalCount,
+		Driver:      ts.Driver,
+		Vehicle:     ts.Vehicle,
+		Offers:      ts.Offers,
+	}
+
+	if ts.FromLocationTxt != nil && *ts.FromLocationTxt != "" {
+		var point dto.Point
+		if err := point.Scan(*ts.FromLocationTxt); err == nil {
+			trip.FromLocation = &point
+		}
+	}
+
+	if ts.ToLocationTxt != nil && *ts.ToLocationTxt != "" {
+		var point dto.Point
+		if err := point.Scan(*ts.ToLocationTxt); err == nil {
+			trip.ToLocation = &point
+		}
+	}
+
+	return trip
+}
+
+func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
+	var conditions []string
+	var args []interface{}
+	argIndex := 1
+
+	conditions = append(conditions, "t.deleted = 0")
+
+	if query.DriverID != nil {
+		conditions = append(conditions, fmt.Sprintf("t.driver_id = $%d", argIndex))
+		args = append(args, *query.DriverID)
+		argIndex++
+	}
+
+	if query.VehicleID != nil {
+		conditions = append(conditions, fmt.Sprintf("t.vehicle_id = $%d", argIndex))
+		args = append(args, *query.VehicleID)
+		argIndex++
+	}
+
+	if query.FromAddress != nil {
+		conditions = append(conditions, fmt.Sprintf("t.from_address ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.FromAddress+"%")
+		argIndex++
+	}
+
+	if query.ToAddress != nil {
+		conditions = append(conditions, fmt.Sprintf("t.to_address ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.ToAddress+"%")
+		argIndex++
+	}
+
+	if query.FromCountry != nil {
+		conditions = append(conditions, fmt.Sprintf("t.from_country ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.FromCountry+"%")
+		argIndex++
+	}
+
+	if query.ToCountry != nil {
+		conditions = append(conditions, fmt.Sprintf("t.to_country ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.ToCountry+"%")
+		argIndex++
+	}
+
+	if query.StartDate != nil {
+		conditions = append(conditions, fmt.Sprintf("t.start_date >= $%d", argIndex))
+		args = append(args, *query.StartDate)
+		argIndex++
+	}
+
+	if query.EndDate != nil {
+		conditions = append(conditions, fmt.Sprintf("t.end_date <= $%d", argIndex))
+		args = append(args, *query.EndDate)
+		argIndex++
+	}
+
+	if query.DistanceKM != nil {
+		conditions = append(conditions, fmt.Sprintf("t.distance_km >= $%d", argIndex))
+		args = append(args, *query.DistanceKM)
+		argIndex++
+	}
+
+	if query.TripOfferID != nil {
+		conditions = append(conditions, fmt.Sprintf(`t.id IN (
+            SELECT trip_id FROM tbl_offer_trip 
+            WHERE offer_id = $%d AND deleted = 0
+        )`, argIndex))
+		args = append(args, *query.TripOfferID)
+		argIndex++
+	}
+
+	limit := query.Limit
+	if limit == 0 {
+		limit = DefaultLimit
+	}
+
+	orderBy := utils.SafeString(query.OrderBy)
+	if orderBy == "" {
+		orderBy = DefaultOrderBy
+	}
+
+	orderDir := utils.SafeString(query.OrderDir)
+	if orderDir == "" {
+		orderDir = DefaultOrderDir
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	queryStr := fmt.Sprintf(`
+        SELECT 
+            t.id, t.driver_id, t.vehicle_id, t.from_address, t.to_address, 
+            t.from_country, t.to_country, t.start_date, t.end_date,
+            ST_AsText(t.from_location) as from_location_txt,
+            ST_AsText(t.to_location) as to_location_txt,
+            t.distance_km, t.status, t.meta, t.meta2, t.meta3, t.gps_logs,
+            t.created_at, t.updated_at, t.deleted,
+            COUNT(*) OVER() as total_count,
+            CASE 
+                WHEN t.driver_id > 0 THEN 
+                    json_build_object(
+                        'id', d.id,
+                        'uuid', d.uuid,
+                        'company_id', d.company_id,
+                        'first_name', d.first_name,
+                        'last_name', d.last_name,
+                        'patronymic_name', d.patronymic_name,
+                        'phone', d.phone,
+                        'email', d.email,
+                        'featured', d.featured,
+                        'rating', d.rating,
+                        'partner', d.partner,
+                        'successful_ops', d.successful_ops,
+                        'image_url', d.image_url,
+                        'view_count', d.view_count,
+                        'meta', d.meta,
+                        'meta2', d.meta2,
+                        'meta3', d.meta3,
+                        'available', d.available,
+                        'block_reason', d.block_reason
+                    )
+                ELSE NULL
+            END as driver,
+            CASE 
+                WHEN t.vehicle_id > 0 THEN 
+                    json_build_object(
+                        'id', v.id,
+                        'uuid', v.uuid,
+                        'company_id', v.company_id,
+                        'vehicle_type_id', v.vehicle_type_id,
+                        'vehicle_brand_id', v.vehicle_brand_id,
+                        'vehicle_model_id', v.vehicle_model_id,
+                        'year_of_issue', v.year_of_issue,
+                        'mileage', v.mileage,
+                        'numberplate', v.numberplate,
+                        'trailer_numberplate', v.trailer_numberplate,
+                        'gps', v.gps,
+                        'photo1_url', v.photo1_url,
+                        'photo2_url', v.photo2_url,
+                        'photo3_url', v.photo3_url,
+                        'docs1_url', v.docs1_url,
+                        'docs2_url', v.docs2_url,
+                        'docs3_url', v.docs3_url,
+                        'view_count', v.view_count,
+                        'meta', v.meta,
+                        'meta2', v.meta2,
+                        'meta3', v.meta3,
+                        'available', v.available
+                    )
+                ELSE NULL
+            END as vehicle,
+            COALESCE((
+                SELECT json_agg(
+                    json_build_object(
+                        'id', o.id,
+                        'uuid', o.uuid,
+                        'user_id', o.user_id,
+                        'company_id', o.company_id,
+                        'exec_company_id', o.exec_company_id,
+                        'driver_id', o.driver_id,
+                        'vehicle_id', o.vehicle_id,
+                        'trailer_id', o.trailer_id,
+                        'vehicle_type_id', o.vehicle_type_id,
+                        'cargo_id', o.cargo_id,
+                        'packaging_type_id', o.packaging_type_id,
+                        'offer_state', o.offer_state,
+                        'offer_role', o.offer_role,
+                        'cost_per_km', o.cost_per_km,
+                        'currency', o.currency,
+                        'from_country_id', o.from_country_id,
+                        'from_city_id', o.from_city_id,
+                        'to_country_id', o.to_country_id,
+                        'to_city_id', o.to_city_id,
+                        'distance', o.distance,
+                        'from_country', o.from_country,
+                        'from_region', o.from_region,
+                        'to_country', o.to_country,
+                        'to_region', o.to_region,
+                        'from_address', o.from_address,
+                        'to_address', o.to_address,
+                        'map_url', o.map_url,
+                        'sender_contact', o.sender_contact,
+                        'recipient_contact', o.recipient_contact,
+                        'deliver_contact', o.deliver_contact,
+                        'view_count', o.view_count,
+                        'validity_start', o.validity_start,
+                        'validity_end', o.validity_end,
+                        'delivery_start', o.delivery_start,
+                        'delivery_end', o.delivery_end,
+                        'note', o.note,
+                        'tax', o.tax,
+                        'tax_price', o.tax_price,
+                        'trade', o.trade,
+                        'discount', o.discount,
+                        'payment_method', o.payment_method,
+                        'payment_term', o.payment_term,
+                        'meta', o.meta,
+                        'meta2', o.meta2,
+                        'meta3', o.meta3,
+                        'featured', o.featured,
+                        'partner', o.partner,
+                        'is_main', ot.is_main
+                    )
+                )
+                FROM tbl_offer_trip ot
+                JOIN tbl_offer o ON ot.offer_id = o.id
+                WHERE ot.trip_id = t.id AND ot.deleted = 0 AND o.deleted = 0
+            ), '[]') as offers
+        FROM tbl_trip t
+        LEFT JOIN tbl_driver d ON t.driver_id = d.id AND d.deleted = 0
+        LEFT JOIN tbl_vehicle v ON t.vehicle_id = v.id AND v.deleted = 0
+        %s 
+        ORDER BY t.%s %s 
+        LIMIT $%d OFFSET $%d`,
+		whereClause, orderBy, orderDir, argIndex, argIndex+1)
+
+	args = append(args, limit, query.Offset)
+
+	var tripScans []TripDetailedScan
+	err := pgxscan.Select(context.Background(), db.DB, &tripScans, queryStr, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get detailed trips: %w", err)
+	}
+
+	trips := make([]dto.TripDetailed, len(tripScans))
+	for i, scan := range tripScans {
+		trips[i] = scan.ToTripDetailed()
+	}
+
+	return trips, nil
+}
