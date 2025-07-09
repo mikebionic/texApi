@@ -231,7 +231,6 @@ type GPSLogScan struct {
 	CreatedAt      time.Time `db:"created_at"`
 }
 
-// GPSLogScan to dto.GPSLog
 func (gs *GPSLogScan) ToGPSLog() dto.GPSLog {
 	log := dto.GPSLog{
 		ID:           gs.ID,
@@ -266,6 +265,29 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 	argIndex := 1
 
 	conditions = append(conditions, "deleted = 0")
+
+	if hasOfferFilters(query) {
+		offerIDs, err := GetOfferIDsByParams(query)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get offer IDs: %w", err)
+		}
+
+		if len(offerIDs) == 0 {
+			return []dto.Trip{}, nil
+		}
+
+		placeholders := make([]string, len(offerIDs))
+		for i, offerID := range offerIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, offerID)
+			argIndex++
+		}
+
+		conditions = append(conditions, fmt.Sprintf(`id IN (
+			SELECT trip_id FROM tbl_offer_trip 
+			WHERE offer_id IN (%s) AND deleted = 0
+		)`, strings.Join(placeholders, ",")))
+	}
 
 	if query.DriverID != nil {
 		conditions = append(conditions, fmt.Sprintf("driver_id = $%d", argIndex))
@@ -330,7 +352,7 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 		argIndex++
 	}
 
-	// Set defaults
+	// defaults
 	limit := query.Limit
 	if limit == 0 {
 		limit = DefaultLimit
@@ -351,14 +373,13 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	// Updated query with ST_AsText to convert geometry to text
 	queryStr := fmt.Sprintf(`
 		SELECT id, driver_id, vehicle_id, from_address, to_address, 
-		       from_country, to_country, start_date, end_date,
-		       ST_AsText(from_location) as from_location_txt,
-		       ST_AsText(to_location) as to_location_txt,
-		       distance_km, status, meta, meta2, meta3, gps_logs,
-		       created_at, updated_at, deleted
+			   from_country, to_country, start_date, end_date,
+			   ST_AsText(from_location) as from_location_txt,
+			   ST_AsText(to_location) as to_location_txt,
+			   distance_km, status, meta, meta2, meta3, gps_logs,
+			   created_at, updated_at, deleted
 		FROM tbl_trip 
 		%s 
 		ORDER BY %s %s 
@@ -678,6 +699,29 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 
 	conditions = append(conditions, "t.deleted = 0")
 
+	if hasOfferFilters(query) {
+		offerIDs, err := GetOfferIDsByParams(query)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get offer IDs: %w", err)
+		}
+
+		if len(offerIDs) == 0 {
+			return []dto.TripDetailed{}, nil
+		}
+
+		placeholders := make([]string, len(offerIDs))
+		for i, offerID := range offerIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, offerID)
+			argIndex++
+		}
+
+		conditions = append(conditions, fmt.Sprintf(`t.id IN (
+			SELECT trip_id FROM tbl_offer_trip 
+			WHERE offer_id IN (%s) AND deleted = 0
+		)`, strings.Join(placeholders, ",")))
+	}
+
 	if query.DriverID != nil {
 		conditions = append(conditions, fmt.Sprintf("t.driver_id = $%d", argIndex))
 		args = append(args, *query.DriverID)
@@ -734,9 +778,9 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 
 	if query.TripOfferID != nil {
 		conditions = append(conditions, fmt.Sprintf(`t.id IN (
-            SELECT trip_id FROM tbl_offer_trip 
-            WHERE offer_id = $%d AND deleted = 0
-        )`, argIndex))
+			SELECT trip_id FROM tbl_offer_trip 
+			WHERE offer_id = $%d AND deleted = 0
+		)`, argIndex))
 		args = append(args, *query.TripOfferID)
 		argIndex++
 	}
@@ -902,4 +946,143 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 	}
 
 	return trips, nil
+}
+func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
+	var conditions []string
+	var args []interface{}
+	argIndex := 1
+
+	conditions = append(conditions, "deleted = 0")
+	conditions = append(conditions, "active = 1")
+
+	if query.OfferCompanyID != nil {
+		conditions = append(conditions, fmt.Sprintf("company_id = $%d", argIndex))
+		args = append(args, *query.OfferCompanyID)
+		argIndex++
+	}
+
+	if query.OfferExecCompanyID != nil {
+		conditions = append(conditions, fmt.Sprintf("exec_company_id = $%d", argIndex))
+		args = append(args, *query.OfferExecCompanyID)
+		argIndex++
+	}
+
+	if query.OfferDriverID != nil {
+		conditions = append(conditions, fmt.Sprintf("driver_id = $%d", argIndex))
+		args = append(args, *query.OfferDriverID)
+		argIndex++
+	}
+
+	if query.OfferVehicleID != nil {
+		conditions = append(conditions, fmt.Sprintf("vehicle_id = $%d", argIndex))
+		args = append(args, *query.OfferVehicleID)
+		argIndex++
+	}
+
+	if query.OfferFromCountryID != nil {
+		conditions = append(conditions, fmt.Sprintf("from_country_id = $%d", argIndex))
+		args = append(args, *query.OfferFromCountryID)
+		argIndex++
+	}
+
+	if query.OfferToCountryID != nil {
+		conditions = append(conditions, fmt.Sprintf("to_country_id = $%d", argIndex))
+		args = append(args, *query.OfferToCountryID)
+		argIndex++
+	}
+
+	if query.OfferFromAddress != nil {
+		conditions = append(conditions, fmt.Sprintf("from_address ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.OfferFromAddress+"%")
+		argIndex++
+	}
+
+	if query.OfferToAddress != nil {
+		conditions = append(conditions, fmt.Sprintf("to_address ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.OfferToAddress+"%")
+		argIndex++
+	}
+
+	if query.OfferFromCountry != nil {
+		conditions = append(conditions, fmt.Sprintf("from_country ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.OfferFromCountry+"%")
+		argIndex++
+	}
+
+	if query.OfferToCountry != nil {
+		conditions = append(conditions, fmt.Sprintf("to_country ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.OfferToCountry+"%")
+		argIndex++
+	}
+
+	if query.OfferState != nil {
+		conditions = append(conditions, fmt.Sprintf("offer_state = $%d", argIndex))
+		args = append(args, *query.OfferState)
+		argIndex++
+	}
+
+	if query.OfferRole != nil {
+		conditions = append(conditions, fmt.Sprintf("offer_role = $%d", argIndex))
+		args = append(args, *query.OfferRole)
+		argIndex++
+	}
+
+	if query.OfferValidityStart != nil {
+		conditions = append(conditions, fmt.Sprintf("validity_start >= $%d", argIndex))
+		args = append(args, *query.OfferValidityStart)
+		argIndex++
+	}
+
+	if query.OfferValidityEnd != nil {
+		conditions = append(conditions, fmt.Sprintf("validity_end <= $%d", argIndex))
+		args = append(args, *query.OfferValidityEnd)
+		argIndex++
+	}
+
+	if query.OfferDeliveryStart != nil {
+		conditions = append(conditions, fmt.Sprintf("delivery_start >= $%d", argIndex))
+		args = append(args, *query.OfferDeliveryStart)
+		argIndex++
+	}
+
+	if query.OfferDeliveryEnd != nil {
+		conditions = append(conditions, fmt.Sprintf("delivery_end <= $%d", argIndex))
+		args = append(args, *query.OfferDeliveryEnd)
+		argIndex++
+	}
+
+	whereClause := "WHERE " + strings.Join(conditions, " AND ")
+
+	queryStr := fmt.Sprintf(`
+		SELECT id 
+		FROM tbl_offer 
+		%s 
+		ORDER BY id`, whereClause)
+
+	var offerIDs []int
+	err := pgxscan.Select(context.Background(), db.DB, &offerIDs, queryStr, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get offer IDs: %w", err)
+	}
+
+	return offerIDs, nil
+}
+
+func hasOfferFilters(query dto.TripQuery) bool {
+	return query.OfferCompanyID != nil ||
+		query.OfferExecCompanyID != nil ||
+		query.OfferDriverID != nil ||
+		query.OfferVehicleID != nil ||
+		query.OfferFromCountryID != nil ||
+		query.OfferToCountryID != nil ||
+		query.OfferFromAddress != nil ||
+		query.OfferToAddress != nil ||
+		query.OfferFromCountry != nil ||
+		query.OfferToCountry != nil ||
+		query.OfferState != nil ||
+		query.OfferRole != nil ||
+		query.OfferValidityStart != nil ||
+		query.OfferValidityEnd != nil ||
+		query.OfferDeliveryStart != nil ||
+		query.OfferDeliveryEnd != nil
 }
