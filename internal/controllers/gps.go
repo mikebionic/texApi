@@ -12,6 +12,7 @@ func GPS(router *gin.Engine) {
 		group.POST("/trip/start/", services.StartTrip)
 		group.POST("/trip/end/", services.EndTrip)
 		group.GET("/trip/", services.GetTrips)
+		group.GET("/trip/detailed/", services.GetTripsDetailed)
 
 		group.POST("/log/", services.CreateGPSLogs)
 		group.GET("/info/", services.GetGPSLogs)

@@ -146,3 +146,19 @@ func parseIntArray(strArray []string) []int {
 	}
 	return intArray
 }
+
+func GetTripsDetailed(ctx *gin.Context) {
+	var query dto.TripQuery
+	if err := ctx.ShouldBindQuery(&query); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid query parameters", err.Error()))
+		return
+	}
+
+	trips, err := repo.GetTripsDetailed(query)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to retrieve detailed trips", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Detailed trips retrieved successfully", trips))
+}
