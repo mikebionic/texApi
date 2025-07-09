@@ -12,7 +12,7 @@ import (
 
 func SendOTPSMS(phoneNumber, code string) error {
 	payload := map[string]string{
-		"code":        fmt.Sprintf("%scode"),
+		"code":        fmt.Sprintf("%s%s", config.ENV.OTP_SERVICE_TEXT, code),
 		"phoneNumber": phoneNumber,
 	}
 

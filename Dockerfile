@@ -9,7 +9,7 @@ RUN go mod download
 
 # RUN go install github.com/air-verse/air@latest
 COPY . ./
-COPY .env.docker /app/.env
+COPY .env.docker.example /app/.env
 #RUN go build -o main cmd/tex/main.go
 RUN GOOS=linux GOARCH=amd64 go build -o app ./cmd/tex
 
