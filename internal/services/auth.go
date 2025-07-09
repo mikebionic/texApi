@@ -264,9 +264,9 @@ func ForgotPassword(ctx *gin.Context) {
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		// Implement SMS sending if needed
-		// sms.SendOTP(credentials, otp)
-		log.Printf("SMS sending not implemented yet")
+		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+			log.Printf("Error sending SMS: %v\n", err)
+		}
 	}
 
 	if config.ENV.API_DEBUG {
@@ -360,9 +360,9 @@ func RegisterRequest(ctx *gin.Context) {
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		// Implement SMS sending if needed
-		// sms.SendOTP(credentials, otp)
-		log.Printf("SMS sending not implemented yet")
+		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+			log.Printf("Error sending SMS: %v\n", err)
+		}
 	}
 
 	if config.ENV.API_DEBUG {
@@ -578,13 +578,12 @@ func OTPLoginRequest(ctx *gin.Context) {
 
 	if credType == "email" {
 		if err = smtp.SendOTPEmail(credentials, otp); err != nil {
-			// Log error but don't expose it to user
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		// Implement SMS sending if needed
-		// sms.SendOTP(credentials, otp)
-		log.Printf("SMS sending not implemented yet")
+		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+			log.Printf("Error sending SMS: %v\n", err)
+		}
 	}
 
 	if config.ENV.API_DEBUG {
