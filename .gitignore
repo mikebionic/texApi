@@ -1,6 +1,7 @@
 **/build/**
 **.idea/
 .env
+.env.docker
 **/_**/**
 
 _**.go
