@@ -2,6 +2,7 @@ package dto
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -175,8 +176,53 @@ type TripQuery struct {
 	ToLocation   *Point     `form:"to_location"`
 	DistanceKM   *float64   `form:"distance_km"`
 	TripOfferID  *int       `form:"trip_offer_id"`
-	Offset       int        `form:"offset" binding:"omitempty,min=0"`
-	Limit        int        `form:"limit" binding:"omitempty,min=1,max=1000"`
-	OrderBy      *string    `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
-	OrderDir     *string    `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
+
+	OfferCompanyID     *int       `form:"offer_company_id"`
+	OfferExecCompanyID *int       `form:"offer_exec_company_id"`
+	OfferDriverID      *int       `form:"offer_driver_id"`
+	OfferVehicleID     *int       `form:"offer_vehicle_id"`
+	OfferFromCountryID *int       `form:"offer_from_country_id"`
+	OfferToCountryID   *int       `form:"offer_to_country_id"`
+	OfferFromAddress   *string    `form:"offer_from_address"`
+	OfferToAddress     *string    `form:"offer_to_address"`
+	OfferFromCountry   *string    `form:"offer_from_country"`
+	OfferToCountry     *string    `form:"offer_to_country"`
+	OfferState         *string    `form:"offer_state"`
+	OfferRole          *string    `form:"offer_role"`
+	OfferValidityStart *time.Time `form:"offer_validity_start" time_format:"2006-01-02"`
+	OfferValidityEnd   *time.Time `form:"offer_validity_end" time_format:"2006-01-02"`
+	OfferDeliveryStart *time.Time `form:"offer_delivery_start" time_format:"2006-01-02"`
+	OfferDeliveryEnd   *time.Time `form:"offer_delivery_end" time_format:"2006-01-02"`
+
+	Offset   int     `form:"offset" binding:"omitempty,min=0"`
+	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
+	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
+	OrderDir *string `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
+}
+
+type TripDetailed struct {
+	ID           int64            `json:"id"`
+	DriverID     int              `json:"driver_id"`
+	VehicleID    int              `json:"vehicle_id"`
+	FromAddress  *string          `json:"from_address"`
+	ToAddress    *string          `json:"to_address"`
+	FromCountry  *string          `json:"from_country"`
+	ToCountry    *string          `json:"to_country"`
+	StartDate    *time.Time       `json:"start_date"`
+	EndDate      *time.Time       `json:"end_date"`
+	FromLocation *Point           `json:"from_location"`
+	ToLocation   *Point           `json:"to_location"`
+	DistanceKM   *float64         `json:"distance_km"`
+	Status       string           `json:"status"`
+	Meta         string           `json:"meta"`
+	Meta2        string           `json:"meta2"`
+	Meta3        string           `json:"meta3"`
+	GPSLogs      string           `json:"gps_logs"`
+	CreatedAt    time.Time        `json:"created_at"`
+	UpdatedAt    time.Time        `json:"updated_at"`
+	Deleted      int              `json:"deleted"`
+	TotalCount   int              `json:"total_count"`
+	Driver       *json.RawMessage `json:"driver"`
+	Vehicle      *json.RawMessage `json:"vehicle"`
+	Offers       *json.RawMessage `json:"offers"`
 }
