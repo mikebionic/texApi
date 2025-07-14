@@ -115,7 +115,7 @@ func GetDriverList(ctx *gin.Context) {
 		dd.patronymic_name, dd.phone, dd.email, dd.featured, dd.rating,
 		dd.partner, dd.successful_ops, dd.image_url, dd.meta, dd.meta2,
 		dd.meta3, dd.available, dd.view_count, dd.created_at, dd.updated_at,
-		dd.active, dd.deleted, dd.total_count,
+		dd.active, dd.deleted, dd.total_count, u.id as user_id,
 		json_build_object(
 			'id', c.id,
 			'company_name', c.company_name,
@@ -165,6 +165,7 @@ func GetDriverList(ctx *gin.Context) {
 	query += `
 	FROM driver_data dd
 	LEFT JOIN tbl_company c ON dd.company_id = c.id
+	LEFT JOIN tbl_user u ON dd.id = u.driver_id
 	`
 
 	var drivers []dto.DriverDetails

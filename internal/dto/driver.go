@@ -19,6 +19,7 @@ type DriverShort struct {
 
 type DriverDetails struct {
 	DriverCreate
+	UserID           *int             `json:"user_id"`
 	Company          *CompanyBasic    `json:"company,omitempty"`
 	AssignedVehicles []VehicleBasic   `json:"assigned_vehicles,omitempty"`
 	UserCredentials  *UserCredentials `json:"user,omitempty"`

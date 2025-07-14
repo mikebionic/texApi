@@ -1,19 +1,5 @@
 package queries
 
-const GetCompanyList = `
-SELECT 
-    c.*,
-	COUNT(*) OVER() as total_count,
-    json_agg(DISTINCT d.*) FILTER (WHERE d.id IS NOT NULL) as drivers,
-    json_agg(DISTINCT v.*) FILTER (WHERE v.id IS NOT NULL) as vehicles
-FROM tbl_company c
-LEFT JOIN tbl_driver d ON c.id = d.company_id AND d.deleted = 0
-LEFT JOIN tbl_vehicle v ON c.id = v.company_id AND v.deleted = 0
-WHERE c.deleted = 0
-GROUP BY c.id
-ORDER BY c.id LIMIT $1 OFFSET $2;
-`
-
 const GetCompanyByID = `
 SELECT 
     c.*,
