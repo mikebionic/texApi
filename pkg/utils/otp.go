@@ -10,9 +10,17 @@ import (
 	"texApi/config"
 )
 
-func SendOTPSMS(phoneNumber, code string) error {
+func SendOTPSMS(phoneNumber, code, firmware string) error {
+	var messageCode string
+
+	if firmware == "android" {
+		messageCode = fmt.Sprintf("%s\n%s: %s", code, config.ENV.APP_NAME, config.ENV.OTP_ANDROID_HASH)
+	} else {
+		messageCode = fmt.Sprintf("%s\n%s", code, config.ENV.APP_NAME)
+	}
+
 	payload := map[string]string{
-		"code":        fmt.Sprintf("%s%s", config.ENV.OTP_SERVICE_TEXT, code),
+		"code":        fmt.Sprintf("%s%s", config.ENV.OTP_SERVICE_TEXT, messageCode),
 		"phoneNumber": phoneNumber,
 	}
 
