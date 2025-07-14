@@ -146,6 +146,65 @@ CREATE TABLE
     );
 
 
+CREATE TABLE tbl_analytics (
+    id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid(),
+
+    -- User metrics
+    user_all INT NOT NULL DEFAULT 0,
+    user_sender INT NOT NULL DEFAULT 0,
+    user_carrier INT NOT NULL DEFAULT 0,
+    last_user_id INT NOT NULL DEFAULT 0,
+    user_sender_new INT NOT NULL DEFAULT 0,
+    user_carrier_new INT NOT NULL DEFAULT 0,
+
+    -- Offer metrics
+    last_offer_id INT NOT NULL DEFAULT 0,
+    offer_new_sender INT NOT NULL DEFAULT 0,
+    offer_new_carrier INT NOT NULL DEFAULT 0,
+    offer_all INT NOT NULL DEFAULT 0,
+    offer_active INT NOT NULL DEFAULT 0,
+    offer_pending INT NOT NULL DEFAULT 0,
+    offer_completed INT NOT NULL DEFAULT 0,
+    offer_no_response INT NOT NULL DEFAULT 0,
+    last_completed_offer_id INT NOT NULL DEFAULT 0,
+
+    -- Additional metrics for better analytics
+    total_revenue DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+    average_cost_per_km DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+    total_distance INT NOT NULL DEFAULT 0,
+    active_companies INT NOT NULL DEFAULT 0,
+
+    -- Metadata
+    period_start TIMESTAMP NOT NULL,
+    period_end TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted INT NOT NULL DEFAULT 0
+);
+
+-- Index for performance
+CREATE INDEX idx_analytics_created_at ON tbl_analytics(created_at);
+CREATE INDEX idx_analytics_period ON tbl_analytics(period_start, period_end);
+CREATE INDEX idx_analytics_deleted ON tbl_analytics(deleted);
+
+-- Analytics configuration table
+CREATE TABLE tbl_analytics_config (
+  id SERIAL PRIMARY KEY,
+  key VARCHAR(100) NOT NULL UNIQUE,
+  value TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert default configuration
+INSERT INTO tbl_analytics_config (key, value, description) VALUES
+('log_interval_days', '1', 'Days between analytics logging'),
+('last_analytics_run', '2025-01-01 00:00:00', 'Last time analytics was generated'),
+('enabled', 'true', 'Whether analytics logging is enabled');
+
+
 INSERT INTO tbl_offer (
     user_id, company_id, driver_id, vehicle_id, cargo_id,
     offer_state, cost_per_km, currency, from_country_id, from_city_id,
