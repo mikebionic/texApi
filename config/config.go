@@ -60,6 +60,8 @@ type Config struct {
 
 	OTP_SERVICE_ROUTE string
 	OTP_SERVICE_TEXT  string
+	OTP_ANDROID_HASH  string
+	APP_NAME          string
 
 	FileUpload FileUpload
 }
@@ -141,6 +143,8 @@ func InitConfig() {
 	}
 	ENV.OTP_SERVICE_ROUTE = os.Getenv("OTP_SERVICE_ROUTE")
 	ENV.OTP_SERVICE_TEXT = os.Getenv("OTP_SERVICE_TEXT")
+	ENV.OTP_ANDROID_HASH = os.Getenv("OTP_ANDROID_HASH")
+	ENV.APP_NAME = os.Getenv("APP_NAME")
 
 	ENV.FileUpload = FileUpload{
 		MaxFileSize:      ENV.MAX_FILE_SIZE * 1024 * 1024,

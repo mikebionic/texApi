@@ -264,7 +264,7 @@ func ForgotPassword(ctx *gin.Context) {
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+		if err = utils.SendOTPSMS(credentials, otp, utils.DetectDeviceFirmware(ctx.GetHeader("X-Device-Firmware"))); err != nil {
 			log.Printf("Error sending SMS: %v\n", err)
 		}
 	}
@@ -360,9 +360,10 @@ func RegisterRequest(ctx *gin.Context) {
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+		if err = utils.SendOTPSMS(credentials, otp, utils.DetectDeviceFirmware(ctx.GetHeader("X-Device-Firmware"))); err != nil {
 			log.Printf("Error sending SMS: %v\n", err)
 		}
+
 	}
 
 	if config.ENV.API_DEBUG {
@@ -492,10 +493,10 @@ func UserUpdate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, utils.FormatResponse("Company successfully updated", user))
 }
-
 func OTPLoginRequest(ctx *gin.Context) {
 	credentials := ctx.GetHeader("Credentials")
 	credType := ctx.GetHeader("CredType")
+
 	if ok, msg := utils.ValidateCredential(credType, credentials); !ok {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse(msg, ""))
 		return
@@ -509,8 +510,6 @@ func OTPLoginRequest(ctx *gin.Context) {
 	if !(role == "sender" || role == "carrier" || role == "driver") || roleID < 3 || credentials == "" || credType == "" {
 		role = "sender"
 		roleID = 3
-		//ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid Request, invalid or missing required header params: Role, Credentials, CredType", ""))
-		//return
 	}
 
 	if ok, msg := utils.ValidateCredential(credType, credentials); !ok {
@@ -581,7 +580,7 @@ func OTPLoginRequest(ctx *gin.Context) {
 			fmt.Printf("Error sending email: %v\n", err)
 		}
 	} else if credType == "phone" {
-		if err = utils.SendOTPSMS(credentials, otp); err != nil {
+		if err = utils.SendOTPSMS(credentials, otp, utils.DetectDeviceFirmware(ctx.GetHeader("X-Device-Firmware"))); err != nil {
 			log.Printf("Error sending SMS: %v\n", err)
 		}
 	}
@@ -597,7 +596,6 @@ func OTPLoginRequest(ctx *gin.Context) {
 		}))
 	}
 }
-
 func OTPLogin(ctx *gin.Context) {
 	credentials := ctx.GetHeader("Credentials")
 	credType := ctx.GetHeader("CredType")
