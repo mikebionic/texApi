@@ -240,6 +240,112 @@ CREATE INDEX idx_version_active_at ON tbl_version(active_at);
 CREATE INDEX idx_version_code ON tbl_version(version_code);
 CREATE INDEX idx_version_uuid ON tbl_version(uuid);
 
+CREATE TYPE plan_level_t AS ENUM ('none', 'basic', 'advanced', 'full');
+
+CREATE TABLE tbl_plan
+(
+    id                   SERIAL PRIMARY KEY,
+    uuid                 UUID           NOT NULL DEFAULT gen_random_uuid(),
+    name            VARCHAR(100)   NOT NULL,                   -- e.g., "Roolz Basic", "DAT Enhanced"
+    code            VARCHAR(50)    NOT NULL,                   -- e.g., "ROOLZ_BASIC", "DAT_ENHANCED"
+    provider             VARCHAR(50)    NOT NULL,                   -- e.g., "Roolz", "DAT", "TEX"
+    region               VARCHAR(50)    NOT NULL,                   -- e.g., "CIS", "USA", "Turkmenistan"
+
+    price_usd            DECIMAL(10, 2) NOT NULL,
+    price_local          DECIMAL(10, 2),                            -- local currency amount
+    local_currency       VARCHAR(10),                               -- e.g., "TMT"
+    billing_cycle        VARCHAR(20)    NOT NULL DEFAULT 'monthly', -- monthly, yearly, etc.
+
+    load_posts_limit     INT,                                       -- NULL for unlimited, number for limited
+    load_posts_unlimited BOOLEAN        NOT NULL DEFAULT FALSE,
+
+    gps_tracking_level   plan_level_t    NOT NULL DEFAULT 'none',    -- 'none', 'basic', 'advanced', 'full'
+    gps_has_eta          BOOLEAN        NOT NULL DEFAULT FALSE,
+
+    rate_tools_level     plan_level_t    NOT NULL DEFAULT 'none',    -- 'none', 'basic', 'advanced'
+    rate_tools_features  TEXT[],                                    -- array of features like ['LaneMakers', 'RateView']
+
+    edocs_available      BOOLEAN        NOT NULL DEFAULT FALSE,
+    edocs_limit          INT,                                       -- NULL for unlimited
+    edocs_has_archiving  BOOLEAN        NOT NULL DEFAULT FALSE,
+
+    support_level        VARCHAR(20)    NOT NULL DEFAULT 'none',    -- 'none', 'email', 'phone', 'priority', 'dedicated'
+
+    payment_guarantee    BOOLEAN        NOT NULL DEFAULT FALSE,
+    api_access           BOOLEAN        NOT NULL DEFAULT FALSE,
+
+    display_order        INT            NOT NULL DEFAULT 0,
+    is_popular           BOOLEAN        NOT NULL DEFAULT FALSE,
+    is_recommended       BOOLEAN        NOT NULL DEFAULT FALSE,
+    description          VARCHAR(1000),
+    features_summary     TEXT,                                      -- human-readable feature summary
+
+    available_from       TIMESTAMP               DEFAULT CURRENT_TIMESTAMP,
+    available_until      TIMESTAMP,                                 -- for limited-time plans
+
+    meta                 TEXT,
+    meta2                TEXT,
+    meta3                TEXT,
+
+    created_at           TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active               INT            NOT NULL DEFAULT 1,
+    deleted              INT            NOT NULL DEFAULT 0,
+
+    CONSTRAINT unique_plan_code UNIQUE (code, deleted),
+    CONSTRAINT unique_plan_provider_region UNIQUE (provider, name, region, deleted),
+    CONSTRAINT valid_price CHECK (price_usd >= 0),
+    CONSTRAINT valid_load_posts_limit CHECK (load_posts_limit IS NULL OR load_posts_limit >= 0),
+    CONSTRAINT valid_edocs_limit CHECK (edocs_limit IS NULL OR edocs_limit >= 0)
+);
+
+CREATE INDEX idx_plan_provider ON tbl_plan(provider) WHERE deleted = 0;
+CREATE INDEX idx_plan_region ON tbl_plan(region) WHERE deleted = 0;
+CREATE INDEX idx_plan_active ON tbl_plan(active, deleted);
+CREATE INDEX idx_plan_price ON tbl_plan(price_usd) WHERE deleted = 0;
+
+INSERT INTO tbl_plan (name, code, provider, region, price_usd, price_local, local_currency,
+                      load_posts_limit, load_posts_unlimited, gps_tracking_level, rate_tools_level,
+                      edocs_available, support_level, payment_guarantee, api_access, display_order)
+VALUES
+    ('Roolz Basic', 'ROOLZ_BASIC', 'Roolz', 'CIS', 30.00, NULL, NULL, 50, FALSE, 'basic', 'basic', TRUE, 'email', FALSE, FALSE, 1),
+    ('Roolz Pro', 'ROOLZ_PRO', 'Roolz', 'CIS', 100.00, NULL, NULL, NULL, TRUE, 'advanced', 'advanced', TRUE, 'priority', FALSE, FALSE, 2),
+
+    ('DAT Standard', 'DAT_STANDARD', 'DAT', 'USA', 45.00, NULL, NULL, NULL, FALSE, 'basic', 'none', TRUE, 'email', FALSE, FALSE, 3),
+    ('DAT Enhanced', 'DAT_ENHANCED', 'DAT', 'USA', 85.00, NULL, NULL, NULL, FALSE, 'advanced', 'basic', TRUE, 'phone', TRUE, FALSE, 4),
+    ('DAT Select', 'DAT_SELECT', 'DAT', 'USA', 135.00, NULL, NULL, NULL, FALSE, 'advanced', 'advanced', FALSE, 'dedicated', TRUE, TRUE, 5),
+
+    ('TEX Start', 'TEX_START', 'TEX', 'Turkmenistan', 10.00, 350.00, 'TMT', 30, FALSE, 'basic', 'none', TRUE, 'email', FALSE, FALSE, 6),
+    ('TEX Pro', 'TEX_PRO', 'TEX', 'Turkmenistan', 30.00, 900.00, 'TMT', NULL, TRUE, 'full', 'basic', TRUE, 'priority', TRUE, FALSE, 7),
+    ('TEX Enterprise', 'TEX_ENTERPRISE', 'TEX', 'Turkmenistan', 80.00, 1800.00, 'TMT', NULL, TRUE, 'advanced', 'advanced', TRUE, 'dedicated', TRUE, TRUE, 8);
+
+CREATE VIEW v_plan_summary AS
+SELECT
+    id,
+    uuid,
+    name,
+    provider,
+    region,
+    CASE
+        WHEN price_local IS NOT NULL THEN CONCAT('$', price_usd, ' (~', price_local, ' ', local_currency, ')')
+        ELSE CONCAT('$', price_usd)
+        END as price_display,
+    CASE
+        WHEN load_posts_unlimited THEN 'Unlimited'
+        WHEN load_posts_limit IS NOT NULL THEN CONCAT(load_posts_limit, '/month')
+        ELSE 'Limited'
+        END as load_posts_display,
+    gps_tracking_level,
+    rate_tools_level,
+    edocs_available,
+    support_level,
+    payment_guarantee,
+    api_access,
+    active
+FROM tbl_plan
+WHERE deleted = 0
+ORDER BY display_order;
+
 
 CREATE TABLE tbl_organization
 (
