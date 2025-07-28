@@ -87,7 +87,9 @@ CREATE TABLE
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         active INT NOT NULL DEFAULT 1,
-        deleted INT NOT NULL DEFAULT 0
+        deleted INT NOT NULL DEFAULT 0,
+        offer_price DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
+        total_price DECIMAL(10, 2) NOT NULL DEFAULT 0.0 -- with tax added
     );
 
 
