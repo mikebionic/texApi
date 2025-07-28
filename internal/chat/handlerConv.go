@@ -13,7 +13,7 @@ import (
 func (h *APIHandler) GetConversations(c *gin.Context) {
 	userID := c.MustGet("id").(int)
 
-	conversations, err := h.repository.GetConversations(userID)
+	conversations, err := h.repository.GetConversations(c, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to fetch conversations", err.Error()))
 		return
