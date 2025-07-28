@@ -74,6 +74,7 @@ func InitApp() *gin.Engine {
 	controllers.Version(router)
 	controllers.Plan(router)
 	controllers.Analytics(router)
+	controllers.Wiki(router)
 	chat.Chat(router)
 
 	return router

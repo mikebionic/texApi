@@ -83,8 +83,8 @@ VALUES
         0,
         1
     ),
-    (2, 6, 'Загляните в яркий мир ТЕХ', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
-    (2, 7, 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
+    (2, 6, 'Загляните в яркий мир ТЕХ', '', '', '', '', 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', 0, 1),
+    (2, 7, 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', 0, 1),
     (
         2,
         18,
@@ -224,7 +224,7 @@ VALUES
         '',
         'Американская транспортная компания, включающая услуги третьей стороны логистики',
         '',
-        'https://office.belentlik.tm/index.php/s/mnXNC8Dd4W95ooG/download/C._H._Robinson_logo.png',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/C._H._Robinson_logo.svg/2560px-C._H._Robinson_logo.svg.png',
         '',
         0,
         1
@@ -236,7 +236,7 @@ VALUES
         '',
         'Американская транспортная компания, осуществляющая перевозку сборных грузов по Северной Америке',
         '',
-        'https://office.belentlik.tm/index.php/s/4KzWJqCtXtcnZwp/download/xpo_logo.svg',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/XPO%2C_Inc_%282023%29.svg/2560px-XPO%2C_Inc_%282023%29.svg.png',
         '',
         0,
         1
@@ -248,7 +248,7 @@ VALUES
         '',
         'Американский многонациональный конгломерат, ранее известный как Federal Express Corporation',
         '',
-        'https://office.belentlik.tm/index.php/s/zpNbJe9Tf7Jts3c/download/fedex_logo.png',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/FedEx_Corporation_-_2016_Logo.svg/1200px-FedEx_Corporation_-_2016_Logo.svg.png',
         '',
         0,
         1
@@ -320,8 +320,8 @@ VALUES
         0,
         1
     ),
-    (1, 6, 'Take a look at the vibrant world of TECH', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
-    (1, 7, 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/HkA25rx6cZmGDEw/download/logistics_AD.mp4', 0, 1),
+    (1, 6, 'Take a look at the vibrant world of TECH', '', '', '', '', 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', 0, 1),
+    (1, 7, 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', '', '', '', '', 'https://office.belentlik.tm/index.php/s/YaQaiDGyPLoD8fb/download/TEX%20Express%20AD.mp4', 0, 1),
     (
         1,
         18,
@@ -461,7 +461,7 @@ VALUES
         '',
         'An American transportation company offering third-party logistics services.',
         '',
-        'https://office.belentlik.tm/index.php/s/mnXNC8Dd4W95ooG/download/C._H._Robinson_logo.png',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/C._H._Robinson_logo.svg/2560px-C._H._Robinson_logo.svg.png',
         '',
         0,
         1
@@ -473,7 +473,7 @@ VALUES
         '',
         'An American transport company handling less-than-truckload freight across North America.',
         '',
-        'https://office.belentlik.tm/index.php/s/4KzWJqCtXtcnZwp/download/xpo_logo.svg',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/XPO%2C_Inc_%282023%29.svg/2560px-XPO%2C_Inc_%282023%29.svg.png',
         '',
         0,
         1
@@ -485,7 +485,7 @@ VALUES
         '',
         'An American multinational conglomerate, formerly known as Federal Express Corporation.',
         '',
-        'https://office.belentlik.tm/index.php/s/zpNbJe9Tf7Jts3c/download/fedex_logo.png',
+        'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/FedEx_Corporation_-_2016_Logo.svg/1200px-FedEx_Corporation_-_2016_Logo.svg.png',
         '',
         0,
         1
