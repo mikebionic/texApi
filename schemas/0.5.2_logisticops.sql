@@ -145,6 +145,74 @@ CREATE TABLE
         deleted INT DEFAULT 0
     );
 
+CREATE TYPE transport_type_t AS ENUM ('auto', 'avia', 'rail', 'sea', 'unknown');
+
+CREATE TABLE tbl_price_quote
+(
+    id                    SERIAL PRIMARY KEY,
+    uuid                  UUID             NOT NULL DEFAULT gen_random_uuid(),
+    transport_type        transport_type_t NOT NULL DEFAULT 'unknown', -- 'auto', 'avia', 'rail', 'sea', etc.
+    sub_type              VARCHAR(50)      NOT NULL DEFAULT '',        -- 'FTL', 'LTL', 'refrigerated', 'express', etc.
+
+    user_id               INT              NOT NULL DEFAULT 0,
+    company_id            INT              NOT NULL DEFAULT 0,
+    exec_company_id       INT              NOT NULL DEFAULT 0,
+    vehicle_type_id       INT              NOT NULL DEFAULT 0,
+    packaging_type_id     INT              NOT NULL DEFAULT 0,
+    cost_per_km           DECIMAL(10, 2)   NOT NULL DEFAULT 0.0,
+    currency              currency_t       NOT NULL DEFAULT 'USD',
+    from_country_id       INT              NOT NULL DEFAULT 0,
+    from_city_id          INT              NOT NULL DEFAULT 0,
+    to_country_id         INT              NOT NULL DEFAULT 0,
+    to_city_id            INT              NOT NULL DEFAULT 0,
+    distance              INT              NOT NULL DEFAULT 0,
+    from_country          VARCHAR(100)     NOT NULL DEFAULT '',
+    from_region           VARCHAR(100)     NOT NULL DEFAULT '',
+    to_country            VARCHAR(100)     NOT NULL DEFAULT '',
+    to_region             VARCHAR(100)     NOT NULL DEFAULT '',
+    from_address          VARCHAR(100)     NOT NULL DEFAULT '',
+    to_address            VARCHAR(100)     NOT NULL DEFAULT '',
+    tax                   INT              NOT NULL DEFAULT 0,
+    tax_price             DECIMAL(10, 2)   NOT NULL DEFAULT 0.0,
+    trade                 INT              NOT NULL DEFAULT 0,
+    discount              INT              NOT NULL DEFAULT 0,
+    payment_method        payment_method_t NOT NULL DEFAULT 'cash',
+    payment_term          VARCHAR          NOT NULL DEFAULT '',
+    distance_km           INT              NOT NULL DEFAULT 0,
+    average_price         DECIMAL(12, 2)   NOT NULL DEFAULT 0.00,
+    min_price             DECIMAL(12, 2)   NOT NULL DEFAULT 0.00,
+    max_price             DECIMAL(12, 2)   NOT NULL DEFAULT 0.00,
+    price_unit            VARCHAR(50)      NOT NULL DEFAULT 'unknown', -- per_kg, per_km, per_trip, etc.
+    min_volume            DECIMAL(10, 2)   NOT NULL DEFAULT 0.00,      -- e.g., min weight/volume
+    max_volume            DECIMAL(10, 2)   NOT NULL DEFAULT 0.00,
+    validity_start        DATE             NOT NULL DEFAULT CURRENT_DATE,
+    validity_end          DATE             NOT NULL DEFAULT (CURRENT_DATE + INTERVAL '1 year'),
+
+    fuel_included         BOOLEAN          NOT NULL DEFAULT TRUE,
+    customs_included      BOOLEAN          NOT NULL DEFAULT FALSE,
+    insurance_included    BOOLEAN          NOT NULL DEFAULT FALSE,
+    fuel_info             TEXT             NOT NULL DEFAULT '',
+    customs_info          TEXT             NOT NULL DEFAULT '',
+    insurance_info        TEXT             NOT NULL DEFAULT '',
+    terms                 VARCHAR(200)     NOT NULL DEFAULT '',        -- e.g., 'CIF', 'DDP', 'FCA'
+    surcharge_info        TEXT             NOT NULL DEFAULT '',        -- e.g., "peak season surcharge +10%"
+    is_promotional        BOOLEAN          NOT NULL DEFAULT FALSE,     -- если это акция
+    is_dynamic            BOOLEAN          NOT NULL DEFAULT FALSE,     -- обновляется на основе заявок
+    data_source           VARCHAR(50)      NOT NULL DEFAULT 'manual',  -- Как была создана: 'manual', 'offer_based', 'imported', 'ai_generated'
+    updated_from_offer_id INT              NOT NULL DEFAULT 0,         -- optional, для обратной связи
+    sample_size           INT              NOT NULL DEFAULT 0,         -- кол-во заявок, на основе которых рассчитана цена
+    notes                 TEXT             NOT NULL DEFAULT '',
+    internal_note         TEXT             NOT NULL DEFAULT '',        -- только для внутреннего использования
+    meta                  TEXT             NOT NULL DEFAULT '',
+    meta2                 TEXT             NOT NULL DEFAULT '',
+    meta3                 TEXT             NOT NULL DEFAULT '',
+
+    created_at            TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at            TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active                INT              NOT NULL DEFAULT 1,
+    deleted               INT              NOT NULL DEFAULT 0
+);
+
 
 CREATE TABLE tbl_analytics (
     id SERIAL PRIMARY KEY,
@@ -426,3 +494,64 @@ VALUES
     (5, 'Food Products', 'Packaged food products including snacks, canned goods, and beverages.', 'Requires temperature-controlled environment.', 1000, 2000, 'temperature-sensitive', '', '', 5, 2, 1,
      'https://example.com/food_photo1.jpg', '', '',
      'https://example.com/food_docs.pdf', '', '', 'Store in a temperature-controlled environment during transport.', 1, 0);
+
+INSERT INTO tbl_price_quote (
+    transport_type, sub_type, user_id, company_id, exec_company_id, vehicle_type_id,
+    packaging_type_id, cost_per_km, currency, from_country_id, from_city_id,
+    to_country_id, to_city_id, distance, from_country, from_region, to_country, to_region,
+    from_address, to_address, price_unit, average_price, min_price, max_price,
+    min_volume, max_volume, validity_start, validity_end,
+    fuel_included, customs_included, insurance_included,
+    fuel_info, customs_info, insurance_info,
+    terms, is_promotional, is_dynamic, data_source, sample_size, notes
+)
+VALUES (
+           'avia', 'express', 1, 1, 0, 0,
+           0, 0.0, 'USD', 1, 101,
+           2, 201, 2500, 'Turkmenistan', 'Ashgabat', 'Russia', 'Moscow',
+           'Ashgabat Airport', 'Sheremetyevo Airport', 'per_kg', 4.50, 4.00, 5.00,
+           50, 1000, CURRENT_DATE, CURRENT_DATE + INTERVAL '3 months',
+           TRUE, FALSE, TRUE,
+           'Fuel surcharge +5%', '', 'Insurance up to $500 included',
+            'DDP', FALSE, FALSE, 'offer_based', 10, 'Air freight for documents and small goods'
+       ),
+       (
+           'auto', 'FTL', 2, 2, 0, 1,
+           0, 1.9, 'USD', 1, 102,
+           3, 301, 2600, 'Turkmenistan', 'Ashgabat', 'Turkey', 'Istanbul',
+           'warehouse TKM', 'Avrupa Yakası depo', 'per_trip', 5200.00, 5000.00, 5500.00,
+           0, 0, CURRENT_DATE, CURRENT_DATE + INTERVAL '2 months',
+           TRUE, FALSE, FALSE,
+           '','','',
+           'CIF', FALSE, TRUE, 'offer_based', 18, 'Standard truckload 20t'
+       ),
+        (
+           'rail', '', 3, 3, 0, 2,
+           0, 0.8, 'USD', 4, 401,
+           5, 501, 3100, 'Iran', 'Tehran', 'Tajikistan', 'Dushanbe',
+           'Tehran central rail', 'Dushanbe warehouse', 'per_ton', 110.00, 100.00, 120.00,
+           5, 60, CURRENT_DATE, CURRENT_DATE + INTERVAL '6 months',
+           TRUE, TRUE, FALSE,
+            '','','',
+           'FCA', FALSE, TRUE, 'offer_based', 12, 'Bulk shipment of building materials'
+       ),
+       (
+           'sea', '', 4, 4, 0, 0,
+           0, 0.0, 'EUR', 1, 103,
+           6, 601, 5000, 'Turkmenistan', 'Turkmenbashy', 'Netherlands', 'Rotterdam',
+           'Turkmenbashy Port', 'Port of Rotterdam', 'per_container_20ft', 2800.00, 2600.00, 3000.00,
+           1, 3, CURRENT_DATE, CURRENT_DATE + INTERVAL '4 months',
+           TRUE, TRUE, TRUE,
+           'Fuel surcharge 2% included', 'Customs clearance included', 'Standard marine insurance', 'CIF', TRUE,
+           FALSE, 'manual', 6, 'Sea freight 20ft container general cargo'
+       ),
+       (
+           'auto', 'LTL', 5, 5, 0, 1,
+           0, 1.6, 'USD', 1, 101,
+           1, 104, 500, 'Turkmenistan', 'Ashgabat', 'Turkmenistan', 'Dashoguz',
+           'city center', 'industrial zone', 'per_km', 1.60, 1.40, 1.70,
+           0.5, 10, CURRENT_DATE, CURRENT_DATE + INTERVAL '2 months',
+           TRUE, FALSE, FALSE,
+           '','','',
+           'DDU', FALSE, TRUE, 'offer_based', 5, 'Groupage cargo route Ashgabat–Dashoguz'
+       );
