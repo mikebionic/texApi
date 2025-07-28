@@ -205,68 +205,132 @@ func (r *Repository) GetConversation(conversationID int) (*Conversation, error) 
 	return &conversation, nil
 }
 
-func (r *Repository) GetConversations(userID int) (*[]Conversation, error) {
+//func (r *Repository) GetConversations(userID int) (*[]Conversation, error) {
+//	query := `
+//       SELECT
+//           c.*,
+//          cm.unread_count,
+//          (SELECT content FROM tbl_message WHERE id = c.last_message_id) as last_message
+//       FROM tbl_conversation c
+//       JOIN tbl_conversation_member cm ON c.id = cm.conversation_id
+//       WHERE cm.user_id = $1 AND cm.deleted = 0 AND c.deleted = 0
+//       ORDER BY c.last_activity DESC
+//    `
+//
+//	var conversations []Conversation
+//	err := pgxscan.Select(context.Background(), r.db, &conversations, query, userID)
+//	if err != nil {
+//		return &conversations, err
+//	}
+//
+//	if len(conversations) == 0 {
+//		return &conversations, nil
+//	}
+//
+//	// Extract conversation IDs
+//	conversationIDs := make([]int, len(conversations))
+//	for i, conv := range conversations {
+//		conversationIDs[i] = conv.ID
+//	}
+//
+//	memberQuery := `
+//		SELECT conversation_id, cm.user_id, cm.is_admin, cm.nickname, cm.privileges,
+//		       cm.last_read_message_id, cm.joined_at, cm.unread_count,
+//		       cm.notification_preference, cm.muted_until,
+//		       u.username, p.first_name, p.last_name, p.company_name, p.image_url
+//		FROM tbl_conversation_member cm
+//		JOIN tbl_user u ON cm.user_id = u.id
+//		JOIN tbl_company p ON u.company_id = p.id
+//		WHERE cm.conversation_id = ANY($1) AND cm.deleted = 0
+//        ORDER BY conversation_id, user_id
+//	`
+//
+//	var members []Member
+//	err = pgxscan.Select(context.Background(), r.db, &members, memberQuery, conversationIDs)
+//
+//	// Grouping and assigning
+//	memberMap := make(map[int][]int)
+//	memberFullMap := make(map[int][]Member)
+//	for _, member := range members {
+//		memberMap[utils.SafeInt(member.ConversationID)] = append(memberMap[utils.SafeInt(member.ConversationID)], member.UserID)
+//		memberFullMap[utils.SafeInt(member.ConversationID)] = append(memberFullMap[utils.SafeInt(member.ConversationID)], member)
+//	}
+//
+//	for i := range conversations {
+//		if memberIDs, exists := memberMap[conversations[i].ID]; exists {
+//			conversations[i].MemberIDs = memberIDs
+//			conversations[i].Member = memberFullMap[conversations[i].ID]
+//		} else {
+//			conversations[i].MemberIDs = []int{}
+//		}
+//	}
+//
+//	return &conversations, nil
+//}
+
+func (r *Repository) GetConversations(ctx context.Context, userID int) ([]Conversation, error) {
 	query := `
-       SELECT 
-           c.*,
-          cm.unread_count,
-          (SELECT content FROM tbl_message WHERE id = c.last_message_id) as last_message
-       FROM tbl_conversation c
-       JOIN tbl_conversation_member cm ON c.id = cm.conversation_id
-       WHERE cm.user_id = $1 AND cm.deleted = 0 AND c.deleted = 0
-       ORDER BY c.last_activity DESC
-    `
+	   SELECT 
+		   c.*,
+		   cm.unread_count,
+		   (SELECT content FROM tbl_message WHERE id = c.last_message_id) AS last_message
+	   FROM tbl_conversation c
+	   JOIN tbl_conversation_member cm ON c.id = cm.conversation_id
+	   WHERE cm.user_id = $1 AND cm.deleted = 0 AND c.deleted = 0
+	   ORDER BY c.last_activity DESC
+	`
 
 	var conversations []Conversation
-	err := pgxscan.Select(context.Background(), r.db, &conversations, query, userID)
+	err := pgxscan.Select(ctx, r.db, &conversations, query, userID)
 	if err != nil {
-		return &conversations, err
+		return nil, err
 	}
-
 	if len(conversations) == 0 {
-		return &conversations, nil
+		return []Conversation{}, nil
 	}
 
-	// Extract conversation IDs
 	conversationIDs := make([]int, len(conversations))
 	for i, conv := range conversations {
 		conversationIDs[i] = conv.ID
 	}
 
-	// Second query - get all members for all conversations in one query
 	memberQuery := `
-        SELECT conversation_id, user_id 
-        FROM tbl_conversation_member 
-        WHERE conversation_id = ANY($1) AND deleted = 0
-        ORDER BY conversation_id, user_id
-    `
+		SELECT conversation_id, cm.user_id, cm.is_admin, cm.nickname, cm.privileges,
+		       cm.last_read_message_id, cm.joined_at, cm.unread_count,
+		       cm.notification_preference, cm.muted_until,
+		       u.username, p.first_name, p.last_name, p.company_name, p.image_url
+		FROM tbl_conversation_member cm
+		JOIN tbl_user u ON cm.user_id = u.id
+		JOIN tbl_company p ON u.company_id = p.id
+		WHERE cm.conversation_id = ANY($1) AND cm.deleted = 0
+		ORDER BY conversation_id, user_id
+	`
 
-	var members []struct {
-		ConversationID int `db:"conversation_id"`
-		UserID         int `db:"user_id"`
-	}
-
-	err = pgxscan.Select(context.Background(), r.db, &members, memberQuery, conversationIDs)
+	var members []Member
+	err = pgxscan.Select(ctx, r.db, &members, memberQuery, conversationIDs)
 	if err != nil {
-		return &conversations, err
+		return nil, err
 	}
 
-	// Group members by conversation ID
-	memberMap := make(map[int][]int)
+	memberFullMap := make(map[int][]Member)
+	memberIDsMap := make(map[int][]int)
+
 	for _, member := range members {
-		memberMap[member.ConversationID] = append(memberMap[member.ConversationID], member.UserID)
-	}
-
-	// Assign member IDs to conversations
-	for i := range conversations {
-		if memberIDs, exists := memberMap[conversations[i].ID]; exists {
-			conversations[i].MemberIDs = memberIDs
-		} else {
-			conversations[i].MemberIDs = []int{} // Empty slice if no members found
+		if member.ConversationID == nil {
+			continue
 		}
+		cid := *member.ConversationID
+		memberFullMap[cid] = append(memberFullMap[cid], member)
+		memberIDsMap[cid] = append(memberIDsMap[cid], member.UserID)
 	}
 
-	return &conversations, nil
+	for i := range conversations {
+		cid := conversations[i].ID
+		conversations[i].Member = memberFullMap[cid]
+		conversations[i].MemberIDs = memberIDsMap[cid]
+	}
+
+	return conversations, nil
 }
 
 func (r *Repository) GetConversationMembers(conversationID int) ([]Member, error) {

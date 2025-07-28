@@ -125,9 +125,10 @@ type Conversation struct {
 	Active             *int       `json:"active"`
 	Deleted            *int       `json:"deleted"`
 
-	UnreadCount *int    `json:"unread_count"`
-	LastMessage *string `json:"last_message"`
-	MemberIDs   []int   `json:"member_ids"`
+	UnreadCount *int     `json:"unread_count"`
+	LastMessage *string  `json:"last_message"`
+	MemberIDs   []int    `json:"member_ids"`
+	Member      []Member `json:"members"`
 }
 
 type Member struct {
