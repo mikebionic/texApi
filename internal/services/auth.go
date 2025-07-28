@@ -363,7 +363,6 @@ func RegisterRequest(ctx *gin.Context) {
 		if err = utils.SendOTPSMS(credentials, otp, utils.DetectDeviceFirmware(ctx.GetHeader("X-Device-Firmware"))); err != nil {
 			log.Printf("Error sending SMS: %v\n", err)
 		}
-
 	}
 
 	if config.ENV.API_DEBUG {

@@ -27,6 +27,7 @@ if [ $? -ne 0 ]; then
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.5.5_messaging.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.6.0_gps.sql
     PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.6.1_news.sql
+    PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -f $DB_SCHEMASDIR/0.6.2_wiki_other.sql
 
     echo "Initialization completed."
 else
