@@ -607,3 +607,429 @@ func DeletePriceQuoteRecord(id int) error {
 	_, err := db.DB.Exec(context.Background(), query, id)
 	return err
 }
+
+func GetPriceQuoteWithOfferAnalysis(ctx *gin.Context) {
+	var filters dto.PriceQuoteAnalysisFilters
+	if err := ctx.ShouldBindQuery(&filters); err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Invalid query parameters", err.Error()))
+		return
+	}
+
+	result, err := AnalyzePriceWithOffers(filters)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Failed to analyze price quotes with offers", err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.FormatResponse("Price analysis completed successfully", result))
+}
+
+func AnalyzePriceWithOffers(filters dto.PriceQuoteAnalysisFilters) (dto.PriceQuoteAnalysisResponse, error) {
+	var response dto.PriceQuoteAnalysisResponse
+
+	// Step 1: Find matching offers
+	offers, offerStats, matchingCriteria, err := findMatchingOffers(filters)
+	if err != nil {
+		return response, err
+	}
+
+	// Step 2: Find matching price quotes as fallback
+	priceQuotes, priceQuoteStats, err := findMatchingPriceQuotes(filters)
+	if err != nil {
+		return response, err
+	}
+
+	// Step 3: Build the response
+	response.AnalysisInfo.MatchingCriteria = matchingCriteria
+
+	if len(offers) > 0 {
+		// Primary source: offers
+		response.AnalysisInfo.FoundFromOffers = true
+		response.AnalysisInfo.OfferCount = len(offers)
+		response.AnalysisInfo.OfferMinPrice = offerStats.MinPrice
+		response.AnalysisInfo.OfferMaxPrice = offerStats.MaxPrice
+		response.AnalysisInfo.OfferAvgCostPerKm = offerStats.AvgCostPerKm
+
+		// Build PriceQuote structure from offer analysis
+		response.PriceQuote = buildPriceQuoteFromOffers(offers, offerStats, filters)
+		response.Notes = fmt.Sprintf("Found average among %d offers, minimum price %.2f and maximum %.2f",
+			len(offers), offerStats.MinPrice, offerStats.MaxPrice)
+	} else if len(priceQuotes) > 0 {
+		// Fallback source: price quotes
+		response.AnalysisInfo.FoundFromOffers = false
+		response.AnalysisInfo.PriceQuoteCount = len(priceQuotes)
+		response.AnalysisInfo.PriceQuoteMinPrice = priceQuoteStats.MinPrice
+		response.AnalysisInfo.PriceQuoteMaxPrice = priceQuoteStats.MaxPrice
+		response.AnalysisInfo.PriceQuoteAvgPrice = priceQuoteStats.AvgPrice
+
+		// Use the best matching price quote
+		response.PriceQuote = priceQuotes[0]
+		response.Notes = fmt.Sprintf("Found average among %d price quotes, minimum price %.2f and maximum %.2f",
+			len(priceQuotes), priceQuoteStats.MinPrice, priceQuoteStats.MaxPrice)
+	} else {
+		// No matches found
+		response.PriceQuote = buildEmptyPriceQuote(filters)
+		response.Notes = "No matching offers or price quotes found for the specified criteria"
+	}
+
+	return response, nil
+}
+
+type OfferStats struct {
+	MinPrice     float64
+	MaxPrice     float64
+	AvgPrice     float64
+	AvgCostPerKm float64
+}
+
+type PriceQuoteStats struct {
+	MinPrice float64
+	MaxPrice float64
+	AvgPrice float64
+}
+
+func findMatchingOffers(filters dto.PriceQuoteAnalysisFilters) ([]map[string]interface{}, OfferStats, []string, error) {
+	var offers []map[string]interface{}
+	var stats OfferStats
+	var matchingCriteria []string
+
+	whereParts := []string{"deleted = 0", "active = 1", "offer_state != 'disabled'"}
+	args := []interface{}{}
+	argIndex := 1
+
+	if filters.TransportType != "" {
+		// Note: We'll need to join with vehicle types or use transport_type from cargo/vehicle data
+	}
+
+	if filters.FromCountryID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("from_country_id = $%d", argIndex))
+		args = append(args, filters.FromCountryID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "from_country_id")
+	} else if filters.FromCountry != "" {
+		whereParts = append(whereParts, fmt.Sprintf("from_country ILIKE $%d", argIndex))
+		args = append(args, "%"+filters.FromCountry+"%")
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "from_country")
+	}
+
+	if filters.ToCountryID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("to_country_id = $%d", argIndex))
+		args = append(args, filters.ToCountryID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "to_country_id")
+	} else if filters.ToCountry != "" {
+		whereParts = append(whereParts, fmt.Sprintf("to_country ILIKE $%d", argIndex))
+		args = append(args, "%"+filters.ToCountry+"%")
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "to_country")
+	}
+
+	if filters.FromCityID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("from_city_id = $%d", argIndex))
+		args = append(args, filters.FromCityID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "from_city_id")
+	}
+
+	if filters.ToCityID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("to_city_id = $%d", argIndex))
+		args = append(args, filters.ToCityID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "to_city_id")
+	}
+
+	if filters.VehicleTypeID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("vehicle_type_id = $%d", argIndex))
+		args = append(args, filters.VehicleTypeID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "vehicle_type_id")
+	}
+
+	if filters.PackagingTypeID > 0 {
+		whereParts = append(whereParts, fmt.Sprintf("packaging_type_id = $%d", argIndex))
+		args = append(args, filters.PackagingTypeID)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "packaging_type_id")
+	}
+
+	if filters.Currency != "" {
+		whereParts = append(whereParts, fmt.Sprintf("currency = $%d", argIndex))
+		args = append(args, filters.Currency)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "currency")
+	}
+
+	if filters.PaymentMethod != "" {
+		whereParts = append(whereParts, fmt.Sprintf("payment_method = $%d", argIndex))
+		args = append(args, filters.PaymentMethod)
+		argIndex++
+		matchingCriteria = append(matchingCriteria, "payment_method")
+	}
+
+	if filters.Distance > 0 {
+		tolerance := 50 // km tolerance
+		if filters.MatchStrict {
+			tolerance = 10
+		}
+		whereParts = append(whereParts, fmt.Sprintf("ABS(distance - $%d) <= $%d", argIndex, argIndex+1))
+		args = append(args, filters.Distance, tolerance)
+		argIndex += 2
+		matchingCriteria = append(matchingCriteria, "distance")
+	}
+
+	if !filters.MatchStrict {
+		if filters.FromRegion != "" {
+			whereParts = append(whereParts, fmt.Sprintf("from_region ILIKE $%d", argIndex))
+			args = append(args, "%"+filters.FromRegion+"%")
+			argIndex++
+			matchingCriteria = append(matchingCriteria, "from_region")
+		}
+
+		if filters.ToRegion != "" {
+			whereParts = append(whereParts, fmt.Sprintf("to_region ILIKE $%d", argIndex))
+			args = append(args, "%"+filters.ToRegion+"%")
+			argIndex++
+			matchingCriteria = append(matchingCriteria, "to_region")
+		}
+	}
+
+	whereClause := strings.Join(whereParts, " AND ")
+
+	query := fmt.Sprintf(`
+		SELECT 
+			id, user_id, company_id, exec_company_id, vehicle_type_id, packaging_type_id,
+			cost_per_km, currency, from_country_id, from_city_id, to_country_id, to_city_id,
+			distance, from_country, from_region, to_country, to_region, from_address, to_address,
+			tax, tax_price, trade, discount, payment_method, payment_term, offer_price, total_price,
+			validity_start, validity_end, delivery_start, delivery_end, note, meta, meta2, meta3,
+			created_at, updated_at
+		FROM tbl_offer 
+		WHERE %s 
+		ORDER BY created_at DESC 
+		LIMIT 100`, whereClause)
+
+	rows, err := db.DB.Query(context.Background(), query, args...)
+	if err != nil {
+		return offers, stats, matchingCriteria, err
+	}
+	defer rows.Close()
+
+	var totalPrice, totalCostPerKm float64
+	var minPrice, maxPrice float64
+	count := 0
+
+	for rows.Next() {
+		offer := make(map[string]interface{})
+		var id, userID, companyID, execCompanyID, vehicleTypeID, packagingTypeID int
+		var costPerKm, taxPrice, offerPrice, totalPriceVal float64
+		var currency, fromCountry, fromRegion, toCountry, toRegion, fromAddress, toAddress string
+		var paymentMethod, paymentTerm, note, meta, meta2, meta3 string
+		var fromCountryID, fromCityID, toCountryID, toCityID, distance, tax, trade, discount int
+		var validityStart, validityEnd, deliveryStart, deliveryEnd, createdAt, updatedAt time.Time
+
+		err := rows.Scan(
+			&id, &userID, &companyID, &execCompanyID, &vehicleTypeID, &packagingTypeID,
+			&costPerKm, &currency, &fromCountryID, &fromCityID, &toCountryID, &toCityID,
+			&distance, &fromCountry, &fromRegion, &toCountry, &toRegion, &fromAddress, &toAddress,
+			&tax, &taxPrice, &trade, &discount, &paymentMethod, &paymentTerm, &offerPrice, &totalPriceVal,
+			&validityStart, &validityEnd, &deliveryStart, &deliveryEnd, &note, &meta, &meta2, &meta3,
+			&createdAt, &updatedAt,
+		)
+		if err != nil {
+			continue
+		}
+
+		priceToUse := offerPrice
+		if priceToUse == 0 {
+			priceToUse = totalPriceVal
+		}
+
+		if count == 0 {
+			minPrice = priceToUse
+			maxPrice = priceToUse
+		} else {
+			if priceToUse < minPrice {
+				minPrice = priceToUse
+			}
+			if priceToUse > maxPrice {
+				maxPrice = priceToUse
+			}
+		}
+
+		totalPrice += priceToUse
+		totalCostPerKm += costPerKm
+		count++
+
+		offer["id"] = id
+		offer["user_id"] = userID
+		offer["company_id"] = companyID
+		offer["vehicle_type_id"] = vehicleTypeID
+		offer["cost_per_km"] = costPerKm
+		offer["currency"] = currency
+		offer["from_country"] = fromCountry
+		offer["to_country"] = toCountry
+		offer["distance"] = distance
+		offer["offer_price"] = offerPrice
+		offer["total_price"] = totalPriceVal
+		offer["payment_method"] = paymentMethod
+		offer["created_at"] = createdAt
+
+		offers = append(offers, offer)
+	}
+
+	if count > 0 {
+		stats.MinPrice = minPrice
+		stats.MaxPrice = maxPrice
+		stats.AvgPrice = totalPrice / float64(count)
+		stats.AvgCostPerKm = totalCostPerKm / float64(count)
+	}
+
+	return offers, stats, matchingCriteria, nil
+}
+
+func findMatchingPriceQuotes(filters dto.PriceQuoteAnalysisFilters) ([]dto.PriceQuote, PriceQuoteStats, error) {
+	var quotes []dto.PriceQuote
+	var stats PriceQuoteStats
+
+	priceQuoteFilters := dto.PriceQuoteFilters{
+		TransportType: filters.TransportType,
+		SubType:       filters.SubType,
+		FromCountry:   filters.FromCountry,
+		ToCountry:     filters.ToCountry,
+		FromRegion:    filters.FromRegion,
+		ToRegion:      filters.ToRegion,
+		Currency:      filters.Currency,
+		VehicleTypeID: filters.VehicleTypeID,
+		PaymentMethod: filters.PaymentMethod,
+		Page:          1,
+		PerPage:       50,
+		SortBy:        "created_at",
+		SortOrder:     "DESC",
+	}
+
+	quotes, _, err := GetPriceQuotes(priceQuoteFilters)
+	if err != nil {
+		return quotes, stats, err
+	}
+
+	if len(quotes) > 0 {
+		var total float64
+		minPrice := quotes[0].AveragePrice
+		maxPrice := quotes[0].AveragePrice
+
+		for _, quote := range quotes {
+			total += quote.AveragePrice
+			if quote.AveragePrice < minPrice {
+				minPrice = quote.AveragePrice
+			}
+			if quote.AveragePrice > maxPrice {
+				maxPrice = quote.AveragePrice
+			}
+		}
+
+		stats.MinPrice = minPrice
+		stats.MaxPrice = maxPrice
+		stats.AvgPrice = total / float64(len(quotes))
+	}
+
+	return quotes, stats, nil
+}
+
+func buildPriceQuoteFromOffers(offers []map[string]interface{}, stats OfferStats, filters dto.PriceQuoteAnalysisFilters) dto.PriceQuote {
+	if len(offers) == 0 {
+		return buildEmptyPriceQuote(filters)
+	}
+
+	firstOffer := offers[0]
+
+	quote := dto.PriceQuote{
+		TransportType:     filters.TransportType,
+		SubType:           filters.SubType,
+		Currency:          getString(firstOffer, "currency"),
+		FromCountryID:     getInt(firstOffer, "from_country_id"),
+		FromCityID:        getInt(firstOffer, "from_city_id"),
+		ToCountryID:       getInt(firstOffer, "to_country_id"),
+		ToCityID:          getInt(firstOffer, "to_city_id"),
+		FromCountry:       getString(firstOffer, "from_country"),
+		ToCountry:         getString(firstOffer, "to_country"),
+		Distance:          getInt(firstOffer, "distance"),
+		VehicleTypeID:     getInt(firstOffer, "vehicle_type_id"),
+		PackagingTypeID:   getInt(firstOffer, "packaging_type_id"),
+		CostPerKm:         stats.AvgCostPerKm,
+		AveragePrice:      stats.AvgPrice,
+		MinPrice:          stats.MinPrice,
+		MaxPrice:          stats.MaxPrice,
+		PriceUnit:         "per_trip", // Default assumption
+		PaymentMethod:     getString(firstOffer, "payment_method"),
+		ValidityStart:     time.Now(),
+		ValidityEnd:       time.Now().AddDate(0, 3, 0), // 3 months validity
+		DataSource:        "offer_based",
+		SampleSize:        len(offers),
+		IsPromotional:     false,
+		IsDynamic:         true,
+		FuelIncluded:      true, // Default assumption
+		CustomsIncluded:   false,
+		InsuranceIncluded: false,
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+		Active:            1,
+		Deleted:           0,
+	}
+
+	return quote
+}
+
+func buildEmptyPriceQuote(filters dto.PriceQuoteAnalysisFilters) dto.PriceQuote {
+	return dto.PriceQuote{
+		TransportType:   filters.TransportType,
+		SubType:         filters.SubType,
+		Currency:        filters.Currency,
+		FromCountryID:   filters.FromCountryID,
+		FromCityID:      filters.FromCityID,
+		ToCountryID:     filters.ToCountryID,
+		ToCityID:        filters.ToCityID,
+		FromCountry:     filters.FromCountry,
+		ToCountry:       filters.ToCountry,
+		VehicleTypeID:   filters.VehicleTypeID,
+		PackagingTypeID: filters.PackagingTypeID,
+		Distance:        filters.Distance,
+		DistanceKm:      filters.DistanceKm,
+		PaymentMethod:   filters.PaymentMethod,
+		MinVolume:       filters.MinVolume,
+		MaxVolume:       filters.MaxVolume,
+		AveragePrice:    0,
+		MinPrice:        0,
+		MaxPrice:        0,
+		PriceUnit:       "unknown",
+		ValidityStart:   time.Now(),
+		ValidityEnd:     time.Now().AddDate(1, 0, 0),
+		DataSource:      "no_match",
+		IsPromotional:   false,
+		IsDynamic:       false,
+		FuelIncluded:    filters.FuelIncluded != nil && *filters.FuelIncluded,
+		CustomsIncluded: filters.CustomsIncluded != nil && *filters.CustomsIncluded,
+		CreatedAt:       time.Now(),
+		UpdatedAt:       time.Now(),
+		Active:          1,
+		Deleted:         0,
+	}
+}
+
+func getString(m map[string]interface{}, key string) string {
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
+func getInt(m map[string]interface{}, key string) int {
+	if v, ok := m[key]; ok {
+		if i, ok := v.(int); ok {
+			return i
+		}
+	}
+	return 0
+}
