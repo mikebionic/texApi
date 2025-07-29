@@ -42,8 +42,10 @@ INSERT INTO tbl_offer (
 	packaging_type_id,
 	distance,
 	map_url,
-	payment_term
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
+	payment_term,
+   offer_price,
+   total_price
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41, $42, $43)
 RETURNING id;
 `
 const UpdateOffer = `
@@ -95,6 +97,8 @@ SET
 	active = COALESCE($45,active),
 	deleted = COALESCE($46,deleted),
     trailer_id = COALESCE($47,trailer_id),
+   offer_price = COALESCE($48,offer_price),
+   total_price = COALESCE($49,total_price),
     updated_at = NOW()
 WHERE id = $1 AND company_id = $2
 `

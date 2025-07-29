@@ -44,6 +44,8 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		"o.partner":         ctx.Query("partner"),
 		"o.active":          ctx.Query("active"),
 		"o.deleted":         ctx.DefaultQuery("deleted", "0"),
+		"o.offer_price":     ctx.Query("offer_price"),
+		"o.total_price":     ctx.Query("offer_price"),
 	}
 
 	validityStart := ctx.Query("validity_start")
@@ -358,6 +360,14 @@ func CreateOffer(ctx *gin.Context) {
 		offer.UserID = userID
 	}
 
+	if offer.OfferPrice == 0.0 {
+		offer.OfferPrice = offer.CostPerKm * float64(offer.Distance)
+	}
+	if offer.TotalPrice == 0.0 {
+		discountAmount := offer.OfferPrice * float64(offer.Discount) / 100
+		offer.TotalPrice = offer.OfferPrice - discountAmount + offer.TaxPrice
+	}
+
 	var id int
 	err := db.DB.QueryRow(
 		context.Background(),
@@ -369,6 +379,7 @@ func CreateOffer(ctx *gin.Context) {
 		offer.DeliveryStart, offer.DeliveryEnd, offer.Note, offer.Tax, offer.TaxPrice, offer.Trade, offer.Discount,
 		offer.PaymentMethod, offer.Meta, offer.Meta2, offer.Meta3, offer.OfferRole, offer.ExecCompanyID,
 		offer.VehicleTypeID, offer.PackagingTypeID, offer.Distance, offer.MapURL, offer.PaymentTerm,
+		offer.OfferPrice, offer.TotalPrice,
 	).Scan(&id)
 
 	if err != nil {
@@ -501,6 +512,8 @@ func UpdateOffer(ctx *gin.Context) {
 		offer.Active,
 		offer.Deleted,
 		offer.TrailerID,
+		offer.OfferPrice,
+		offer.TotalPrice,
 	).Scan(&updatedID)
 
 	if err != nil {
@@ -807,6 +820,7 @@ func GetDetailedOfferList(ctx *gin.Context) {
 
 	validOrderColumns := map[string]bool{
 		"id": true, "cost_per_km": true, "distance": true,
+		"offer_price": true, "total_price": true,
 		"view_count": true, "created_at": true, "updated_at": true,
 	}
 
@@ -1096,6 +1110,8 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		max string
 	}{
 		"cost_per_km": {ctx.Query("min_cost"), ctx.Query("max_cost")},
+		"offer_price": {ctx.Query("min_offer_price"), ctx.Query("max_offer_price")},
+		"total_price": {ctx.Query("min_total_price"), ctx.Query("max_total_price")},
 		"distance":    {ctx.Query("min_distance"), ctx.Query("max_distance")},
 		"tax":         {ctx.Query("min_tax"), ctx.Query("max_tax")},
 		"discount":    {ctx.Query("min_discount"), ctx.Query("max_discount")},

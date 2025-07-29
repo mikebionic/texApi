@@ -54,6 +54,8 @@ type Offer struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 	Active           int       `json:"active"`
 	Deleted          int       `json:"deleted"`
+	OfferPrice       float64   `json:"offer_price"`
+	TotalPrice       float64   `json:"total_price"`
 	TotalCount       int       `json:"total_count"`
 }
 
@@ -137,4 +139,6 @@ type OfferUpdate struct {
 	UpdatedAt        *string  `json:"updated_at,omitempty"`
 	Active           *int     `json:"active,omitempty"`
 	Deleted          *int     `json:"deleted,omitempty"`
+	OfferPrice       *float64 `json:"offer_price"`
+	TotalPrice       *float64 `json:"total_price"`
 }
