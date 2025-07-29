@@ -203,4 +203,46 @@ type PriceQuoteFilters struct {
 	PerPage         int     `form:"per_page"`
 	SortBy          string  `form:"sort_by"`
 	SortOrder       string  `form:"sort_order"`
+	PaymentMethod   string  `form:"payment_method"`
+}
+
+type PriceQuoteAnalysisFilters struct {
+	TransportType   string  `form:"transport_type"`
+	SubType         string  `form:"sub_type"`
+	FromCountryID   int     `form:"from_country_id"`
+	FromCityID      int     `form:"from_city_id"`
+	ToCountryID     int     `form:"to_country_id"`
+	ToCityID        int     `form:"to_city_id"`
+	FromCountry     string  `form:"from_country"`
+	ToCountry       string  `form:"to_country"`
+	FromRegion      string  `form:"from_region"`
+	ToRegion        string  `form:"to_region"`
+	Currency        string  `form:"currency"`
+	VehicleTypeID   int     `form:"vehicle_type_id"`
+	PackagingTypeID int     `form:"packaging_type_id"`
+	PaymentMethod   string  `form:"payment_method"`
+	Distance        int     `form:"distance"`
+	DistanceKm      int     `form:"distance_km"`
+	MinVolume       float64 `form:"min_volume"`
+	MaxVolume       float64 `form:"max_volume"`
+	FuelIncluded    *bool   `form:"fuel_included"`
+	CustomsIncluded *bool   `form:"customs_included"`
+	// Matching tolerance (how strict the matching should be)
+	MatchStrict bool `form:"match_strict"` // if true, requires exact matches
+}
+
+type PriceQuoteAnalysisResponse struct {
+	PriceQuote
+	AnalysisInfo struct {
+		FoundFromOffers    bool     `json:"found_from_offers"`
+		OfferCount         int      `json:"offer_count"`
+		PriceQuoteCount    int      `json:"price_quote_count"`
+		OfferMinPrice      float64  `json:"offer_min_price,omitempty"`
+		OfferMaxPrice      float64  `json:"offer_max_price,omitempty"`
+		OfferAvgCostPerKm  float64  `json:"offer_avg_cost_per_km,omitempty"`
+		PriceQuoteMinPrice float64  `json:"price_quote_min_price,omitempty"`
+		PriceQuoteMaxPrice float64  `json:"price_quote_max_price,omitempty"`
+		PriceQuoteAvgPrice float64  `json:"price_quote_avg_price,omitempty"`
+		MatchingCriteria   []string `json:"matching_criteria"`
+	} `json:"analysis_info"`
 }
