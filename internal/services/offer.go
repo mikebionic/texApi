@@ -146,7 +146,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			&offer.Discount, &offer.PaymentMethod, &offer.PaymentTerm, &offer.Meta,
 			&offer.Meta2, &offer.Meta3, &offer.Featured, &offer.Partner,
 			&offer.CreatedAt, &offer.UpdatedAt, &offer.Active,
-			&offer.Deleted, &totalCount,
+			&offer.Deleted, &offer.OfferPrice, &offer.TotalPrice, &totalCount,
 			&companyJSON, &driverJSON, &vehicleJSON, &trailerJSON, &cargoJSON,
 			&offer.ResponseCount,
 		)
@@ -156,7 +156,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		}
 
 		if companyJSON != nil {
-			if err := json.Unmarshal(companyJSON, &offer.Company); err != nil {
+			if err = json.Unmarshal(companyJSON, &offer.Company); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (company)", err.Error()))
 				return
 			}
@@ -165,7 +165,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		}
 
 		if driverJSON != nil {
-			if err := json.Unmarshal(driverJSON, &offer.AssignedDriver); err != nil {
+			if err = json.Unmarshal(driverJSON, &offer.AssignedDriver); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (driver)", err.Error()))
 				return
 			}
@@ -174,7 +174,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		}
 
 		if vehicleJSON != nil {
-			if err := json.Unmarshal(vehicleJSON, &offer.AssignedVehicle); err != nil {
+			if err = json.Unmarshal(vehicleJSON, &offer.AssignedVehicle); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (vehicle)", err.Error()))
 				return
 			}
@@ -182,7 +182,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			offer.AssignedVehicle = nil
 		}
 		if trailerJSON != nil {
-			if err := json.Unmarshal(trailerJSON, &offer.AssignedTrailer); err != nil {
+			if err = json.Unmarshal(trailerJSON, &offer.AssignedTrailer); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (trailer)", err.Error()))
 				return
 			}
@@ -202,7 +202,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		offers = append(offers, offer)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Database error", err.Error()))
 		return
 	}
