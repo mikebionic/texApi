@@ -100,7 +100,7 @@ SET
    offer_price = COALESCE($48,offer_price),
    total_price = COALESCE($49,total_price),
     updated_at = NOW()
-WHERE id = $1 AND company_id = $2
+WHERE id = $1
 `
 
 const DeleteOffer = `
