@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
@@ -404,52 +405,90 @@ func UpdateOffer(ctx *gin.Context) {
 	isAdminOrSystem := (role == "admin" || role == "system")
 
 	if !isAdminOrSystem {
-		offer.CompanyID = &companyID
+		var ownershipCheck struct {
+			CompanyID     *int `db:"company_id"`
+			ExecCompanyID *int `db:"exec_company_id"`
+		}
+
+		checkQuery := `
+            SELECT company_id, exec_company_id
+            FROM tbl_offer
+            WHERE id = $1 AND deleted = 0`
+
+		err := db.DB.QueryRow(context.Background(), checkQuery, offerID).Scan(
+			&ownershipCheck.CompanyID,
+			&ownershipCheck.ExecCompanyID,
+		)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", ""))
+				return
+			}
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error checking offer ownership", err.Error()))
+			return
+		}
+
+		isOwner := false
+		if ownershipCheck.CompanyID != nil && *ownershipCheck.CompanyID == companyID {
+			isOwner = true
+		}
+		if ownershipCheck.ExecCompanyID != nil && *ownershipCheck.ExecCompanyID == companyID {
+			isOwner = true
+		}
+
+		if !isOwner {
+			ctx.JSON(http.StatusForbidden, utils.FormatErrorResponse("You don't have permission to update this offer", ""))
+			return
+		}
+
+		offer.CompanyID = nil
 		offer.OfferState = nil
 		stmt += ` AND deleted = 0`
 	}
+
 	//
 	//if offer.DriverID != nil {
-	//	var currentOffer struct {
-	//		OfferRole     string `db:"offer_role"`
-	//		CompanyID     int    `db:"company_id"`
-	//		ExecCompanyID int    `db:"exec_company_id"`
-	//	}
+	// var currentOffer struct {
+	//    OfferRole     string `db:"offer_role"`
+	//    CompanyID     int    `db:"company_id"`
+	//    ExecCompanyID int    `db:"exec_company_id"`
+	// }
 	//
-	//	checkQuery := `
+	// checkQuery := `
 	//        SELECT offer_role, company_id, exec_company_id
 	//        FROM tbl_offer
 	//        WHERE id = $1 AND deleted = 0`
 	//
-	//	err := db.DB.QueryRow(context.Background(), checkQuery, offerID).Scan(
-	//		&currentOffer.OfferRole,
-	//		&currentOffer.CompanyID,
-	//		&currentOffer.ExecCompanyID,
-	//	)
+	// err := db.DB.QueryRow(context.Background(), checkQuery, offerID).Scan(
+	//    &currentOffer.OfferRole,
+	//    &currentOffer.CompanyID,
+	//    &currentOffer.ExecCompanyID,
+	// )
 	//
-	//	if err != nil {
-	//		if err == sql.ErrNoRows {
-	//			ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", ""))
-	//			return
-	//		}
-	//		ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error checking offer permissions", err.Error()))
-	//		return
-	//	}
+	// if err != nil {
+	//    if err == sql.ErrNoRows {
+	//       ctx.JSON(http.StatusNotFound, utils.FormatErrorResponse("Offer not found", ""))
+	//       return
+	//    }
+	//    ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error checking offer permissions", err.Error()))
+	//    return
+	// }
 	//
-	//	canModifyDriver := false
+	// canModifyDriver := false
 	//
-	//	if isAdminOrSystem {
-	//		canModifyDriver = true
-	//	} else if currentOffer.OfferRole == "carrier" && currentOffer.CompanyID == companyID {
-	//		canModifyDriver = true
-	//	} else if currentOffer.OfferRole == "sender" && currentOffer.ExecCompanyID == companyID {
-	//		canModifyDriver = true
-	//	}
+	// if isAdminOrSystem {
+	//    canModifyDriver = true
+	// } else if currentOffer.OfferRole == "carrier" && currentOffer.CompanyID == companyID {
+	//    canModifyDriver = true
+	// } else if currentOffer.OfferRole == "sender" && currentOffer.ExecCompanyID == companyID {
+	//    canModifyDriver = true
+	// }
 	//
-	//	if !canModifyDriver {
-	//		ctx.JSON(http.StatusForbidden, utils.FormatErrorResponse("You don't have permission to modify driver for this offer", ""))
-	//		return
-	//	}
+	// if !canModifyDriver {
+	//    ctx.JSON(http.StatusForbidden, utils.FormatErrorResponse("You don't have permission to modify driver for this offer", ""))
+	//    return
+	// }
 	//}
 
 	if isAdminOrSystem {
