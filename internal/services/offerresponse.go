@@ -513,15 +513,15 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		_, err = tx.Exec(
 			context.Background(),
 			`UPDATE tbl_offer 
-           SET 
-              exec_company_id = $1,
-              offer_price = $2,
-              total_price = CASE 
-                  WHEN tax > 0 THEN $2 + ($2 * tax / 100)
-                  ELSE $2
-              END,
-              updated_at = CURRENT_TIMESTAMP
-           WHERE id = $3 AND deleted = 0`,
+			SET 
+			   exec_company_id = $1,
+			   offer_price = $2::numeric,
+			   total_price = CASE 
+				   WHEN tax > 0 THEN $2::numeric + ($2::numeric * tax / 100)
+				   ELSE $2::numeric
+			   END,
+			   updated_at = CURRENT_TIMESTAMP
+			WHERE id = $3 AND deleted = 0`,
 			responseCompanyID, *bidPrice, offerID,
 		)
 
