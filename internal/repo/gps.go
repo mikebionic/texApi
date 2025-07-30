@@ -947,22 +947,29 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 
 	return trips, nil
 }
+
 func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
 	var conditions []string
 	var args []interface{}
 	argIndex := 1
 
 	conditions = append(conditions, "deleted = 0")
-	conditions = append(conditions, "active = 1")
 
-	if query.OfferCompanyID != nil {
+	// OfferCompanyID and OfferExecCompanyID with OR logic
+	if query.OfferCompanyID != nil && query.OfferExecCompanyID != nil {
 		conditions = append(conditions, fmt.Sprintf("company_id = $%d", argIndex))
 		args = append(args, *query.OfferCompanyID)
 		argIndex++
-	}
 
-	if query.OfferExecCompanyID != nil {
 		conditions = append(conditions, fmt.Sprintf("exec_company_id = $%d", argIndex))
+		args = append(args, *query.OfferExecCompanyID)
+		argIndex++
+	} else if query.OfferCompanyID != nil {
+		conditions = append(conditions, fmt.Sprintf("(company_id = $%d OR exec_company_id = $%d)", argIndex, argIndex))
+		args = append(args, *query.OfferCompanyID)
+		argIndex++
+	} else if query.OfferExecCompanyID != nil {
+		conditions = append(conditions, fmt.Sprintf("(company_id = $%d OR exec_company_id = $%d)", argIndex, argIndex))
 		args = append(args, *query.OfferExecCompanyID)
 		argIndex++
 	}
@@ -1051,13 +1058,12 @@ func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
 		argIndex++
 	}
 
-	whereClause := "WHERE " + strings.Join(conditions, " AND ")
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
 
-	queryStr := fmt.Sprintf(`
-		SELECT id 
-		FROM tbl_offer 
-		%s 
-		ORDER BY id`, whereClause)
+	queryStr := fmt.Sprintf("SELECT DISTINCT id FROM tbl_offer %s", whereClause)
 
 	var offerIDs []int
 	err := pgxscan.Select(context.Background(), db.DB, &offerIDs, queryStr, args...)
