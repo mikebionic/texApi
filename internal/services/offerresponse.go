@@ -416,7 +416,6 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		return
 	}
 
-	// Verify the user belongs to to_company_id
 	var toCompanyID int
 	err := db.DB.QueryRow(
 		context.Background(),
@@ -446,7 +445,7 @@ func UpdateOfferResponse(ctx *gin.Context) {
 
 	if offerResponse.State != nil && *offerResponse.State == "accepted" {
 		var offerID int
-		err := tx.QueryRow(
+		err = tx.QueryRow(
 			context.Background(),
 			`SELECT offer_id FROM tbl_offer_response WHERE id = $1`,
 			id,
@@ -487,10 +486,12 @@ func UpdateOfferResponse(ctx *gin.Context) {
             rating = COALESCE($10, rating),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $11 AND deleted = 0
-        RETURNING id
+        RETURNING id, offer_id, company_id, bid_price, state
     `
 
-	var updatedID int
+	var updatedID, offerID, responseCompanyID int
+	var bidPrice *float64
+	var state string
 	err = tx.QueryRow(
 		context.Background(),
 		query,
@@ -500,12 +501,35 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		offerResponse.Meta2, offerResponse.Meta3,
 		offerResponse.Value, offerResponse.Rating,
 		id,
-	).Scan(&updatedID)
+	).Scan(&updatedID, &offerID, &responseCompanyID, &bidPrice, &state)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError,
 			utils.FormatErrorResponse("Error updating offer response", err.Error()))
 		return
+	}
+
+	if state == "accepted" && bidPrice != nil {
+		_, err = tx.Exec(
+			context.Background(),
+			`UPDATE tbl_offer 
+           SET 
+              exec_company_id = $1,
+              offer_price = $2,
+              total_price = CASE 
+                  WHEN tax > 0 THEN $2 + ($2 * tax / 100)
+                  ELSE $2
+              END,
+              updated_at = CURRENT_TIMESTAMP
+           WHERE id = $3 AND deleted = 0`,
+			responseCompanyID, *bidPrice, offerID,
+		)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError,
+				utils.FormatErrorResponse("Error updating main offer", err.Error()))
+			return
+		}
 	}
 
 	if err = tx.Commit(context.Background()); err != nil {
@@ -518,6 +542,7 @@ func UpdateOfferResponse(ctx *gin.Context) {
 		"id": updatedID,
 	}))
 }
+
 func DeleteOfferResponse(ctx *gin.Context) {
 	id, _ := strconv.Atoi(ctx.Param("id"))
 
