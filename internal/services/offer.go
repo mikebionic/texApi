@@ -23,6 +23,24 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 	perPage, _ := strconv.Atoi(ctx.DefaultQuery("per_page", "10"))
 	offset := (page - 1) * perPage
 
+	// Valid order columns
+	validOrderColumns := map[string]bool{
+		"id": true, "cost_per_km": true, "distance": true,
+		"offer_price": true, "total_price": true, "view_count": true,
+		"validity_start": true, "validity_end": true, "delivery_start": true,
+		"delivery_end": true, "created_at": true, "updated_at": true,
+		"tax": true, "discount": true,
+	}
+
+	orderBy := ctx.DefaultQuery("order_by", "id")
+	if !validOrderColumns[orderBy] {
+		orderBy = "id"
+	}
+	orderDir := strings.ToUpper(ctx.DefaultQuery("order_dir", "DESC"))
+	if orderDir != "ASC" && orderDir != "DESC" {
+		orderDir = "DESC"
+	}
+
 	filters := map[string]interface{}{
 		"o.company_id":      ctx.MustGet("companyID"),
 		"o.exec_company_id": ctx.Query("exec_company_id"),
@@ -44,20 +62,14 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		"o.partner":         ctx.Query("partner"),
 		"o.active":          ctx.Query("active"),
 		"o.deleted":         ctx.DefaultQuery("deleted", "0"),
-		"o.offer_price":     ctx.Query("offer_price"),
-		"o.total_price":     ctx.Query("offer_price"),
+		"o.currency":        ctx.Query("currency"),
 	}
-
-	validityStart := ctx.Query("validity_start")
-	validityEnd := ctx.Query("validity_end")
-
-	orderBy := ctx.DefaultQuery("order_by", "id")
-	orderDir := ctx.DefaultQuery("order_dir", "DESC")
 
 	var whereClauses []string
 	var args []interface{}
 	argCounter := 1
 
+	// Basic filters
 	for key, value := range filters {
 		if value != "" && value != nil {
 			whereClauses = append(whereClauses, fmt.Sprintf("%s = $%d", key, argCounter))
@@ -66,22 +78,95 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		}
 	}
 
-	if validityStart != "" && validityEnd != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start BETWEEN $%d AND $%d", argCounter, argCounter+1))
-		startTime, _ := time.Parse(time.RFC3339, validityStart)
-		endTime, _ := time.Parse(time.RFC3339, validityEnd)
-		args = append(args, startTime, endTime)
-		argCounter += 2
-	} else if validityStart != "" {
+	// Numeric range filters
+	numericRanges := map[string]struct {
+		min string
+		max string
+	}{
+		"cost_per_km": {ctx.Query("min_cost_per_km"), ctx.Query("max_cost_per_km")},
+		"offer_price": {ctx.Query("min_offer_price"), ctx.Query("max_offer_price")},
+		"total_price": {ctx.Query("min_total_price"), ctx.Query("max_total_price")},
+		"distance":    {ctx.Query("min_distance"), ctx.Query("max_distance")},
+		"tax":         {ctx.Query("min_tax"), ctx.Query("max_tax")},
+		"discount":    {ctx.Query("min_discount"), ctx.Query("max_discount")},
+	}
+
+	for field, ranges := range numericRanges {
+		if ranges.min != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s >= $%d", field, argCounter))
+			minVal, _ := strconv.ParseFloat(ranges.min, 64)
+			args = append(args, minVal)
+			argCounter++
+		}
+		if ranges.max != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("o.%s <= $%d", field, argCounter))
+			maxVal, _ := strconv.ParseFloat(ranges.max, 64)
+			args = append(args, maxVal)
+			argCounter++
+		}
+	}
+
+	// Date range filters
+	validityStart := ctx.Query("validity_start")
+	validityEnd := ctx.Query("validity_end")
+	deliveryStart := ctx.Query("delivery_start")
+	deliveryEnd := ctx.Query("delivery_end")
+
+	if validityStart != "" {
 		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start >= $%d", argCounter))
 		startTime, _ := time.Parse(time.RFC3339, validityStart)
 		args = append(args, startTime)
 		argCounter++
-	} else if validityEnd != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_start <= $%d", argCounter))
+	}
+	if validityEnd != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("o.validity_end <= $%d", argCounter))
 		endTime, _ := time.Parse(time.RFC3339, validityEnd)
 		args = append(args, endTime)
 		argCounter++
+	}
+	if deliveryStart != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("o.delivery_start >= $%d", argCounter))
+		startTime, _ := time.Parse(time.RFC3339, deliveryStart)
+		args = append(args, startTime)
+		argCounter++
+	}
+	if deliveryEnd != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("o.delivery_end <= $%d", argCounter))
+		endTime, _ := time.Parse(time.RFC3339, deliveryEnd)
+		args = append(args, endTime)
+		argCounter++
+	}
+
+	// Search functionality
+	searchTerm := ctx.Query("search")
+	if searchTerm != "" {
+		searchClause := fmt.Sprintf(`(
+			o.note ILIKE $%d OR 
+			o.meta ILIKE $%d OR
+			o.from_address ILIKE $%d OR
+			o.to_address ILIKE $%d OR
+			o.from_country ILIKE $%d OR
+			o.to_country ILIKE $%d OR
+			o.from_region ILIKE $%d OR
+			o.to_region ILIKE $%d OR
+			o.sender_contact ILIKE $%d OR
+			o.recipient_contact ILIKE $%d OR
+			o.deliver_contact ILIKE $%d OR
+			(d.first_name ILIKE $%d OR d.last_name ILIKE $%d OR d.patronymic_name ILIKE $%d OR 
+			 d.phone ILIKE $%d OR d.email ILIKE $%d OR d.meta ILIKE $%d) OR
+			(v.numberplate ILIKE $%d OR v.trailer_numberplate ILIKE $%d OR v.meta ILIKE $%d) OR
+			(vt.numberplate ILIKE $%d OR vt.trailer_numberplate ILIKE $%d OR vt.meta ILIKE $%d)
+		)`, argCounter, argCounter+1, argCounter+2, argCounter+3, argCounter+4, argCounter+5, argCounter+6, argCounter+7,
+			argCounter+8, argCounter+9, argCounter+10, argCounter+11, argCounter+12, argCounter+13, argCounter+14, argCounter+15,
+			argCounter+16, argCounter+17, argCounter+18, argCounter+19, argCounter+20, argCounter+21, argCounter+22)
+
+		whereClauses = append(whereClauses, searchClause)
+		searchPattern := "%" + searchTerm + "%"
+		// Add 23 search parameters (11 offer fields + 6 driver fields + 6 vehicle/trailer fields)
+		for i := 0; i < 23; i++ {
+			args = append(args, searchPattern)
+		}
+		argCounter += 23
 	}
 
 	whereClause := ""
@@ -101,9 +186,9 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			COALESCE((SELECT COUNT(*) FROM tbl_offer_response tor WHERE tor.offer_id = o.id AND tor.deleted = 0), 0) as response_count
 		FROM tbl_offer o
 		LEFT JOIN tbl_company c ON o.company_id = c.id
-		LEFT JOIN tbl_driver d ON o.driver_id = d.id
-		LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
-		LEFT JOIN tbl_vehicle vt ON o.trailer_id = vt.id
+		LEFT JOIN tbl_driver d ON o.driver_id = d.id AND d.active = 1 AND d.deleted = 0
+		LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id AND v.active = 1 AND v.deleted = 0
+		LEFT JOIN tbl_vehicle vt ON o.trailer_id = vt.id AND vt.active = 1 AND vt.deleted = 0
 		LEFT JOIN tbl_cargo cr ON o.cargo_id = cr.id
 		%s
 		ORDER BY o.%s %s
@@ -156,6 +241,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 			return
 		}
 
+		// JSON unmarshaling logic remains the same
 		if companyJSON != nil {
 			if err = json.Unmarshal(companyJSON, &offer.Company); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (company)", err.Error()))
@@ -182,6 +268,7 @@ func GetMyOfferListUpdate(ctx *gin.Context) {
 		} else {
 			offer.AssignedVehicle = nil
 		}
+
 		if trailerJSON != nil {
 			if err = json.Unmarshal(trailerJSON, &offer.AssignedTrailer); err != nil {
 				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("JSON unmarshal error (trailer)", err.Error()))
@@ -858,8 +945,10 @@ func GetDetailedOfferList(ctx *gin.Context) {
 
 	validOrderColumns := map[string]bool{
 		"id": true, "cost_per_km": true, "distance": true,
-		"offer_price": true, "total_price": true,
-		"view_count": true, "created_at": true, "updated_at": true,
+		"offer_price": true, "total_price": true, "view_count": true,
+		"validity_start": true, "validity_end": true, "delivery_start": true,
+		"delivery_end": true, "created_at": true, "updated_at": true,
+		"tax": true, "discount": true,
 	}
 
 	orderBy := ctx.DefaultQuery("order_by", "id")
@@ -1106,9 +1195,9 @@ func GetDetailedOfferList(ctx *gin.Context) {
         LEFT JOIN company_stats cs1 ON c.id = cs1.company_id
         LEFT JOIN tbl_company ec ON o.exec_company_id = ec.id
         LEFT JOIN company_stats cs2 ON ec.id = cs2.company_id
-        LEFT JOIN tbl_driver d ON o.driver_id = d.id
-        LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id
-        LEFT JOIN tbl_vehicle vtr ON o.trailer_id = vtr.id
+        LEFT JOIN tbl_driver d ON o.driver_id = d.id AND d.active = 1 AND d.deleted = 0
+        LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id AND v.active = 1 AND v.deleted = 0
+        LEFT JOIN tbl_vehicle vtr ON o.trailer_id = vtr.id AND vtr.active = 1 AND vtr.deleted = 0
         LEFT JOIN tbl_vehicle_type vt ON o.vehicle_type_id = vt.id
         LEFT JOIN tbl_cargo cg ON o.cargo_id = cg.id
         LEFT JOIN tbl_packaging_type pt ON o.packaging_type_id = pt.id
@@ -1118,6 +1207,7 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	var args []interface{}
 	argCounter := 1
 
+	// Basic filters
 	filters := map[string]string{
 		"company_id":        ctx.Query("company_id"),
 		"exec_company_id":   ctx.Query("exec_company_id"),
@@ -1133,6 +1223,12 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		"payment_method":    ctx.Query("payment_method"),
 		"active":            ctx.Query("active"),
 		"deleted":           ctx.DefaultQuery("deleted", "0"),
+		"featured":          ctx.Query("featured"),
+		"partner":           ctx.Query("partner"),
+		"from_country_id":   ctx.Query("from_country_id"),
+		"from_city_id":      ctx.Query("from_city_id"),
+		"to_country_id":     ctx.Query("to_country_id"),
+		"to_city_id":        ctx.Query("to_city_id"),
 	}
 
 	for key, value := range filters {
@@ -1143,11 +1239,12 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
+	// Numeric range filters
 	numericRanges := map[string]struct {
 		min string
 		max string
 	}{
-		"cost_per_km": {ctx.Query("min_cost"), ctx.Query("max_cost")},
+		"cost_per_km": {ctx.Query("min_cost_per_km"), ctx.Query("max_cost_per_km")},
 		"offer_price": {ctx.Query("min_offer_price"), ctx.Query("max_offer_price")},
 		"total_price": {ctx.Query("min_total_price"), ctx.Query("max_total_price")},
 		"distance":    {ctx.Query("min_distance"), ctx.Query("max_distance")},
@@ -1170,6 +1267,7 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
+	// Date range filters
 	dateRanges := map[string]struct {
 		start string
 		end   string
@@ -1191,34 +1289,39 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
-	locationFilters := map[string]string{
-		"from_country_id": ctx.Query("from_country_id"),
-		"from_city_id":    ctx.Query("from_city_id"),
-		"to_country_id":   ctx.Query("to_country_id"),
-		"to_city_id":      ctx.Query("to_city_id"),
-	}
-
-	for key, value := range locationFilters {
-		if value != "" {
-			whereClauses = append(whereClauses, fmt.Sprintf("o.%s = $%d", key, argCounter))
-			args = append(args, value)
-			argCounter++
-		}
-	}
-
+	// Global search functionality
 	searchTerm := ctx.Query("search")
 	if searchTerm != "" {
 		searchClause := fmt.Sprintf(`(
 			o.note ILIKE $%d OR 
+			o.meta ILIKE $%d OR
+			o.from_address ILIKE $%d OR
+			o.to_address ILIKE $%d OR
+			o.from_country ILIKE $%d OR
+			o.to_country ILIKE $%d OR
+			o.from_region ILIKE $%d OR
+			o.to_region ILIKE $%d OR
 			o.sender_contact ILIKE $%d OR
 			o.recipient_contact ILIKE $%d OR
-			o.deliver_contact ILIKE $%d
-		)`, argCounter, argCounter, argCounter, argCounter, argCounter, argCounter)
+			o.deliver_contact ILIKE $%d OR
+			(d.first_name ILIKE $%d OR d.last_name ILIKE $%d OR d.patronymic_name ILIKE $%d OR 
+			 d.phone ILIKE $%d OR d.email ILIKE $%d OR d.meta ILIKE $%d) OR
+			(v.numberplate ILIKE $%d OR v.trailer_numberplate ILIKE $%d OR v.meta ILIKE $%d) OR
+			(vtr.numberplate ILIKE $%d OR vtr.trailer_numberplate ILIKE $%d OR vtr.meta ILIKE $%d)
+		)`, argCounter, argCounter+1, argCounter+2, argCounter+3, argCounter+4, argCounter+5, argCounter+6, argCounter+7,
+			argCounter+8, argCounter+9, argCounter+10, argCounter+11, argCounter+12, argCounter+13, argCounter+14, argCounter+15,
+			argCounter+16, argCounter+17, argCounter+18, argCounter+19, argCounter+20, argCounter+21, argCounter+22)
+
 		whereClauses = append(whereClauses, searchClause)
-		args = append(args, "%"+searchTerm+"%")
-		argCounter++
+		searchPattern := "%" + searchTerm + "%"
+		// Add 23 search parameters (11 offer fields + 6 driver fields + 6 vehicle/trailer fields)
+		for i := 0; i < 23; i++ {
+			args = append(args, searchPattern)
+		}
+		argCounter += 23
 	}
 
+	// Location-specific search (keeping backward compatibility)
 	searchFromLocation := ctx.Query("from_location")
 	if searchFromLocation != "" {
 		searchFromLocationClause := fmt.Sprintf(`(

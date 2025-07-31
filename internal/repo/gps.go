@@ -171,7 +171,6 @@ type TripScan struct {
 	Deleted         int        `db:"deleted"`
 }
 
-// TripScan to dto.Trip
 func (ts *TripScan) ToTrip() dto.Trip {
 	trip := dto.Trip{
 		ID:          ts.ID,
@@ -194,7 +193,6 @@ func (ts *TripScan) ToTrip() dto.Trip {
 		Deleted:     ts.Deleted,
 	}
 
-	// Parse from_location
 	if ts.FromLocationTxt != nil && *ts.FromLocationTxt != "" {
 		var point dto.Point
 		if err := point.Scan(*ts.FromLocationTxt); err == nil {
@@ -202,7 +200,6 @@ func (ts *TripScan) ToTrip() dto.Trip {
 		}
 	}
 
-	// Parse to_location
 	if ts.ToLocationTxt != nil && *ts.ToLocationTxt != "" {
 		var point dto.Point
 		if err := point.Scan(*ts.ToLocationTxt); err == nil {
@@ -213,7 +210,6 @@ func (ts *TripScan) ToTrip() dto.Trip {
 	return trip
 }
 
-// GPSLog struct for scanning
 type GPSLogScan struct {
 	ID             int64     `db:"id"`
 	CompanyID      *int      `db:"company_id"`
@@ -248,7 +244,6 @@ func (gs *GPSLogScan) ToGPSLog() dto.GPSLog {
 		CreatedAt:    gs.CreatedAt,
 	}
 
-	// Parse coordinates
 	if gs.CoordinatesTxt != "" {
 		if err := log.Coordinates.Scan(gs.CoordinatesTxt); err != nil {
 			// If parsing fails, set to zero coordinates
@@ -352,7 +347,6 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 		argIndex++
 	}
 
-	// defaults
 	limit := query.Limit
 	if limit == 0 {
 		limit = DefaultLimit
@@ -953,108 +947,176 @@ func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
 	var args []interface{}
 	argIndex := 1
 
-	conditions = append(conditions, "deleted = 0")
+	conditions = append(conditions, "o.deleted = 0")
 
-	// OfferCompanyID and OfferExecCompanyID with OR logic
+	if query.Search != nil && strings.TrimSpace(*query.Search) != "" {
+		searchTerm := "%" + strings.TrimSpace(*query.Search) + "%"
+
+		searchConditions := []string{
+			fmt.Sprintf("o.note ILIKE $%d", argIndex),
+			fmt.Sprintf("o.meta ILIKE $%d", argIndex),
+			fmt.Sprintf("o.from_address ILIKE $%d", argIndex),
+			fmt.Sprintf("o.to_address ILIKE $%d", argIndex),
+			fmt.Sprintf("o.from_country ILIKE $%d", argIndex),
+			fmt.Sprintf("o.to_country ILIKE $%d", argIndex),
+			fmt.Sprintf("o.from_region ILIKE $%d", argIndex),
+			fmt.Sprintf("o.to_region ILIKE $%d", argIndex),
+			fmt.Sprintf("o.sender_contact ILIKE $%d", argIndex),
+			fmt.Sprintf("o.recipient_contact ILIKE $%d", argIndex),
+			fmt.Sprintf("o.deliver_contact ILIKE $%d", argIndex),
+
+			fmt.Sprintf("d.first_name ILIKE $%d", argIndex),
+			fmt.Sprintf("d.last_name ILIKE $%d", argIndex),
+			fmt.Sprintf("d.patronymic_name ILIKE $%d", argIndex),
+			fmt.Sprintf("d.phone ILIKE $%d", argIndex),
+			fmt.Sprintf("d.email ILIKE $%d", argIndex),
+			fmt.Sprintf("d.meta ILIKE $%d", argIndex),
+
+			fmt.Sprintf("v.numberplate ILIKE $%d", argIndex),
+			fmt.Sprintf("v.trailer_numberplate ILIKE $%d", argIndex),
+			fmt.Sprintf("v.meta ILIKE $%d", argIndex),
+		}
+
+		conditions = append(conditions, fmt.Sprintf("(%s)", strings.Join(searchConditions, " OR ")))
+		args = append(args, searchTerm)
+		argIndex++
+	}
+
 	if query.OfferCompanyID != nil && query.OfferExecCompanyID != nil {
-		conditions = append(conditions, fmt.Sprintf("company_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.company_id = $%d", argIndex))
 		args = append(args, *query.OfferCompanyID)
 		argIndex++
 
-		conditions = append(conditions, fmt.Sprintf("exec_company_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.exec_company_id = $%d", argIndex))
 		args = append(args, *query.OfferExecCompanyID)
 		argIndex++
 	} else if query.OfferCompanyID != nil {
-		conditions = append(conditions, fmt.Sprintf("(company_id = $%d OR exec_company_id = $%d)", argIndex, argIndex))
+		conditions = append(conditions, fmt.Sprintf("(o.company_id = $%d OR o.exec_company_id = $%d)", argIndex, argIndex))
 		args = append(args, *query.OfferCompanyID)
 		argIndex++
 	} else if query.OfferExecCompanyID != nil {
-		conditions = append(conditions, fmt.Sprintf("(company_id = $%d OR exec_company_id = $%d)", argIndex, argIndex))
+		conditions = append(conditions, fmt.Sprintf("(o.company_id = $%d OR o.exec_company_id = $%d)", argIndex, argIndex))
 		args = append(args, *query.OfferExecCompanyID)
 		argIndex++
 	}
 
 	if query.OfferDriverID != nil {
-		conditions = append(conditions, fmt.Sprintf("driver_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.driver_id = $%d", argIndex))
 		args = append(args, *query.OfferDriverID)
 		argIndex++
 	}
 
 	if query.OfferVehicleID != nil {
-		conditions = append(conditions, fmt.Sprintf("vehicle_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.vehicle_id = $%d", argIndex))
 		args = append(args, *query.OfferVehicleID)
 		argIndex++
 	}
 
 	if query.OfferFromCountryID != nil {
-		conditions = append(conditions, fmt.Sprintf("from_country_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.from_country_id = $%d", argIndex))
 		args = append(args, *query.OfferFromCountryID)
 		argIndex++
 	}
 
 	if query.OfferToCountryID != nil {
-		conditions = append(conditions, fmt.Sprintf("to_country_id = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.to_country_id = $%d", argIndex))
 		args = append(args, *query.OfferToCountryID)
 		argIndex++
 	}
 
 	if query.OfferFromAddress != nil {
-		conditions = append(conditions, fmt.Sprintf("from_address ILIKE $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.from_address ILIKE $%d", argIndex))
 		args = append(args, "%"+*query.OfferFromAddress+"%")
 		argIndex++
 	}
 
 	if query.OfferToAddress != nil {
-		conditions = append(conditions, fmt.Sprintf("to_address ILIKE $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.to_address ILIKE $%d", argIndex))
 		args = append(args, "%"+*query.OfferToAddress+"%")
 		argIndex++
 	}
 
 	if query.OfferFromCountry != nil {
-		conditions = append(conditions, fmt.Sprintf("from_country ILIKE $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.from_country ILIKE $%d", argIndex))
 		args = append(args, "%"+*query.OfferFromCountry+"%")
 		argIndex++
 	}
 
 	if query.OfferToCountry != nil {
-		conditions = append(conditions, fmt.Sprintf("to_country ILIKE $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.to_country ILIKE $%d", argIndex))
 		args = append(args, "%"+*query.OfferToCountry+"%")
 		argIndex++
 	}
 
 	if query.OfferState != nil {
-		conditions = append(conditions, fmt.Sprintf("offer_state = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.offer_state = $%d", argIndex))
 		args = append(args, *query.OfferState)
 		argIndex++
 	}
 
 	if query.OfferRole != nil {
-		conditions = append(conditions, fmt.Sprintf("offer_role = $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.offer_role = $%d", argIndex))
 		args = append(args, *query.OfferRole)
 		argIndex++
 	}
 
 	if query.OfferValidityStart != nil {
-		conditions = append(conditions, fmt.Sprintf("validity_start >= $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.validity_start >= $%d", argIndex))
 		args = append(args, *query.OfferValidityStart)
 		argIndex++
 	}
 
 	if query.OfferValidityEnd != nil {
-		conditions = append(conditions, fmt.Sprintf("validity_end <= $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.validity_end <= $%d", argIndex))
 		args = append(args, *query.OfferValidityEnd)
 		argIndex++
 	}
 
 	if query.OfferDeliveryStart != nil {
-		conditions = append(conditions, fmt.Sprintf("delivery_start >= $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.delivery_start >= $%d", argIndex))
 		args = append(args, *query.OfferDeliveryStart)
 		argIndex++
 	}
 
 	if query.OfferDeliveryEnd != nil {
-		conditions = append(conditions, fmt.Sprintf("delivery_end <= $%d", argIndex))
+		conditions = append(conditions, fmt.Sprintf("o.delivery_end <= $%d", argIndex))
 		args = append(args, *query.OfferDeliveryEnd)
+		argIndex++
+	}
+
+	if query.OfferCostPerKmMin != nil {
+		conditions = append(conditions, fmt.Sprintf("o.cost_per_km >= $%d", argIndex))
+		args = append(args, *query.OfferCostPerKmMin)
+		argIndex++
+	}
+
+	if query.OfferCostPerKmMax != nil {
+		conditions = append(conditions, fmt.Sprintf("o.cost_per_km <= $%d", argIndex))
+		args = append(args, *query.OfferCostPerKmMax)
+		argIndex++
+	}
+
+	if query.OfferPriceMin != nil {
+		conditions = append(conditions, fmt.Sprintf("o.offer_price >= $%d", argIndex))
+		args = append(args, *query.OfferPriceMin)
+		argIndex++
+	}
+
+	if query.OfferPriceMax != nil {
+		conditions = append(conditions, fmt.Sprintf("o.offer_price <= $%d", argIndex))
+		args = append(args, *query.OfferPriceMax)
+		argIndex++
+	}
+
+	if query.OfferTotalPriceMin != nil {
+		conditions = append(conditions, fmt.Sprintf("o.total_price >= $%d", argIndex))
+		args = append(args, *query.OfferTotalPriceMin)
+		argIndex++
+	}
+
+	if query.OfferTotalPriceMax != nil {
+		conditions = append(conditions, fmt.Sprintf("o.total_price <= $%d", argIndex))
+		args = append(args, *query.OfferTotalPriceMax)
 		argIndex++
 	}
 
@@ -1063,7 +1125,12 @@ func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	queryStr := fmt.Sprintf("SELECT DISTINCT id FROM tbl_offer %s", whereClause)
+	queryStr := fmt.Sprintf(`
+        SELECT DISTINCT o.id 
+        FROM tbl_offer o
+        LEFT JOIN tbl_driver d ON o.driver_id = d.id AND d.active = 1 AND d.deleted = 0
+        LEFT JOIN tbl_vehicle v ON o.vehicle_id = v.id AND v.deleted = 0
+        %s`, whereClause)
 
 	var offerIDs []int
 	err := pgxscan.Select(context.Background(), db.DB, &offerIDs, queryStr, args...)
@@ -1090,5 +1157,12 @@ func hasOfferFilters(query dto.TripQuery) bool {
 		query.OfferValidityStart != nil ||
 		query.OfferValidityEnd != nil ||
 		query.OfferDeliveryStart != nil ||
-		query.OfferDeliveryEnd != nil
+		query.OfferDeliveryEnd != nil ||
+		query.Search != nil ||
+		query.OfferCostPerKmMin != nil ||
+		query.OfferCostPerKmMax != nil ||
+		query.OfferPriceMin != nil ||
+		query.OfferPriceMax != nil ||
+		query.OfferTotalPriceMin != nil ||
+		query.OfferTotalPriceMax != nil
 }
