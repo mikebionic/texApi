@@ -164,6 +164,7 @@ type PositionQuery struct {
 }
 
 type TripQuery struct {
+	// Existing fields
 	DriverID     *int       `form:"driver_id"`
 	VehicleID    *int       `form:"vehicle_id"`
 	FromAddress  *string    `form:"from_address"`
@@ -177,6 +178,7 @@ type TripQuery struct {
 	DistanceKM   *float64   `form:"distance_km"`
 	TripOfferID  *int       `form:"trip_offer_id"`
 
+	// Existing offer filters
 	OfferCompanyID     *int       `form:"offer_company_id"`
 	OfferExecCompanyID *int       `form:"offer_exec_company_id"`
 	OfferDriverID      *int       `form:"offer_driver_id"`
@@ -194,6 +196,18 @@ type TripQuery struct {
 	OfferDeliveryStart *time.Time `form:"offer_delivery_start" time_format:"2006-01-02"`
 	OfferDeliveryEnd   *time.Time `form:"offer_delivery_end" time_format:"2006-01-02"`
 
+	// NEW: Search functionality
+	Search *string `form:"search"`
+
+	// NEW: Additional offer filters
+	OfferCostPerKmMin  *float64 `form:"offer_cost_per_km_min"`
+	OfferCostPerKmMax  *float64 `form:"offer_cost_per_km_max"`
+	OfferPriceMin      *float64 `form:"offer_price_min"`
+	OfferPriceMax      *float64 `form:"offer_price_max"`
+	OfferTotalPriceMin *float64 `form:"offer_total_price_min"`
+	OfferTotalPriceMax *float64 `form:"offer_total_price_max"`
+
+	// Existing pagination and sorting
 	Offset   int     `form:"offset" binding:"omitempty,min=0"`
 	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
 	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
