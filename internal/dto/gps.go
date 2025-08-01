@@ -178,7 +178,7 @@ type TripQuery struct {
 	DistanceKM   *float64   `form:"distance_km"`
 	TripOfferID  *int       `form:"trip_offer_id"`
 
-	Status   *string  `form:"status" binding:"omitempty,oneof=active inactive completed cancelled pending"`
+	Status   *string  `form:"status"`
 	StatusIn []string `form:"status_in"`
 
 	StartDateFrom *time.Time `form:"start_date_from" time_format:"2006-01-02"`
