@@ -119,13 +119,11 @@ func EndTrip(input dto.EndTripInput) error {
 		return fmt.Errorf("failed to get GPS logs: %w", err)
 	}
 
-	// Convert logs to JSON
 	logsJSON, err := json.Marshal(logs)
 	if err != nil {
 		return fmt.Errorf("failed to marshal GPS logs: %w", err)
 	}
 
-	// Update trip
 	result, err := tx.Exec(ctx,
 		`UPDATE tbl_trip 
 		 SET status = 'completed', end_date = CURRENT_TIMESTAMP, 
@@ -279,9 +277,9 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 		}
 
 		conditions = append(conditions, fmt.Sprintf(`id IN (
-			SELECT trip_id FROM tbl_offer_trip 
-			WHERE offer_id IN (%s) AND deleted = 0
-		)`, strings.Join(placeholders, ",")))
+            SELECT trip_id FROM tbl_offer_trip 
+            WHERE offer_id IN (%s) AND deleted = 0
+        )`, strings.Join(placeholders, ",")))
 	}
 
 	if query.DriverID != nil {
@@ -340,10 +338,225 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 
 	if query.TripOfferID != nil {
 		conditions = append(conditions, fmt.Sprintf(`id IN (
-			SELECT trip_id FROM tbl_offer_trip 
-			WHERE offer_id = $%d AND deleted = 0
-		)`, argIndex))
+            SELECT trip_id FROM tbl_offer_trip 
+            WHERE offer_id = $%d AND deleted = 0
+        )`, argIndex))
 		args = append(args, *query.TripOfferID)
+		argIndex++
+	}
+
+	if query.Status != nil {
+		conditions = append(conditions, fmt.Sprintf("status = $%d", argIndex))
+		args = append(args, *query.Status)
+		argIndex++
+	}
+
+	if len(query.StatusIn) > 0 {
+		placeholders := make([]string, len(query.StatusIn))
+		for i, status := range query.StatusIn {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, status)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("status IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.StartDateFrom != nil {
+		conditions = append(conditions, fmt.Sprintf("start_date >= $%d", argIndex))
+		args = append(args, *query.StartDateFrom)
+		argIndex++
+	}
+
+	if query.StartDateTo != nil {
+		conditions = append(conditions, fmt.Sprintf("start_date <= $%d", argIndex))
+		args = append(args, *query.StartDateTo)
+		argIndex++
+	}
+
+	if query.EndDateFrom != nil {
+		conditions = append(conditions, fmt.Sprintf("end_date >= $%d", argIndex))
+		args = append(args, *query.EndDateFrom)
+		argIndex++
+	}
+
+	if query.EndDateTo != nil {
+		conditions = append(conditions, fmt.Sprintf("end_date <= $%d", argIndex))
+		args = append(args, *query.EndDateTo)
+		argIndex++
+	}
+
+	if query.CreatedAfter != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at >= $%d", argIndex))
+		args = append(args, *query.CreatedAfter)
+		argIndex++
+	}
+
+	if query.CreatedBefore != nil {
+		conditions = append(conditions, fmt.Sprintf("created_at <= $%d", argIndex))
+		args = append(args, *query.CreatedBefore)
+		argIndex++
+	}
+
+	if query.UpdatedAfter != nil {
+		conditions = append(conditions, fmt.Sprintf("updated_at >= $%d", argIndex))
+		args = append(args, *query.UpdatedAfter)
+		argIndex++
+	}
+
+	if query.UpdatedBefore != nil {
+		conditions = append(conditions, fmt.Sprintf("updated_at <= $%d", argIndex))
+		args = append(args, *query.UpdatedBefore)
+		argIndex++
+	}
+
+	if query.DistanceKMMin != nil {
+		conditions = append(conditions, fmt.Sprintf("distance_km >= $%d", argIndex))
+		args = append(args, *query.DistanceKMMin)
+		argIndex++
+	}
+
+	if query.DistanceKMMax != nil {
+		conditions = append(conditions, fmt.Sprintf("distance_km <= $%d", argIndex))
+		args = append(args, *query.DistanceKMMax)
+		argIndex++
+	}
+
+	if query.FromRegion != nil {
+		conditions = append(conditions, fmt.Sprintf("from_address ILIKE $%d OR from_country ILIKE $%d", argIndex, argIndex))
+		regionPattern := "%" + *query.FromRegion + "%"
+		args = append(args, regionPattern)
+		argIndex++
+	}
+
+	if query.ToRegion != nil {
+		conditions = append(conditions, fmt.Sprintf("to_address ILIKE $%d OR to_country ILIKE $%d", argIndex, argIndex))
+		regionPattern := "%" + *query.ToRegion + "%"
+		args = append(args, regionPattern)
+		argIndex++
+	}
+
+	if query.NearFromLat != nil && query.NearFromLng != nil && query.FromRadius != nil {
+		conditions = append(conditions, fmt.Sprintf(
+			"ST_DWithin(from_location, ST_SetSRID(ST_MakePoint($%d, $%d), 4326)::geography, $%d * 1000)",
+			argIndex, argIndex+1, argIndex+2))
+		args = append(args, *query.NearFromLng, *query.NearFromLat, *query.FromRadius)
+		argIndex += 3
+	}
+
+	if query.NearToLat != nil && query.NearToLng != nil && query.ToRadius != nil {
+		conditions = append(conditions, fmt.Sprintf(
+			"ST_DWithin(to_location, ST_SetSRID(ST_MakePoint($%d, $%d), 4326)::geography, $%d * 1000)",
+			argIndex, argIndex+1, argIndex+2))
+		args = append(args, *query.NearToLng, *query.NearToLat, *query.ToRadius)
+		argIndex += 3
+	}
+
+	if query.MetaContains != nil {
+		conditions = append(conditions, fmt.Sprintf("meta ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.MetaContains+"%")
+		argIndex++
+	}
+
+	if query.Meta2Contains != nil {
+		conditions = append(conditions, fmt.Sprintf("meta2 ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.Meta2Contains+"%")
+		argIndex++
+	}
+
+	if query.Meta3Contains != nil {
+		conditions = append(conditions, fmt.Sprintf("meta3 ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.Meta3Contains+"%")
+		argIndex++
+	}
+
+	if query.HasGPSLogs != nil {
+		if *query.HasGPSLogs {
+			conditions = append(conditions, "gps_logs != '{}'::jsonb AND gps_logs IS NOT NULL")
+		} else {
+			conditions = append(conditions, "(gps_logs = '{}'::jsonb OR gps_logs IS NULL)")
+		}
+	}
+
+	if query.HasDriver != nil {
+		if *query.HasDriver {
+			conditions = append(conditions, "driver_id > 0")
+		} else {
+			conditions = append(conditions, "driver_id = 0")
+		}
+	}
+
+	if query.HasVehicle != nil {
+		if *query.HasVehicle {
+			conditions = append(conditions, "vehicle_id > 0")
+		} else {
+			conditions = append(conditions, "vehicle_id = 0")
+		}
+	}
+
+	if len(utils.SafeString(query.DriverIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.DriverIDs)))
+		for i, driverID := range utils.SafeString(query.DriverIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, driverID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("driver_id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if len(utils.SafeString(query.VehicleIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.VehicleIDs)))
+		for i, vehicleID := range utils.SafeString(query.VehicleIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, vehicleID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("vehicle_id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if len(utils.SafeString(query.TripIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.TripIDs)))
+		for i, tripID := range utils.SafeString(query.TripIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, tripID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.ExcludeDriverID != nil {
+		conditions = append(conditions, fmt.Sprintf("driver_id != $%d", argIndex))
+		args = append(args, *query.ExcludeDriverID)
+		argIndex++
+	}
+
+	if query.ExcludeVehicleID != nil {
+		conditions = append(conditions, fmt.Sprintf("vehicle_id != $%d", argIndex))
+		args = append(args, *query.ExcludeVehicleID)
+		argIndex++
+	}
+
+	if len(utils.SafeString(query.ExcludeTripIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.ExcludeTripIDs)))
+		for i, tripID := range utils.SafeString(query.ExcludeTripIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, tripID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("id NOT IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.Search != nil {
+		searchPattern := "%" + *query.Search + "%"
+		conditions = append(conditions, fmt.Sprintf(`(
+            from_address ILIKE $%d OR 
+            to_address ILIKE $%d OR 
+            from_country ILIKE $%d OR 
+            to_country ILIKE $%d OR
+            meta ILIKE $%d OR
+            meta2 ILIKE $%d OR
+            meta3 ILIKE $%d
+        )`, argIndex, argIndex, argIndex, argIndex, argIndex, argIndex, argIndex))
+		args = append(args, searchPattern)
 		argIndex++
 	}
 
@@ -368,16 +581,16 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 	}
 
 	queryStr := fmt.Sprintf(`
-		SELECT id, driver_id, vehicle_id, from_address, to_address, 
-			   from_country, to_country, start_date, end_date,
-			   ST_AsText(from_location) as from_location_txt,
-			   ST_AsText(to_location) as to_location_txt,
-			   distance_km, status, meta, meta2, meta3, gps_logs,
-			   created_at, updated_at, deleted
-		FROM tbl_trip 
-		%s 
-		ORDER BY %s %s 
-		LIMIT $%d OFFSET $%d`,
+        SELECT id, driver_id, vehicle_id, from_address, to_address, 
+               from_country, to_country, start_date, end_date,
+               ST_AsText(from_location) as from_location_txt,
+               ST_AsText(to_location) as to_location_txt,
+               distance_km, status, meta, meta2, meta3, gps_logs,
+               created_at, updated_at, deleted
+        FROM tbl_trip 
+        %s 
+        ORDER BY %s %s 
+        LIMIT $%d OFFSET $%d`,
 		whereClause, orderBy, orderDir, argIndex, argIndex+1)
 
 	args = append(args, limit, query.Offset)
@@ -491,7 +704,6 @@ func GetGPSLogs(query dto.GPSLogQuery) ([]dto.GPSLog, error) {
 		return nil, fmt.Errorf("failed to get GPS logs: %w", err)
 	}
 
-	// Convert scanned results to dto.GPSLog
 	logs := make([]dto.GPSLog, len(logScans))
 	for i, scan := range logScans {
 		logs[i] = scan.ToGPSLog()
@@ -540,7 +752,6 @@ func GetLastPositions(query dto.PositionQuery) ([]dto.GPSLog, error) {
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	// Updated query with ST_AsText
 	queryStr := fmt.Sprintf(`
 		SELECT DISTINCT ON (COALESCE(trip_id, 0), COALESCE(driver_id, 0), COALESCE(vehicle_id, 0)) 
 		       id, company_id, vehicle_id, driver_id, offer_id, trip_id,
@@ -776,6 +987,224 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 			WHERE offer_id = $%d AND deleted = 0
 		)`, argIndex))
 		args = append(args, *query.TripOfferID)
+		argIndex++
+	}
+
+	if query.Status != nil {
+		conditions = append(conditions, fmt.Sprintf("t.status = $%d", argIndex))
+		args = append(args, *query.Status)
+		argIndex++
+	}
+
+	if len(query.StatusIn) > 0 {
+		placeholders := make([]string, len(query.StatusIn))
+		for i, status := range query.StatusIn {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, status)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("t.status IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.StartDateFrom != nil {
+		conditions = append(conditions, fmt.Sprintf("t.start_date >= $%d", argIndex))
+		args = append(args, *query.StartDateFrom)
+		argIndex++
+	}
+
+	if query.StartDateTo != nil {
+		conditions = append(conditions, fmt.Sprintf("t.start_date <= $%d", argIndex))
+		args = append(args, *query.StartDateTo)
+		argIndex++
+	}
+
+	if query.EndDateFrom != nil {
+		conditions = append(conditions, fmt.Sprintf("t.end_date >= $%d", argIndex))
+		args = append(args, *query.EndDateFrom)
+		argIndex++
+	}
+
+	if query.EndDateTo != nil {
+		conditions = append(conditions, fmt.Sprintf("t.end_date <= $%d", argIndex))
+		args = append(args, *query.EndDateTo)
+		argIndex++
+	}
+
+	if query.CreatedAfter != nil {
+		conditions = append(conditions, fmt.Sprintf("t.created_at >= $%d", argIndex))
+		args = append(args, *query.CreatedAfter)
+		argIndex++
+	}
+
+	if query.CreatedBefore != nil {
+		conditions = append(conditions, fmt.Sprintf("t.created_at <= $%d", argIndex))
+		args = append(args, *query.CreatedBefore)
+		argIndex++
+	}
+
+	if query.UpdatedAfter != nil {
+		conditions = append(conditions, fmt.Sprintf("t.updated_at >= $%d", argIndex))
+		args = append(args, *query.UpdatedAfter)
+		argIndex++
+	}
+
+	if query.UpdatedBefore != nil {
+		conditions = append(conditions, fmt.Sprintf("t.updated_at <= $%d", argIndex))
+		args = append(args, *query.UpdatedBefore)
+		argIndex++
+	}
+
+	if query.DistanceKMMin != nil {
+		conditions = append(conditions, fmt.Sprintf("t.distance_km >= $%d", argIndex))
+		args = append(args, *query.DistanceKMMin)
+		argIndex++
+	}
+
+	if query.DistanceKMMax != nil {
+		conditions = append(conditions, fmt.Sprintf("t.distance_km <= $%d", argIndex))
+		args = append(args, *query.DistanceKMMax)
+		argIndex++
+	}
+
+	if query.FromRegion != nil {
+		conditions = append(conditions, fmt.Sprintf("t.from_address ILIKE $%d OR t.from_country ILIKE $%d", argIndex, argIndex))
+		regionPattern := "%" + *query.FromRegion + "%"
+		args = append(args, regionPattern)
+		argIndex++
+	}
+
+	if query.ToRegion != nil {
+		conditions = append(conditions, fmt.Sprintf("t.to_address ILIKE $%d OR t.to_country ILIKE $%d", argIndex, argIndex))
+		regionPattern := "%" + *query.ToRegion + "%"
+		args = append(args, regionPattern)
+		argIndex++
+	}
+
+	if query.NearFromLat != nil && query.NearFromLng != nil && query.FromRadius != nil {
+		conditions = append(conditions, fmt.Sprintf(
+			"ST_DWithin(t.from_location, ST_SetSRID(ST_MakePoint($%d, $%d), 4326)::geography, $%d * 1000)",
+			argIndex, argIndex+1, argIndex+2))
+		args = append(args, *query.NearFromLng, *query.NearFromLat, *query.FromRadius)
+		argIndex += 3
+	}
+
+	if query.NearToLat != nil && query.NearToLng != nil && query.ToRadius != nil {
+		conditions = append(conditions, fmt.Sprintf(
+			"ST_DWithin(t.to_location, ST_SetSRID(ST_MakePoint($%d, $%d), 4326)::geography, $%d * 1000)",
+			argIndex, argIndex+1, argIndex+2))
+		args = append(args, *query.NearToLng, *query.NearToLat, *query.ToRadius)
+		argIndex += 3
+	}
+
+	if query.MetaContains != nil {
+		conditions = append(conditions, fmt.Sprintf("t.meta ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.MetaContains+"%")
+		argIndex++
+	}
+
+	if query.Meta2Contains != nil {
+		conditions = append(conditions, fmt.Sprintf("t.meta2 ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.Meta2Contains+"%")
+		argIndex++
+	}
+
+	if query.Meta3Contains != nil {
+		conditions = append(conditions, fmt.Sprintf("t.meta3 ILIKE $%d", argIndex))
+		args = append(args, "%"+*query.Meta3Contains+"%")
+		argIndex++
+	}
+
+	if query.HasGPSLogs != nil {
+		if *query.HasGPSLogs {
+			conditions = append(conditions, "t.gps_logs != '{}'::jsonb AND t.gps_logs IS NOT NULL")
+		} else {
+			conditions = append(conditions, "(t.gps_logs = '{}'::jsonb OR t.gps_logs IS NULL)")
+		}
+	}
+
+	if query.HasDriver != nil {
+		if *query.HasDriver {
+			conditions = append(conditions, "t.driver_id > 0")
+		} else {
+			conditions = append(conditions, "t.driver_id = 0")
+		}
+	}
+
+	if query.HasVehicle != nil {
+		if *query.HasVehicle {
+			conditions = append(conditions, "t.vehicle_id > 0")
+		} else {
+			conditions = append(conditions, "t.vehicle_id = 0")
+		}
+	}
+
+	if len(utils.SafeString(query.DriverIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.DriverIDs)))
+		for i, driverID := range utils.SafeString(query.DriverIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, driverID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("t.driver_id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if len(utils.SafeString(query.VehicleIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.VehicleIDs)))
+		for i, vehicleID := range utils.SafeString(query.VehicleIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, vehicleID)
+			argIndex++
+		}
+		fmt.Println(placeholders)
+		conditions = append(conditions, fmt.Sprintf("t.vehicle_id IN (%s)", strings.Join(placeholders, ",")))
+		fmt.Println(conditions)
+
+	}
+
+	if len(utils.SafeString(query.TripIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.TripIDs)))
+		for i, tripID := range utils.SafeString(query.TripIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, tripID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("t.id IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.ExcludeDriverID != nil {
+		conditions = append(conditions, fmt.Sprintf("t.driver_id != $%d", argIndex))
+		args = append(args, *query.ExcludeDriverID)
+		argIndex++
+	}
+
+	if query.ExcludeVehicleID != nil {
+		conditions = append(conditions, fmt.Sprintf("t.vehicle_id != $%d", argIndex))
+		args = append(args, *query.ExcludeVehicleID)
+		argIndex++
+	}
+
+	if len(utils.SafeString(query.ExcludeTripIDs)) > 0 {
+		placeholders := make([]string, len(utils.SafeString(query.ExcludeTripIDs)))
+		for i, tripID := range utils.SafeString(query.ExcludeTripIDs) {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, tripID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("t.id NOT IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if query.Search != nil {
+		searchPattern := "%" + *query.Search + "%"
+		conditions = append(conditions, fmt.Sprintf(`(
+			t.from_address ILIKE $%d OR 
+			t.to_address ILIKE $%d OR 
+			t.from_country ILIKE $%d OR 
+			t.to_country ILIKE $%d OR
+			t.meta ILIKE $%d OR
+			t.meta2 ILIKE $%d OR
+			t.meta3 ILIKE $%d
+		)`, argIndex, argIndex, argIndex, argIndex, argIndex, argIndex, argIndex))
+		args = append(args, searchPattern)
 		argIndex++
 	}
 

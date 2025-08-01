@@ -178,7 +178,49 @@ type TripQuery struct {
 	DistanceKM   *float64   `form:"distance_km"`
 	TripOfferID  *int       `form:"trip_offer_id"`
 
-	// Existing offer filters
+	Status   *string  `form:"status" binding:"omitempty,oneof=active inactive completed cancelled pending"`
+	StatusIn []string `form:"status_in"`
+
+	StartDateFrom *time.Time `form:"start_date_from" time_format:"2006-01-02"`
+	StartDateTo   *time.Time `form:"start_date_to" time_format:"2006-01-02"`
+	EndDateFrom   *time.Time `form:"end_date_from" time_format:"2006-01-02"`
+	EndDateTo     *time.Time `form:"end_date_to" time_format:"2006-01-02"`
+
+	CreatedAfter  *time.Time `form:"created_after" time_format:"2006-01-02T15:04:05"`
+	CreatedBefore *time.Time `form:"created_before" time_format:"2006-01-02T15:04:05"`
+	UpdatedAfter  *time.Time `form:"updated_after" time_format:"2006-01-02T15:04:05"`
+	UpdatedBefore *time.Time `form:"updated_before" time_format:"2006-01-02T15:04:05"`
+
+	DistanceKMMin *float64 `form:"distance_km_min"`
+	DistanceKMMax *float64 `form:"distance_km_max"`
+
+	FromRegion *string `form:"from_region"`
+	ToRegion   *string `form:"to_region"`
+
+	NearFromLat *float64 `form:"near_from_lat"`
+	NearFromLng *float64 `form:"near_from_lng"`
+	FromRadius  *float64 `form:"from_radius"` // in kilometers
+	NearToLat   *float64 `form:"near_to_lat"`
+	NearToLng   *float64 `form:"near_to_lng"`
+	ToRadius    *float64 `form:"to_radius"` // in kilometers
+
+	MetaContains  *string `form:"meta_contains"`
+	Meta2Contains *string `form:"meta2_contains"`
+	Meta3Contains *string `form:"meta3_contains"`
+
+	HasGPSLogs *bool `form:"has_gps_logs"`
+
+	HasDriver  *bool `form:"has_driver"`
+	HasVehicle *bool `form:"has_vehicle"`
+
+	DriverIDs  *string `form:"driver_ids"`
+	VehicleIDs *string `form:"vehicle_ids"`
+	TripIDs    *string `form:"trip_ids"`
+
+	ExcludeDriverID  *int    `form:"exclude_driver_id"`
+	ExcludeVehicleID *int    `form:"exclude_vehicle_id"`
+	ExcludeTripIDs   *string `form:"exclude_trip_ids"`
+
 	OfferCompanyID     *int       `form:"offer_company_id"`
 	OfferExecCompanyID *int       `form:"offer_exec_company_id"`
 	OfferDriverID      *int       `form:"offer_driver_id"`
@@ -196,10 +238,8 @@ type TripQuery struct {
 	OfferDeliveryStart *time.Time `form:"offer_delivery_start" time_format:"2006-01-02"`
 	OfferDeliveryEnd   *time.Time `form:"offer_delivery_end" time_format:"2006-01-02"`
 
-	// NEW: Search functionality
 	Search *string `form:"search"`
 
-	// NEW: Additional offer filters
 	OfferCostPerKmMin  *float64 `form:"offer_cost_per_km_min"`
 	OfferCostPerKmMax  *float64 `form:"offer_cost_per_km_max"`
 	OfferPriceMin      *float64 `form:"offer_price_min"`
@@ -207,10 +247,9 @@ type TripQuery struct {
 	OfferTotalPriceMin *float64 `form:"offer_total_price_min"`
 	OfferTotalPriceMax *float64 `form:"offer_total_price_max"`
 
-	// Existing pagination and sorting
 	Offset   int     `form:"offset" binding:"omitempty,min=0"`
 	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
-	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date"`
+	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date distance_km created_at updated_at"`
 	OrderDir *string `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
 }
 
