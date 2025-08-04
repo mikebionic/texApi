@@ -259,8 +259,34 @@ func GetTrips(query dto.TripQuery) ([]dto.Trip, error) {
 
 	conditions = append(conditions, "deleted = 0")
 
-	if hasOfferFilters(query) {
-		offerIDs, err := GetOfferIDsByParams(query)
+	offerFiltersQuery := dto.OfferFiltersQuery{
+		OfferCompanyID:     query.OfferCompanyID,
+		OfferExecCompanyID: query.OfferExecCompanyID,
+		OfferDriverID:      query.OfferDriverID,
+		OfferVehicleID:     query.OfferVehicleID,
+		OfferFromCountryID: query.OfferFromCountryID,
+		OfferToCountryID:   query.OfferToCountryID,
+		OfferFromAddress:   query.OfferFromAddress,
+		OfferToAddress:     query.OfferToAddress,
+		OfferFromCountry:   query.OfferFromCountry,
+		OfferToCountry:     query.OfferToCountry,
+		OfferState:         query.OfferState,
+		OfferRole:          query.OfferRole,
+		OfferValidityStart: query.OfferValidityStart,
+		OfferValidityEnd:   query.OfferValidityEnd,
+		OfferDeliveryStart: query.OfferDeliveryStart,
+		OfferDeliveryEnd:   query.OfferDeliveryEnd,
+		OfferCostPerKmMin:  query.OfferCostPerKmMin,
+		OfferCostPerKmMax:  query.OfferCostPerKmMax,
+		OfferPriceMin:      query.OfferPriceMin,
+		OfferPriceMax:      query.OfferPriceMax,
+		OfferTotalPriceMin: query.OfferTotalPriceMin,
+		OfferTotalPriceMax: query.OfferTotalPriceMax,
+		Search:             query.Search,
+	}
+
+	if hasOfferFilters(offerFiltersQuery) {
+		offerIDs, err := GetOfferIDsByParams(offerFiltersQuery)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get offer IDs: %w", err)
 		}
@@ -717,34 +743,103 @@ func GetLastPositions(query dto.PositionQuery) ([]dto.GPSLog, error) {
 	var args []interface{}
 	argIndex := 1
 
+	offerFiltersQuery := dto.OfferFiltersQuery{
+		OfferCompanyID:     query.OfferCompanyID,
+		OfferExecCompanyID: query.OfferExecCompanyID,
+		OfferDriverID:      query.OfferDriverID,
+		OfferVehicleID:     query.OfferVehicleID,
+		OfferFromCountryID: query.OfferFromCountryID,
+		OfferToCountryID:   query.OfferToCountryID,
+		OfferFromAddress:   query.OfferFromAddress,
+		OfferToAddress:     query.OfferToAddress,
+		OfferFromCountry:   query.OfferFromCountry,
+		OfferToCountry:     query.OfferToCountry,
+		OfferState:         query.OfferState,
+		OfferRole:          query.OfferRole,
+		OfferValidityStart: query.OfferValidityStart,
+		OfferValidityEnd:   query.OfferValidityEnd,
+		OfferDeliveryStart: query.OfferDeliveryStart,
+		OfferDeliveryEnd:   query.OfferDeliveryEnd,
+		OfferCostPerKmMin:  query.OfferCostPerKmMin,
+		OfferCostPerKmMax:  query.OfferCostPerKmMax,
+		OfferPriceMin:      query.OfferPriceMin,
+		OfferPriceMax:      query.OfferPriceMax,
+		OfferTotalPriceMin: query.OfferTotalPriceMin,
+		OfferTotalPriceMax: query.OfferTotalPriceMax,
+		Search:             query.Search,
+	}
+
+	if hasOfferFilters(offerFiltersQuery) {
+		offerIDs, err := GetOfferIDsByParams(offerFiltersQuery)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get offer IDs: %w", err)
+		}
+
+		if len(offerIDs) == 0 {
+			return []dto.GPSLog{}, nil
+		}
+
+		placeholders := make([]string, len(offerIDs))
+		for i, offerID := range offerIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, offerID)
+			argIndex++
+		}
+
+		conditions = append(conditions, fmt.Sprintf(`id IN (
+            SELECT trip_id FROM tbl_offer_trip 
+            WHERE offer_id IN (%s) AND deleted = 0
+        )`, strings.Join(placeholders, ",")))
+	}
+
 	if len(query.TripIDs) > 0 {
-		conditions = append(conditions, fmt.Sprintf("trip_id = ANY($%d)", argIndex))
-		args = append(args, query.TripIDs)
-		argIndex++
+		placeholders := make([]string, len(query.TripIDs))
+		for i, tripID := range query.TripIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, tripID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("trip_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(query.CompanyIDs) > 0 {
-		conditions = append(conditions, fmt.Sprintf("company_id = ANY($%d)", argIndex))
-		args = append(args, query.CompanyIDs)
-		argIndex++
+		placeholders := make([]string, len(query.CompanyIDs))
+		for i, companyID := range query.CompanyIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, companyID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("company_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(query.OfferIDs) > 0 {
-		conditions = append(conditions, fmt.Sprintf("offer_id = ANY($%d)", argIndex))
-		args = append(args, query.OfferIDs)
-		argIndex++
+		placeholders := make([]string, len(query.OfferIDs))
+		for i, offerID := range query.OfferIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, offerID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("offer_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(query.DriverIDs) > 0 {
-		conditions = append(conditions, fmt.Sprintf("driver_id = ANY($%d)", argIndex))
-		args = append(args, query.DriverIDs)
-		argIndex++
+		placeholders := make([]string, len(query.DriverIDs))
+		for i, driverID := range query.DriverIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, driverID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("driver_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(query.VehicleIDs) > 0 {
-		conditions = append(conditions, fmt.Sprintf("vehicle_id = ANY($%d)", argIndex))
-		args = append(args, query.VehicleIDs)
-		argIndex++
+		placeholders := make([]string, len(query.VehicleIDs))
+		for i, vehicleID := range query.VehicleIDs {
+			placeholders[i] = fmt.Sprintf("$%d", argIndex)
+			args = append(args, vehicleID)
+			argIndex++
+		}
+		conditions = append(conditions, fmt.Sprintf("vehicle_id IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	whereClause := ""
@@ -753,14 +848,14 @@ func GetLastPositions(query dto.PositionQuery) ([]dto.GPSLog, error) {
 	}
 
 	queryStr := fmt.Sprintf(`
-		SELECT DISTINCT ON (COALESCE(trip_id, 0), COALESCE(driver_id, 0), COALESCE(vehicle_id, 0)) 
-		       id, company_id, vehicle_id, driver_id, offer_id, trip_id,
-		       battery_level, speed, heading, accuracy,
-		       ST_AsText(coordinates) as coordinates_txt,
-		       status, log_dt, created_at
-		FROM tbl_gps_log 
-		%s 
-		ORDER BY COALESCE(trip_id, 0), COALESCE(driver_id, 0), COALESCE(vehicle_id, 0), log_dt DESC`,
+        SELECT DISTINCT ON (COALESCE(trip_id, 0), COALESCE(driver_id, 0), COALESCE(vehicle_id, 0)) 
+               id, company_id, vehicle_id, driver_id, offer_id, trip_id,
+               battery_level, speed, heading, accuracy,
+               ST_AsText(coordinates) as coordinates_txt,
+               status, log_dt, created_at
+        FROM tbl_gps_log 
+        %s 
+        ORDER BY COALESCE(trip_id, 0), COALESCE(driver_id, 0), COALESCE(vehicle_id, 0), log_dt DESC`,
 		whereClause)
 
 	var logScans []GPSLogScan
@@ -904,8 +999,34 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 
 	conditions = append(conditions, "t.deleted = 0")
 
-	if hasOfferFilters(query) {
-		offerIDs, err := GetOfferIDsByParams(query)
+	offerFiltersQuery := dto.OfferFiltersQuery{
+		OfferCompanyID:     query.OfferCompanyID,
+		OfferExecCompanyID: query.OfferExecCompanyID,
+		OfferDriverID:      query.OfferDriverID,
+		OfferVehicleID:     query.OfferVehicleID,
+		OfferFromCountryID: query.OfferFromCountryID,
+		OfferToCountryID:   query.OfferToCountryID,
+		OfferFromAddress:   query.OfferFromAddress,
+		OfferToAddress:     query.OfferToAddress,
+		OfferFromCountry:   query.OfferFromCountry,
+		OfferToCountry:     query.OfferToCountry,
+		OfferState:         query.OfferState,
+		OfferRole:          query.OfferRole,
+		OfferValidityStart: query.OfferValidityStart,
+		OfferValidityEnd:   query.OfferValidityEnd,
+		OfferDeliveryStart: query.OfferDeliveryStart,
+		OfferDeliveryEnd:   query.OfferDeliveryEnd,
+		OfferCostPerKmMin:  query.OfferCostPerKmMin,
+		OfferCostPerKmMax:  query.OfferCostPerKmMax,
+		OfferPriceMin:      query.OfferPriceMin,
+		OfferPriceMax:      query.OfferPriceMax,
+		OfferTotalPriceMin: query.OfferTotalPriceMin,
+		OfferTotalPriceMax: query.OfferTotalPriceMax,
+		Search:             query.Search,
+	}
+
+	if hasOfferFilters(offerFiltersQuery) {
+		offerIDs, err := GetOfferIDsByParams(offerFiltersQuery)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get offer IDs: %w", err)
 		}
@@ -1371,7 +1492,7 @@ func GetTripsDetailed(query dto.TripQuery) ([]dto.TripDetailed, error) {
 	return trips, nil
 }
 
-func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
+func GetOfferIDsByParams(query dto.OfferFiltersQuery) ([]int, error) {
 	var conditions []string
 	var args []interface{}
 	argIndex := 1
@@ -1570,7 +1691,7 @@ func GetOfferIDsByParams(query dto.TripQuery) ([]int, error) {
 	return offerIDs, nil
 }
 
-func hasOfferFilters(query dto.TripQuery) bool {
+func hasOfferFilters(query dto.OfferFiltersQuery) bool {
 	return query.OfferCompanyID != nil ||
 		query.OfferExecCompanyID != nil ||
 		query.OfferDriverID != nil ||

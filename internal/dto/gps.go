@@ -155,14 +155,6 @@ type GPSLogQuery struct {
 	OrderDir    *string    `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
 }
 
-type PositionQuery struct {
-	TripIDs    []int `form:"trip_ids"`
-	CompanyIDs []int `form:"company_ids"`
-	OfferIDs   []int `form:"offer_ids"`
-	DriverIDs  []int `form:"driver_ids"`
-	VehicleIDs []int `form:"vehicle_ids"`
-}
-
 type TripQuery struct {
 	// Existing fields
 	DriverID     *int       `form:"driver_id"`
@@ -221,6 +213,24 @@ type TripQuery struct {
 	ExcludeVehicleID *int    `form:"exclude_vehicle_id"`
 	ExcludeTripIDs   *string `form:"exclude_trip_ids"`
 
+	OfferFiltersQuery
+
+	Offset   int     `form:"offset" binding:"omitempty,min=0"`
+	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
+	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date distance_km created_at updated_at"`
+	OrderDir *string `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
+}
+
+type PositionQuery struct {
+	OfferFiltersQuery
+	TripIDs    []int
+	CompanyIDs []int
+	OfferIDs   []int
+	DriverIDs  []int
+	VehicleIDs []int
+}
+
+type OfferFiltersQuery struct {
 	OfferCompanyID     *int       `form:"offer_company_id"`
 	OfferExecCompanyID *int       `form:"offer_exec_company_id"`
 	OfferDriverID      *int       `form:"offer_driver_id"`
@@ -246,11 +256,6 @@ type TripQuery struct {
 	OfferPriceMax      *float64 `form:"offer_price_max"`
 	OfferTotalPriceMin *float64 `form:"offer_total_price_min"`
 	OfferTotalPriceMax *float64 `form:"offer_total_price_max"`
-
-	Offset   int     `form:"offset" binding:"omitempty,min=0"`
-	Limit    int     `form:"limit" binding:"omitempty,min=1,max=1000"`
-	OrderBy  *string `form:"order_by" binding:"omitempty,oneof=id start_date end_date distance_km created_at updated_at"`
-	OrderDir *string `form:"order_dir" binding:"omitempty,oneof=ASC DESC"`
 }
 
 type TripDetailed struct {
