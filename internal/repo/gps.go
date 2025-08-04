@@ -792,54 +792,30 @@ func GetLastPositions(query dto.PositionQuery) ([]dto.GPSLog, error) {
         )`, strings.Join(placeholders, ",")))
 	}
 
-	if len(query.TripIDs) > 0 {
-		placeholders := make([]string, len(query.TripIDs))
-		for i, tripID := range query.TripIDs {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, tripID)
-			argIndex++
-		}
-		conditions = append(conditions, fmt.Sprintf("trip_id IN (%s)", strings.Join(placeholders, ",")))
-	}
-
-	if len(query.CompanyIDs) > 0 {
-		placeholders := make([]string, len(query.CompanyIDs))
-		for i, companyID := range query.CompanyIDs {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, companyID)
-			argIndex++
-		}
-		conditions = append(conditions, fmt.Sprintf("company_id IN (%s)", strings.Join(placeholders, ",")))
-	}
-
 	if len(query.OfferIDs) > 0 {
-		placeholders := make([]string, len(query.OfferIDs))
-		for i, offerID := range query.OfferIDs {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, offerID)
-			argIndex++
-		}
-		conditions = append(conditions, fmt.Sprintf("offer_id IN (%s)", strings.Join(placeholders, ",")))
+		conditions = append(conditions, fmt.Sprintf("offer_id = ANY($%d)", argIndex))
+		args = append(args, query.OfferIDs)
+		argIndex++
 	}
-
+	if len(query.TripIDs) > 0 {
+		conditions = append(conditions, fmt.Sprintf("trip_id = ANY($%d)", argIndex))
+		args = append(args, query.TripIDs)
+		argIndex++
+	}
 	if len(query.DriverIDs) > 0 {
-		placeholders := make([]string, len(query.DriverIDs))
-		for i, driverID := range query.DriverIDs {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, driverID)
-			argIndex++
-		}
-		conditions = append(conditions, fmt.Sprintf("driver_id IN (%s)", strings.Join(placeholders, ",")))
+		conditions = append(conditions, fmt.Sprintf("driver_id = ANY($%d)", argIndex))
+		args = append(args, query.DriverIDs)
+		argIndex++
 	}
-
 	if len(query.VehicleIDs) > 0 {
-		placeholders := make([]string, len(query.VehicleIDs))
-		for i, vehicleID := range query.VehicleIDs {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, vehicleID)
-			argIndex++
-		}
-		conditions = append(conditions, fmt.Sprintf("vehicle_id IN (%s)", strings.Join(placeholders, ",")))
+		conditions = append(conditions, fmt.Sprintf("vehicle_id = ANY($%d)", argIndex))
+		args = append(args, query.VehicleIDs)
+		argIndex++
+	}
+	if len(query.CompanyIDs) > 0 {
+		conditions = append(conditions, fmt.Sprintf("company_id = ANY($%d)", argIndex))
+		args = append(args, query.CompanyIDs)
+		argIndex++
 	}
 
 	whereClause := ""
@@ -864,7 +840,6 @@ func GetLastPositions(query dto.PositionQuery) ([]dto.GPSLog, error) {
 		return nil, fmt.Errorf("failed to get last positions: %w", err)
 	}
 
-	// Convert scanned results to dto.GPSLog
 	logs := make([]dto.GPSLog, len(logScans))
 	for i, scan := range logScans {
 		logs[i] = scan.ToGPSLog()

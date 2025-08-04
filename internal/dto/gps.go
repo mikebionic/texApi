@@ -222,12 +222,12 @@ type TripQuery struct {
 }
 
 type PositionQuery struct {
+	CompanyIDs []int `form:"company_ids"`
+	OfferIDs   []int `form:"offer_ids"`
+	DriverIDs  []int `form:"driver_ids"`
+	VehicleIDs []int `form:"vehicle_ids"`
+	TripIDs    []int `form:"trip_ids"`
 	OfferFiltersQuery
-	TripIDs    []int
-	CompanyIDs []int
-	OfferIDs   []int
-	DriverIDs  []int
-	VehicleIDs []int
 }
 
 type OfferFiltersQuery struct {
