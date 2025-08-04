@@ -1207,7 +1207,6 @@ func GetDetailedOfferList(ctx *gin.Context) {
 	var args []interface{}
 	argCounter := 1
 
-	// Basic filters
 	filters := map[string]string{
 		"company_id":        ctx.Query("company_id"),
 		"exec_company_id":   ctx.Query("exec_company_id"),
@@ -1239,7 +1238,6 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
-	// Numeric range filters
 	numericRanges := map[string]struct {
 		min string
 		max string
@@ -1267,7 +1265,6 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
-	// Date range filters
 	dateRanges := map[string]struct {
 		start string
 		end   string
@@ -1289,7 +1286,37 @@ func GetDetailedOfferList(ctx *gin.Context) {
 		}
 	}
 
-	// Global search functionality
+	tripAddedCheck := ctx.Query("trip_added_check")
+	if tripAddedCheck == "1" {
+		excludeOffersQuery := `
+        SELECT DISTINCT offer_id 
+        FROM tbl_offer_trip 
+        WHERE deleted = 0 AND status IN ('active', 'enabled')`
+
+		var excludeOfferIds []int
+		err := pgxscan.Select(
+			context.Background(),
+			db.DB,
+			&excludeOfferIds,
+			excludeOffersQuery,
+		)
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError,
+				utils.FormatErrorResponse("Couldn't retrieve trip offers", err.Error()))
+			return
+		}
+
+		if len(excludeOfferIds) > 0 {
+			excludeIds := make([]string, len(excludeOfferIds))
+			for i, id := range excludeOfferIds {
+				excludeIds[i] = strconv.Itoa(id)
+			}
+			whereClauses = append(whereClauses, fmt.Sprintf("o.id NOT IN (%s)", strings.Join(excludeIds, ",")))
+		}
+	}
+
+	// Global search
 	searchTerm := ctx.Query("search")
 	if searchTerm != "" {
 		searchClause := fmt.Sprintf(`(
@@ -1314,14 +1341,13 @@ func GetDetailedOfferList(ctx *gin.Context) {
 
 		whereClauses = append(whereClauses, searchClause)
 		searchPattern := "%" + searchTerm + "%"
-		// Add 23 search parameters (11 offer fields + 6 driver fields + 6 vehicle/trailer fields)
+		// !! 23 search parameters (11 offer fields + 6 driver fields + 6 vehicle/trailer fields)
 		for i := 0; i < 23; i++ {
 			args = append(args, searchPattern)
 		}
 		argCounter += 23
 	}
 
-	// Location-specific search (keeping backward compatibility)
 	searchFromLocation := ctx.Query("from_location")
 	if searchFromLocation != "" {
 		searchFromLocationClause := fmt.Sprintf(`(
