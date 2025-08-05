@@ -559,6 +559,7 @@ func OTPLoginRequest(ctx *gin.Context) {
 			LastName:    "",
 			CompanyName: newUser.Username,
 			Email:       newUser.Email,
+			Phone:       newUser.Phone,
 			ImageURL:    "",
 		}
 		companyID, err := repo.CreateCompanyShort(newCompany)
