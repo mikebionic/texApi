@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,6 +10,8 @@ import (
 	"texApi/internal/dto"
 	"texApi/internal/queries"
 	"texApi/pkg/utils"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/gin-gonic/gin"
@@ -216,6 +217,8 @@ func GetVehicleList(ctx *gin.Context) {
 		query += fmt.Sprintf(" AND v.vehicle_type_id = $%d", paramCount+1)
 		args = append(args, vehicleTypeID)
 		paramCount++
+	} else {
+		query += fmt.Sprintf(" AND v.vehicle_type_id != 14") // without trailer
 	}
 
 	if vehicleBrandID != "" {

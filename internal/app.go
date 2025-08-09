@@ -2,10 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"os"
@@ -15,6 +11,11 @@ import (
 	"texApi/internal/controllers"
 	"texApi/pkg/middlewares"
 	"time"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
 )
 
 func InitApp() *gin.Engine {
@@ -76,6 +77,7 @@ func InitApp() *gin.Engine {
 	controllers.Analytics(router)
 	controllers.Wiki(router)
 	controllers.PriceQuote(router)
+	controllers.Claim(router)
 	chat.Chat(router)
 
 	return router
