@@ -175,3 +175,98 @@ VALUES (
        15
     );
 
+
+CREATE TYPE claim_type AS ENUM ('complaint', 'claim', 'suggestion', 'compliment', 'inquiry', 'refund_request', 'damage_report', 'lost_item', 'delivery_delay', 'service_quality', 'billing_dispute');
+CREATE TYPE claim_status AS ENUM ('open', 'in_progress', 'pending_customer', 'pending_internal', 'resolved', 'closed', 'rejected', 'escalated');
+
+CREATE TABLE tbl_claim (
+    id                          SERIAL PRIMARY KEY,
+    uuid                        UUID          NOT NULL DEFAULT gen_random_uuid(),
+
+    user_id INT,
+    company_id INT,
+    name VARCHAR(200),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    address TEXT,
+    company_name VARCHAR(200),
+
+    subject VARCHAR(500),
+    description TEXT,
+    additional_details TEXT,
+    response_title VARCHAR(500),
+    response_description TEXT,
+
+    claim_type claim_type NOT NULL DEFAULT 'complaint',
+    claim_status claim_status NOT NULL DEFAULT 'open',
+    urgency_level INTEGER DEFAULT 3, -- 1-5 scale
+    meta TEXT,
+    meta2 TEXT,
+    meta3 TEXT,
+
+    created_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active                      INT           NOT NULL DEFAULT 1,
+    deleted                     INT           NOT NULL DEFAULT 0
+);
+
+
+
+INSERT INTO tbl_claim (
+    user_id, company_id, name, email, phone, address, company_name,
+    subject, description, additional_details, response_title, response_description,
+    claim_type, claim_status, urgency_level, meta, created_at, updated_at
+) VALUES
+(
+    1, 1, 'Sarah Johnson', 'sarah.johnson@email.com', '+1-555-0123',
+    '123 Oak Street, Springfield, IL 62701', 'Metro Logistics',
+    'Excellent driver service - Jake Martinez',
+    'Driver Jake was incredibly professional during my furniture delivery. He called 30 minutes ahead as promised, helped carry everything to my 3rd floor apartment, and was very careful with my fragile items.',
+    'Jake even stayed extra time to help position the furniture exactly where I wanted it. Outstanding customer service!',
+    'Driver Recognition',
+    'Thank you for the wonderful feedback about Jake Martinez. We have shared your comments with his supervisor and added this commendation to his performance record. We are proud to have dedicated drivers like Jake on our team.',
+    'compliment', 'closed', 2,
+    '{"driver_id": "DRV-1247", "delivery_id": "DEL-20240801-456", "service_rating": 5}',
+    '2024-08-01 14:30:00', '2024-08-02 09:15:00'
+),
+
+(
+    2, 2, 'Michael Chen', 'mchen@techcorp.com', '+1-555-0456',
+    '456 Pine Avenue, Austin, TX 73301', 'Austin Electronics',
+    'Great tracking system and app updates',
+    'Your new app update with real-time GPS tracking is fantastic! I could see exactly where my driver was and got accurate delivery time estimates. The notification system worked perfectly.',
+    'This makes planning my day so much easier. Much better than your competitors!',
+    'Technology Team Appreciation',
+    'We are thrilled you are enjoying the new tracking features! Your feedback has been shared with our development team who worked hard on this update. We continue to innovate to improve customer experience.',
+    'compliment', 'closed', 1,
+    '{"app_version": "2.4.1", "feature_feedback": "gps_tracking", "delivery_id": "DEL-20240805-789"}',
+    '2024-08-05 16:20:00', '2024-08-06 10:45:00'
+),
+
+-- DAMAGE REPORT Claims
+(
+    3, 3, 'Emily Watson', 'e.watson@gmail.com', '+1-555-0789',
+    '789 Elm Drive, Seattle, WA 98101', 'Home Essentials LLC',
+    'Damaged package - glass coffee table',
+    'My glass coffee table arrived with a large crack across the surface. The packaging appeared intact from outside, but the internal protection was insufficient for such a fragile item.',
+    'I have photos of the damage and the packaging. The item is completely unusable in this condition.',
+    'Damage Claim Resolution',
+    'We sincerely apologize for the damaged coffee table. After reviewing your photos, we have processed a full refund of $245.99 and arranged pickup of the damaged item. We are also reviewing our packaging procedures for fragile items.',
+    'damage_report', 'closed', 4,
+    '{"claim_amount": "245.99", "item_sku": "TBL-GLASS-001", "photos_attached": true, "refund_processed": true}',
+    '2024-07-28 11:15:00', '2024-07-30 14:20:00'
+),
+
+-- COMPLAINT Claims
+(
+    2, 2, 'Michael Chen', 'mchen@techcorp.com', '+1-555-0456',
+    '456 Pine Avenue, Austin, TX 73301', 'Premium Electronics',
+    'Driver was rude and unprofessional',
+    'Driver David was extremely rude during delivery. He complained about having to walk to my door, threw the package carelessly, and was dismissive when I asked him to be more careful with the fragile electronics.',
+    'This is unacceptable service, especially for a premium delivery option that I paid extra for.',
+    'Service Issue Resolution',
+    'We sincerely apologize for the unprofessional behavior you experienced. Driver David has been disciplined and will undergo additional customer service training. We have also refunded your premium delivery fee ($15.99) and provided a service credit.',
+    'complaint', 'closed', 4,
+    '{"driver_id": "DRV-2891", "delivery_fee_refunded": "15.99", "service_credit": "25.00", "disciplinary_action": true}',
+    '2024-07-30 17:30:00', '2024-08-01 12:45:00'
+)
