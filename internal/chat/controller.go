@@ -1,10 +1,11 @@
 package chat
 
 import (
-	"github.com/gin-gonic/gin"
 	"texApi/config"
 	"texApi/database"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Chat(router *gin.Engine) {
@@ -49,5 +50,12 @@ func Chat(router *gin.Engine) {
 		wsRouteGroup.GET("/connect/", wsHandler.HandleWebSocket)
 		wsRouteGroup.GET("/join/", wsHandler.HandleJoinConversation)
 		wsRouteGroup.GET("/leave/", wsHandler.HandleLeaveConversation)
+	}
+
+	callGroup := router.Group(config.ENV.API_PREFIX+"/call-room/", middlewares.Guard)
+	{
+		callGroup.POST("/create/", apiHandler.CreateCallRoom)
+		callGroup.GET("/join/:uuid", apiHandler.JoinCallRoom)
+		callGroup.POST("/end/:uuid", apiHandler.EndCallRoom)
 	}
 }

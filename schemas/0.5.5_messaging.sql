@@ -220,3 +220,20 @@ CREATE TABLE tbl_company_contact
     UNIQUE (company_id, system_company_id)
 );
 
+
+CREATE TABLE tbl_call_room
+(
+    id              SERIAL PRIMARY KEY,
+    uuid            UUID         NOT NULL DEFAULT gen_random_uuid(),
+    conversation_id INT          NOT NULL DEFAULT 0,
+    max_user        INT          NOT NULL DEFAULT 2,
+    user_ids        TEXT[]       NOT NULL DEFAULT '{}',
+    profile_ids     TEXT[]       NOT NULL DEFAULT '{}',
+    title           VARCHAR(200) NOT NULL DEFAULT '',
+    hex             VARCHAR(60)  NOT NULL DEFAULT '',
+    duration        INT          NOT NULL DEFAULT 60, -- 1h
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active          INT          NOT NULL DEFAULT 1,
+    deleted         INT          NOT NULL DEFAULT 0
+);
