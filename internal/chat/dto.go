@@ -181,3 +181,30 @@ func prepareUsersJSONB(memberIDs []int, timestamp time.Time) (string, error) {
 	}
 	return string(jsonData), nil
 }
+
+type CallRoom struct {
+	ID             int       `json:"id"`
+	UUID           string    `json:"uuid"`
+	ConversationID int       `json:"conversation_id"`
+	MaxUser        int       `json:"max_user"`
+	UserIDs        []string  `json:"user_ids"`
+	ProfileIDs     []string  `json:"profile_ids"`
+	Title          string    `json:"title"`
+	Hex            string    `json:"hex"`
+	Duration       int       `json:"duration"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	Active         int       `json:"active"`
+	Deleted        int       `json:"deleted"`
+	JoinURL        string    `json:"join_url,omitempty"`
+	JitsiURL       string    `json:"jitsi_url,omitempty"`
+}
+
+type CreateCallRoomRequest struct {
+	UserIDs        []string `json:"user_ids" binding:"required"`
+	ConversationID int      `json:"conversation_id"`
+	ProfileIDs     []string `json:"profile_ids"`
+	Title          string   `json:"title"`
+	Duration       int      `json:"duration"`
+	MaxUser        int      `json:"max_user"`
+}
