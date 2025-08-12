@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"os"
 	"strconv"
 	"time"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 
 	"github.com/joho/godotenv"
 )
@@ -17,6 +18,7 @@ type Config struct {
 	API_PREFIX     string
 	API_PORT       string
 	API_SECRET     string
+	JITSI_URL      string
 	SYSTEM_HEADER  string
 	SYSTEM_SECRET  string
 
@@ -83,6 +85,7 @@ func InitConfig() {
 	ENV.API_PORT = os.Getenv("API_PORT")
 	ENV.API_DEBUG = os.Getenv("API_DEBUG") == "true"
 	ENV.API_SECRET = os.Getenv("API_SECRET")
+	ENV.JITSI_URL = os.Getenv("JITSI_URL")
 	ENV.SYSTEM_HEADER = os.Getenv("SYSTEM_HEADER")
 	ENV.SYSTEM_SECRET = os.Getenv("SYSTEM_SECRET")
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
