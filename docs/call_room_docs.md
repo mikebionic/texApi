@@ -1,7 +1,7 @@
 # Call Room API Documentation
 
 ## Overview
-
+git 
 The Call Room API provides secure integration with Jitsi for creating and managing video/audio calls within conversations. It generates unique call rooms, validates user access, and handles call lifecycle management.
 
 **Creating a Call:**
