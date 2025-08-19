@@ -17,3 +17,17 @@ func SafeInt(i *int) int {
 var (
 	EmptyString = ""
 )
+
+func SafeBool(i *bool) bool {
+	if i == nil {
+		return false
+	}
+	return *i
+}
+
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}

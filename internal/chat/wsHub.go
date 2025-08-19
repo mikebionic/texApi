@@ -3,6 +3,8 @@ package chat
 import (
 	"log"
 	"sync"
+	"texApi/internal/firebasePush"
+	"texApi/pkg/utils"
 	"time"
 )
 
@@ -129,22 +131,67 @@ func (h *Hub) RouteMessage(message *Message) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	clients, ok := h.rooms[message.ConversationID]
-	if !ok {
-		log.Printf("No clients found for conversation %d", message.ConversationID)
-		return
-	}
+	clients, _ := h.rooms[message.ConversationID]
+	// if !ok {
+	// 	log.Printf("No clients found for conversation %d", message.ConversationID)
+	// 	return
+	// }
+
+	var successDeliveries []int
 
 	for client := range clients {
 		if client.userID != message.SenderID {
 			select {
 			case client.send <- message:
 				log.Printf("Message routed to user %d", client.userID)
+				successDeliveries = append(successDeliveries, client.userID)
 			default:
 				log.Printf("Failed to route message to user %d (channel full)", client.userID)
 				go h.unregisterClient(client)
 			}
 		}
+	}
+
+	participants, err := firebasePush.GetConversationParticipants(message.ConversationID, message.SenderID)
+	if err != nil {
+		log.Printf("Error getting participants of conversation %d", message.ConversationID)
+		return
+	}
+
+	deliverSet := make(map[int]struct{}, len(successDeliveries))
+	for _, id := range successDeliveries {
+		deliverSet[id] = struct{}{}
+	}
+	failedList := make([]int, 0, len(participants))
+	for _, id := range participants {
+		if _, exists := deliverSet[id]; !exists {
+			failedList = append(failedList, id)
+		}
+	}
+
+	if len(failedList) > 0 {
+		go func() {
+			senderName := "Unknown"
+			if message.SenderName != nil {
+				senderName = *message.SenderName
+			}
+
+			payload := firebasePush.NotificationPayload{
+				SenderName:     senderName,
+				ConversationID: message.ConversationID,
+				UserID:         message.SenderID,
+				Content:        message.Content,
+				CreatedAt:      message.CreatedAt.Format("2006-01-02 15:04:05"),
+				Type:           message.Type,
+				IsSilent:       utils.BoolToInt(utils.SafeBool(message.IsSilent)),
+			}
+
+			for _, userID := range failedList {
+				if err := firebasePush.SendNotificationToUser(userID, payload); err != nil {
+					log.Printf("Error sending Firebase notification to user %d: %v", userID, err)
+				}
+			}
+		}()
 	}
 }
 

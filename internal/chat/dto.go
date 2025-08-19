@@ -6,25 +6,23 @@ import (
 	"time"
 )
 
-type MessageType string
-
 const (
-	MessageTypeText         MessageType = "text"
-	MessageTypeMessage      MessageType = "message"
-	MessageTypeJoin         MessageType = "user_joined"
-	MessageTypeLeave        MessageType = "user_left"
-	MessageTypeError        MessageType = "error"
-	MessageTypeNotification MessageType = "notification"
-	MessageTypeDisconnect   MessageType = "disconnect"
-	MessageTypeTyping       MessageType = "typing"
-	MessageTypeSendingFile  MessageType = "sending_file"
-	MessageTypeSticker      MessageType = "choosing_sticker"
-	MessageTypeMessageRead  MessageType = "message_read"
+	MessageTypeText         string = "text"
+	MessageTypeMessage      string = "message"
+	MessageTypeJoin         string = "user_joined"
+	MessageTypeLeave        string = "user_left"
+	MessageTypeError        string = "error"
+	MessageTypeNotification string = "notification"
+	MessageTypeDisconnect   string = "disconnect"
+	MessageTypeTyping       string = "typing"
+	MessageTypeSendingFile  string = "sending_file"
+	MessageTypeSticker      string = "choosing_sticker"
+	MessageTypeMessageRead  string = "message_read"
 )
 
 type Message struct {
 	MessageCommon
-	Type          MessageType             `json:"type"`
+	Type          string                  `json:"type"`
 	ForwardedFrom *int                    `json:"forwarded_from_id"`
 	Extras        *map[string]interface{} `json:"extras"` // For additional metadata
 	OnlineStatus  *OnlineStatus           `json:"online_status,omitempty"`

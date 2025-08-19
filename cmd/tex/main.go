@@ -11,6 +11,7 @@ import (
 	"texApi/config"
 	"texApi/database"
 	app "texApi/internal"
+	"texApi/internal/firebasePush"
 	"texApi/internal/scheduler"
 	"texApi/pkg/smtp"
 	"time"
@@ -32,6 +33,10 @@ func main() {
 	analyticsScheduler := scheduler.NewAnalyticsScheduler()
 	if err := analyticsScheduler.Start(); err != nil {
 		log.Fatalf("Failed to start analytics scheduler: %v", err)
+	}
+
+	if err := firebasePush.InitFirebase(); err != nil {
+		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
 
 	router := app.InitApp()

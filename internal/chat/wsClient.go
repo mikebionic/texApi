@@ -95,7 +95,7 @@ func (c *Client) ReadPump(repository *Repository) {
 		switch msg.Type {
 		case MessageTypeMessage:
 			c.handleSendMessage(msg, repository)
-			
+
 		case MessageTypeText:
 			c.handleSendMessage(msg, repository)
 
@@ -137,6 +137,23 @@ func (c *Client) handleSendMessage(msg Message, repository *Repository) {
 	log.Printf("Message saved with ID: %d", msgID)
 
 	c.hub.RouteMessage(&msg)
+
+	// // backup function, or for offline users
+	// go func() {
+	// 	senderName := "Unknown"
+	// 	if msg.SenderName != nil {
+	// 		senderName = *msg.SenderName
+	// 	}
+
+	// 	if err := notification.SendNotificationToConversation(
+	// 		msg.ConversationID,
+	// 		msg.SenderID,
+	// 		senderName,
+	// 		msg.Content,
+	// 	); err != nil {
+	// 		log.Printf("Error sending Firebase notification for conversation %d: %v", msg.ConversationID, err)
+	// 	}
+	// }()
 }
 
 func (c *Client) handleMessageRead(msg Message, repository *Repository) {

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"texApi/config"
 	"texApi/internal/dto"
+	"texApi/internal/firebasePush"
 	"texApi/internal/repo"
 	"texApi/pkg/smtp"
 	"texApi/pkg/utils"
@@ -222,11 +223,15 @@ func Logout(ctx *gin.Context) {
 		return
 	}
 
+	userID := ctx.MustGet("id").(int)
+	firebasePush.RemoveInvalidUserTokens(userID)
+
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Logged out successfully", nil))
 }
 
 func LogoutAllSessions(ctx *gin.Context) {
 	userID := ctx.MustGet("id").(int)
+	firebasePush.RemoveInvalidUserTokens(userID)
 
 	err := repo.InvalidateAllUserSessions(userID)
 	if err != nil {
