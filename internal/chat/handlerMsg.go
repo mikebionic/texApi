@@ -241,12 +241,15 @@ func (h *APIHandler) SendDirectNotification(c *gin.Context) {
 		return
 	}
 
+	senderName := "system"
+
 	notification := &Message{
 		MessageCommon: MessageCommon{
 			SenderID:    0,
 			Content:     payload.Content,
 			CreatedAt:   time.Now(),
-			MessageType: "system",
+			MessageType: "notification",
+			SenderName:  &senderName,
 		},
 		Type:   MessageTypeNotification,
 		Extras: payload.Data,
