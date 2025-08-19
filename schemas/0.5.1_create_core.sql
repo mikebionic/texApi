@@ -138,6 +138,20 @@ CREATE INDEX idx_sessions_user_id ON tbl_sessions(user_id);
 CREATE INDEX idx_sessions_refresh_token ON tbl_sessions(refresh_token);
 CREATE INDEX idx_sessions_expires_at ON tbl_sessions(expires_at);
 
+CREATE TABLE tbl_firebase_token (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES tbl_user(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    device_type TEXT, -- Optional: 'android', 'ios', 'web', etc.
+    meta text,
+    meta2 text,
+    meta3 text,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	active INT NOT NULL DEFAULT 1,
+	deleted INT NOT NULL DEFAULT 0
+);
+
 
 CREATE TABLE tbl_plan_moves(
    id SERIAL PRIMARY KEY,

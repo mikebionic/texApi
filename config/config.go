@@ -60,10 +60,11 @@ type Config struct {
 	SMTP_PASSWORD string
 	APP_LOGO_URL  string
 
-	OTP_SERVICE_ROUTE string
-	OTP_SERVICE_TEXT  string
-	OTP_ANDROID_HASH  string
-	APP_NAME          string
+	OTP_SERVICE_ROUTE      string
+	OTP_SERVICE_TEXT       string
+	OTP_ANDROID_HASH       string
+	APP_NAME               string
+	FIREBASE_ADMINSDK_FILE string
 
 	FileUpload FileUpload
 }
@@ -148,6 +149,7 @@ func InitConfig() {
 	ENV.OTP_SERVICE_TEXT = os.Getenv("OTP_SERVICE_TEXT")
 	ENV.OTP_ANDROID_HASH = os.Getenv("OTP_ANDROID_HASH")
 	ENV.APP_NAME = os.Getenv("APP_NAME")
+	ENV.FIREBASE_ADMINSDK_FILE = os.Getenv("FIREBASE_ADMINSDK_FILE")
 
 	ENV.FileUpload = FileUpload{
 		MaxFileSize:      ENV.MAX_FILE_SIZE * 1024 * 1024,

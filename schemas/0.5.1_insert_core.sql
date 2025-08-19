@@ -102,6 +102,14 @@ UPDATE tbl_user SET company_id = 17 WHERE id = 17;
 UPDATE tbl_user SET company_id = 18 WHERE id = 18;
 
 
+INSERT INTO tbl_firebase_token(
+    user_id, device_type, token
+) VALUES (
+    3, 'android',
+    'dRaNhjs9T1yMpHjZdXCF29:APA91bG6lmqnE9Rd_iVkhbX3LP4EHzpUG4K22HHOLM_agRZabQunXMOvPygiVhKQPhTZL5wCE67uytPGZK3WeFa9MglGGfUL93Vwm_SIYNU8EsQnCGUoYBk'
+);
+
+
 INSERT INTO tbl_driver (company_id, first_name, last_name, patronymic_name, phone, email, image_url, active, deleted) VALUES
 (1, 'John', 'Doe', 'Smith', '+1234567890', 'john.doe@logisticscorp.com', 'http://example.com/avatar1.png', 1, 0),
 (1, 'Jane', 'Doe', 'Johnson', '+0987654321', 'jane.doe@logisticscorp.com', 'http://example.com/avatar2.png', 1, 0),

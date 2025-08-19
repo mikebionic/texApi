@@ -9,6 +9,7 @@ import (
 	"texApi/database"
 	"texApi/internal/chat"
 	"texApi/internal/controllers"
+	"texApi/internal/firebasePush"
 	"texApi/pkg/middlewares"
 	"time"
 
@@ -79,6 +80,7 @@ func InitApp() *gin.Engine {
 	controllers.PriceQuote(router)
 	controllers.Claim(router)
 	chat.Chat(router)
+	firebasePush.Controller(router)
 
 	return router
 }
