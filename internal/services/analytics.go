@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/georgysavva/scany/v2/pgxscan"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"texApi/database"
 	"texApi/internal/dto"
 	"texApi/pkg/utils"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/gin-gonic/gin"
 )
 
 // GetAnalytics handles GET request for analytics data
@@ -172,16 +173,17 @@ func GetAnalyticsList(filter dto.AnalyticsFilter) ([]dto.Analytics, int, error) 
 
 	// Main query with sorting and pagination
 	query := fmt.Sprintf(`
-        SELECT id, uuid, user_all, user_sender, user_carrier, last_user_id,
-               user_sender_new, user_carrier_new, last_offer_id, offer_new_sender,
-               offer_new_carrier, offer_all, offer_active, offer_pending,
-               offer_completed, offer_no_response, last_completed_offer_id,
-               total_revenue, average_cost_per_km, total_distance, active_companies,
-               period_start, period_end, created_at, updated_at
-        FROM tbl_analytics
-        WHERE %s
-        ORDER BY %s %s
-        LIMIT $%d OFFSET $%d`,
+		SELECT id, uuid, user_all, user_sender, user_carrier, last_user_id,
+			user_sender_new, user_carrier_new, last_offer_id, offer_new_sender,
+			offer_new_carrier, offer_all, offer_active, offer_pending,
+			offer_completed, offer_no_response, last_completed_offer_id,
+			total_revenue, average_cost_per_km, total_distance, active_companies,
+			period_start, period_end, created_at, updated_at,
+			meta, meta2, meta3, summary_meta, popular_routes
+		FROM tbl_analytics
+		WHERE %s
+		ORDER BY %s %s
+		LIMIT $%d OFFSET $%d`,
 		whereClause, filter.OrderBy, filter.OrderDir, argIndex, argIndex+1)
 
 	args = append(args, filter.PerPage, (filter.Page-1)*filter.PerPage)
@@ -260,12 +262,13 @@ func GenerateAnalytics() error {
 
 	var analytics dto.Analytics
 	var lastAnalytics dto.Analytics
+	var summary dto.SummaryMeta
 
 	// Get the last analytics record to determine baseline
 	lastQuery := `
-        SELECT COALESCE(MAX(last_user_id), 0) as last_user_id,
-               COALESCE(MAX(last_offer_id), 0) as last_offer_id,
-               COALESCE(MAX(last_completed_offer_id), 0) as last_completed_offer_id
+	SELECT COALESCE(MAX(last_user_id), 0) as last_user_id,
+	COALESCE(MAX(last_offer_id), 0) as last_offer_id,
+	COALESCE(MAX(last_completed_offer_id), 0) as last_completed_offer_id
         FROM tbl_analytics 
         WHERE deleted = 0`
 
@@ -293,40 +296,48 @@ func GenerateAnalytics() error {
 	analytics.UserSender = getUserCount("sender")
 	analytics.UserCarrier = getUserCount("carrier")
 	analytics.LastUserID = getLastUserID()
-	analytics.UserSenderNew = getNewUserCount("sender", lastAnalytics.LastUserID)
-	analytics.UserCarrierNew = getNewUserCount("carrier", lastAnalytics.LastUserID)
+	analytics.UserSenderNew, summary.UserSenderNewIDs = getNewUserCount("sender", lastAnalytics.LastUserID)
+	analytics.UserCarrierNew, summary.UserCarrierNewIDs = getNewUserCount("carrier", lastAnalytics.LastUserID)
 
 	// Offer metrics
+
+	analytics.OfferNewSender, summary.OfferNewSenderIDs = getNewOfferCount("sender", lastAnalytics.LastOfferID)
+	analytics.OfferNewCarrier, summary.OfferNewCarrierIDs = getNewOfferCount("carrier", lastAnalytics.LastOfferID)
+
 	analytics.LastOfferID = getLastOfferID()
-	analytics.OfferNewSender = getNewOfferCount("sender", lastAnalytics.LastOfferID)
-	analytics.OfferNewCarrier = getNewOfferCount("carrier", lastAnalytics.LastOfferID)
-	analytics.OfferAll = getOfferCount("active")
-	analytics.OfferActive = getOfferCountByState("active", "enabled", "working")
-	analytics.OfferPending = getOfferCountByState("pending")
-	analytics.OfferCompleted = getOfferCountByState("completed", "archived")
-	analytics.OfferNoResponse = getOffersWithoutResponse()
 	analytics.LastCompletedOfferID = getLastCompletedOfferID()
+	analytics.OfferAll, summary.OfferAllIDs = getOfferCount("active") // adjust exclude state if needed
+	analytics.OfferActive, summary.OfferActiveIDs = getOfferCountByState("active", "enabled", "working")
+	analytics.OfferPending, summary.OfferPendingIDs = getOfferCountByState("pending")
+	analytics.OfferCompleted, summary.OfferCompletedIDs = getOfferCountByState("completed", "archived")
+	analytics.OfferNoResponse, summary.OfferNoResponseIDs = getOffersWithoutResponse()
 
 	// Additional metrics
 	analytics.TotalRevenue = getTotalRevenue()
 	analytics.AverageCostPerKm = getAverageCostPerKm()
 	analytics.TotalDistance = getTotalDistance()
-	analytics.ActiveCompanies = getActiveCompanies()
+	analytics.ActiveCompanies, summary.ActiveCompaniesIDs = getActiveCompanies()
 
-	// Insert the analytics record
+	analytics.SummaryMeta = summary
+
+	routes := generatePopularRoutes()
+	analytics.PopularRoutes = routes
+
 	insertQuery := `
         INSERT INTO tbl_analytics (
-            user_all, user_sender, user_carrier, last_user_id,
-            user_sender_new, user_carrier_new, last_offer_id,
-            offer_new_sender, offer_new_carrier, offer_all,
-            offer_active, offer_pending, offer_completed,
-            offer_no_response, last_completed_offer_id,
-            total_revenue, average_cost_per_km, total_distance,
-            active_companies, period_start, period_end
-        ) VALUES (
-            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-            $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
-        )`
+			user_all, user_sender, user_carrier, last_user_id,
+			user_sender_new, user_carrier_new, last_offer_id,
+			offer_new_sender, offer_new_carrier, offer_all,
+			offer_active, offer_pending, offer_completed,
+			offer_no_response, last_completed_offer_id,
+			total_revenue, average_cost_per_km, total_distance,
+			active_companies, period_start, period_end,
+			meta, meta2, meta3, summary_meta, popular_routes
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+			$11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
+			$22, $23, $24, $25, $26
+		)`
 
 	_, err = database.DB.Exec(context.Background(), insertQuery,
 		analytics.UserAll, analytics.UserSender, analytics.UserCarrier, analytics.LastUserID,
@@ -336,6 +347,7 @@ func GenerateAnalytics() error {
 		analytics.OfferNoResponse, analytics.LastCompletedOfferID,
 		analytics.TotalRevenue, analytics.AverageCostPerKm, analytics.TotalDistance,
 		analytics.ActiveCompanies, analytics.PeriodStart, analytics.PeriodEnd,
+		"", "", "", analytics.SummaryMeta, analytics.PopularRoutes,
 	)
 
 	if err != nil {
@@ -343,7 +355,6 @@ func GenerateAnalytics() error {
 		return err
 	}
 
-	// Update last run time
 	updateConfigQuery := `
         UPDATE tbl_analytics_config 
         SET value = $1, updated_at = CURRENT_TIMESTAMP 
@@ -376,11 +387,22 @@ func getLastUserID() int {
 	return id
 }
 
-func getNewUserCount(role string, lastID int) int {
-	var count int
-	query := fmt.Sprintf("SELECT COUNT(*) FROM tbl_user WHERE deleted = 0 AND active = 1 AND role = '%s' AND id > %d", role, lastID)
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
+func getNewUserCount(role string, lastID int) (int, []int) {
+	var ids []int
+	query := `
+		SELECT id 
+		FROM tbl_user 
+		WHERE deleted = 0 AND active = 1 AND role = $1 AND id > $2
+	`
+	rows, _ := database.DB.Query(context.Background(), query, role, lastID)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
 }
 
 func getLastOfferID() int {
@@ -390,37 +412,79 @@ func getLastOfferID() int {
 	return id
 }
 
-func getNewOfferCount(role string, lastID int) int {
-	var count int
-	query := fmt.Sprintf("SELECT COUNT(*) FROM tbl_offer WHERE deleted = 0 AND offer_role = '%s' AND id > %d", role, lastID)
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
-}
-
-func getOfferCount(excludeState string) int {
-	var count int
-	query := "SELECT COUNT(*) FROM tbl_offer WHERE deleted = 0 AND offer_state NOT IN ('deleted', 'pending', 'disabled')"
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
-}
-
-func getOfferCountByState(states ...string) int {
-	var count int
-	stateStr := "'" + strings.Join(states, "','") + "'"
-	query := fmt.Sprintf("SELECT COUNT(*) FROM tbl_offer WHERE deleted = 0 AND offer_state IN (%s)", stateStr)
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
-}
-
-func getOffersWithoutResponse() int {
-	var count int
+func getNewOfferCount(role string, lastID int) (int, []int) {
+	var ids []int
 	query := `
-        SELECT COUNT(*) 
-        FROM tbl_offer o 
-        LEFT JOIN tbl_offer_response r ON o.id = r.offer_id AND r.deleted = 0
-        WHERE o.deleted = 0 AND r.id IS NULL`
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
+		SELECT id 
+		FROM tbl_offer 
+		WHERE deleted = 0 AND offer_role = $1 AND id > $2 AND deleted = 0
+	`
+	rows, _ := database.DB.Query(context.Background(), query, role, lastID)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
+}
+
+func getOfferCount(excludeState string) (int, []int) {
+	var ids []int
+	query := `
+		SELECT id
+		FROM tbl_offer 
+		WHERE deleted = 0 
+		AND offer_state NOT IN ('deleted', 'pending', 'disabled')
+	`
+	rows, _ := database.DB.Query(context.Background(), query)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
+}
+
+func getOfferCountByState(states ...string) (int, []int) {
+	var ids []int
+	stateStr := "'" + strings.Join(states, "','") + "'"
+	query := fmt.Sprintf(`
+        SELECT id FROM tbl_offer 
+        WHERE deleted = 0 AND offer_state IN (%s)`, stateStr)
+
+	rows, _ := database.DB.Query(context.Background(), query)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
+}
+
+func getOffersWithoutResponse() (int, []int) {
+	var ids []int
+	query := `
+		SELECT o.id
+		FROM tbl_offer o 
+		LEFT JOIN tbl_offer_response r 
+		  ON o.id = r.offer_id AND r.deleted = 0
+		WHERE o.deleted = 0 AND r.id IS NULL
+	`
+	rows, _ := database.DB.Query(context.Background(), query)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
 }
 
 func getLastCompletedOfferID() int {
@@ -451,9 +515,46 @@ func getTotalDistance() int {
 	return distance
 }
 
-func getActiveCompanies() int {
-	var count int
-	query := "SELECT COUNT(DISTINCT company_id) FROM tbl_offer WHERE deleted = 0 AND offer_state IN ('active', 'working')"
-	database.DB.QueryRow(context.Background(), query).Scan(&count)
-	return count
+func getActiveCompanies() (int, []int) {
+	var ids []int
+	query := `
+        SELECT DISTINCT company_id
+        FROM tbl_offer
+        WHERE deleted = 0 AND offer_state IN ('active','working')`
+	rows, _ := database.DB.Query(context.Background(), query)
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	return len(ids), ids
+}
+
+func generatePopularRoutes() (routes []dto.RouteData) {
+	query := `
+    SELECT 
+        from_address, to_address, from_country, to_country,
+        from_country_id, from_city_id, 
+        to_country_id, to_city_id, from_region, to_region,
+        COUNT(*) as offer_count,
+        array_agg(id) as offer_ids
+    FROM tbl_offer 
+    WHERE deleted = 0 
+    GROUP BY from_address, to_address, from_country, to_country,
+             from_country_id, from_city_id,
+             to_country_id, to_city_id, from_region, to_region
+    ORDER BY offer_count DESC 
+    LIMIT 10`
+
+	err := pgxscan.Select(context.Background(), database.DB, &routes, query)
+	if err != nil {
+		log.Printf("Error getting popular routes: %v", err)
+		return routes
+	}
+
+	return routes
+	// jsonBytes, _ := json.Marshal(routes)
+	// return string(jsonBytes)
 }
