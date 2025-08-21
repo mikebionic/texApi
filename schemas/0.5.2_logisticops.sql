@@ -244,6 +244,12 @@ CREATE TABLE tbl_analytics (
     average_cost_per_km DECIMAL(10, 2) NOT NULL DEFAULT 0.0,
     total_distance INT NOT NULL DEFAULT 0,
     active_companies INT NOT NULL DEFAULT 0,
+    
+    meta TEXT,
+    meta2 TEXT, 
+    meta3 TEXT,
+    summary_meta JSONB,
+    popular_routes JSONB,
 
     -- Metadata
     period_start TIMESTAMP NOT NULL,
