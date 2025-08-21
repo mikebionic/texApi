@@ -1,8 +1,9 @@
 package dto
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Analytics struct {
@@ -27,10 +28,46 @@ type Analytics struct {
 	AverageCostPerKm     float64   `json:"average_cost_per_km"`
 	TotalDistance        int       `json:"total_distance"`
 	ActiveCompanies      int       `json:"active_companies"`
-	PeriodStart          time.Time `json:"period_start"`
-	PeriodEnd            time.Time `json:"period_end"`
-	CreatedAt            time.Time `json:"created_at"`
-	UpdatedAt            time.Time `json:"updated_at"`
+
+	Meta        string      `json:"meta"`
+	Meta2       string      `json:"meta2"`
+	Meta3       string      `json:"meta3"`
+	SummaryMeta SummaryMeta `json:"summary_meta"`
+	// SummaryMeta   json.RawMessage `json:"summary_meta"`
+	PopularRoutes []RouteData `json:"popular_routes"`
+
+	PeriodStart time.Time `json:"period_start"`
+	PeriodEnd   time.Time `json:"period_end"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type SummaryMeta struct {
+	UserSenderNewIDs   []int `json:"user_sender_new_ids"`
+	UserCarrierNewIDs  []int `json:"user_carrier_new_ids"`
+	OfferNewSenderIDs  []int `json:"offer_new_sender_ids"`
+	OfferNewCarrierIDs []int `json:"offer_new_carrier_ids"`
+	OfferAllIDs        []int `json:"offer_all_ids"`
+	OfferActiveIDs     []int `json:"offer_active_ids"`
+	OfferPendingIDs    []int `json:"offer_pending_ids"`
+	OfferCompletedIDs  []int `json:"offer_completed_ids"`
+	OfferNoResponseIDs []int `json:"offer_no_response_ids"`
+	ActiveCompaniesIDs []int `json:"active_companies_ids"`
+}
+
+type RouteData struct {
+	FromAddress   string `db:"from_address"`
+	ToAddress     string `db:"to_address"`
+	FromCountry   string `db:"from_country"`
+	ToCountry     string `db:"to_country"`
+	FromCountryID int    `db:"from_country_id"`
+	FromCityID    int    `db:"from_city_id"`
+	ToCountryID   int    `db:"to_country_id"`
+	ToCityID      int    `db:"to_city_id"`
+	FromRegion    string `db:"from_region"`
+	ToRegion      string `db:"to_region"`
+	OfferCount    int    `db:"offer_count"`
+	OfferIDs      []int  `db:"offer_ids"`
 }
 
 type AnalyticsFilter struct {
@@ -55,6 +92,12 @@ type AnalyticsFilter struct {
 	OfferPendingMax   *int `form:"offer_pending_max" binding:"omitempty,min=0"`
 	OfferCompletedMin *int `form:"offer_completed_min" binding:"omitempty,min=0"`
 	OfferCompletedMax *int `form:"offer_completed_max" binding:"omitempty,min=0"`
+
+	Meta          *string      `json:"meta"`
+	Meta2         *string      `json:"meta2"`
+	Meta3         *string      `json:"meta3"`
+	SummaryMeta   *SummaryMeta `json:"summary_meta"`
+	PopularRoutes *[]RouteData `json:"popular_routes"`
 
 	PeriodStart *time.Time `form:"period_start" binding:"omitempty"`
 	PeriodEnd   *time.Time `form:"period_end" binding:"omitempty"`

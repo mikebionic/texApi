@@ -126,6 +126,11 @@ func (s *AnalyticsScheduler) getLastRunTime() (time.Time, error) {
 		return time.Time{}, err
 	}
 
+	layoutSQL := "2006-01-02 15:04:05"
+	if t, err := time.Parse(layoutSQL, lastRunStr); err == nil {
+		return t, nil
+	}
+
 	return time.Parse(time.RFC3339, lastRunStr)
 }
 
