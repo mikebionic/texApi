@@ -79,6 +79,7 @@ func InitApp() *gin.Engine {
 	controllers.Wiki(router)
 	controllers.PriceQuote(router)
 	controllers.Claim(router)
+	controllers.Newsletter(router)
 	chat.Chat(router)
 	firebasePush.Controller(router)
 
