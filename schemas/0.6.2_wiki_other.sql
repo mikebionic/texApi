@@ -179,35 +179,36 @@ VALUES (
 CREATE TYPE claim_type AS ENUM ('complaint', 'claim', 'suggestion', 'compliment', 'inquiry', 'refund_request', 'damage_report', 'lost_item', 'delivery_delay', 'service_quality', 'billing_dispute');
 CREATE TYPE claim_status AS ENUM ('open', 'in_progress', 'pending_customer', 'pending_internal', 'resolved', 'closed', 'rejected', 'escalated');
 
-CREATE TABLE tbl_claim (
-    id                          SERIAL PRIMARY KEY,
-    uuid                        UUID          NOT NULL DEFAULT gen_random_uuid(),
+CREATE TABLE tbl_claim
+(
+    id                   SERIAL PRIMARY KEY,
+    uuid                 UUID         NOT NULL DEFAULT gen_random_uuid(),
 
-    user_id INT,
-    company_id INT,
-    name VARCHAR(200),
-    email VARCHAR(255),
-    phone VARCHAR(50),
-    address TEXT,
-    company_name VARCHAR(200),
+    user_id              INT,
+    company_id           INT,
+    name                 VARCHAR(200),
+    email                VARCHAR(255),
+    phone                VARCHAR(50),
+    address              TEXT,
+    company_name         VARCHAR(200),
 
-    subject VARCHAR(500),
-    description TEXT,
-    additional_details TEXT,
-    response_title VARCHAR(500),
+    subject              VARCHAR(500),
+    description          TEXT,
+    additional_details   TEXT,
+    response_title       VARCHAR(500),
     response_description TEXT,
 
-    claim_type claim_type NOT NULL DEFAULT 'complaint',
-    claim_status claim_status NOT NULL DEFAULT 'open',
-    urgency_level INTEGER DEFAULT 3, -- 1-5 scale
-    meta TEXT,
-    meta2 TEXT,
-    meta3 TEXT,
+    claim_type           claim_type   NOT NULL DEFAULT 'complaint',
+    claim_status         claim_status NOT NULL DEFAULT 'open',
+    urgency_level        INTEGER               DEFAULT 3, -- 1-5 scale
+    meta                 TEXT,
+    meta2                TEXT,
+    meta3                TEXT,
 
-    created_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    active                      INT           NOT NULL DEFAULT 1,
-    deleted                     INT           NOT NULL DEFAULT 0
+    created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active               INT          NOT NULL DEFAULT 1,
+    deleted              INT          NOT NULL DEFAULT 0
 );
 
 
@@ -229,7 +230,6 @@ INSERT INTO tbl_claim (
     '{"driver_id": "DRV-1247", "delivery_id": "DEL-20240801-456", "service_rating": 5}',
     '2024-08-01 14:30:00', '2024-08-02 09:15:00'
 ),
-
 (
     2, 2, 'Michael Chen', 'mchen@techcorp.com', '+1-555-0456',
     '456 Pine Avenue, Austin, TX 73301', 'Austin Electronics',
@@ -242,7 +242,6 @@ INSERT INTO tbl_claim (
     '{"app_version": "2.4.1", "feature_feedback": "gps_tracking", "delivery_id": "DEL-20240805-789"}',
     '2024-08-05 16:20:00', '2024-08-06 10:45:00'
 ),
-
 -- DAMAGE REPORT Claims
 (
     3, 3, 'Emily Watson', 'e.watson@gmail.com', '+1-555-0789',
@@ -256,7 +255,6 @@ INSERT INTO tbl_claim (
     '{"claim_amount": "245.99", "item_sku": "TBL-GLASS-001", "photos_attached": true, "refund_processed": true}',
     '2024-07-28 11:15:00', '2024-07-30 14:20:00'
 ),
-
 -- COMPLAINT Claims
 (
     2, 2, 'Michael Chen', 'mchen@techcorp.com', '+1-555-0456',
@@ -269,4 +267,34 @@ INSERT INTO tbl_claim (
     'complaint', 'closed', 4,
     '{"driver_id": "DRV-2891", "delivery_fee_refunded": "15.99", "service_credit": "25.00", "disciplinary_action": true}',
     '2024-07-30 17:30:00', '2024-08-01 12:45:00'
-)
+);
+
+
+CREATE TYPE newsletter_status_t AS ENUM('active', 'unsubscribed', 'bounced', 'pending');
+CREATE TYPE newsletter_frequency_t AS ENUM('daily', 'weekly', 'monthly', 'other');
+
+CREATE TABLE tbl_newsletter
+(
+    id              SERIAL PRIMARY KEY,
+    uuid            UUID        NOT NULL   DEFAULT gen_random_uuid(),
+    email           VARCHAR(50) NOT NULL UNIQUE,
+    status          newsletter_status_t    DEFAULT 'active',
+    subscribed_at   TIMESTAMP              DEFAULT CURRENT_TIMESTAMP,
+    unsubscribed_at TIMESTAMP   NULL,
+    first_name      VARCHAR(100),
+    last_name       VARCHAR(100),
+    frequency       newsletter_frequency_t DEFAULT 'other',
+
+    ip_address      VARCHAR(45),
+    user_agent      TEXT,
+    referrer_url    VARCHAR(500),
+
+    meta            TEXT,
+    meta2           TEXT,
+    meta3           TEXT,
+
+    created_at      TIMESTAMP   NOT NULL   DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP   NOT NULL   DEFAULT CURRENT_TIMESTAMP,
+    active          INT         NOT NULL   DEFAULT 1,
+    deleted         INT         NOT NULL   DEFAULT 0
+);
