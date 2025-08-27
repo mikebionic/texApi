@@ -22,7 +22,7 @@ func CreateTodayDir(absPath string) (string, error) {
 	directory := filepath.Join(absPath, currentDate)
 
 	if _, err := os.Stat(directory); os.IsNotExist(err) {
-		if err := os.MkdirAll(directory, os.ModePerm); err != nil {
+		if err = os.MkdirAll(directory, os.ModePerm); err != nil {
 			return "", err
 		}
 	}
@@ -69,7 +69,7 @@ var fileConfig = FileConfig{
 		"zip": true,
 	},
 	WebPQuality: 85,
-	MaxFileSize: config.ENV.MAX_FILE_SIZE * 1024 * 1024,
+	MaxFileSize: 520 * 1024 * 1024, // 520mb
 }
 
 func getFileType(extension string) string {

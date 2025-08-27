@@ -92,6 +92,8 @@ func InitConfig() {
 	ENV.SESSION_MAX_AGE = 86400 * 30 // TODO: WTF?
 
 	ENV.UPLOAD_PATH = os.Getenv("UPLOAD_PATH")
+	var maxFileSizeEnv, _ = strconv.Atoi(os.Getenv("MAX_FILE_SIZE"))
+	ENV.MAX_FILE_SIZE = int64(maxFileSizeEnv)
 	ENV.MAX_FILES_UPLOAD, _ = strconv.Atoi(os.Getenv("MAX_FILES_UPLOAD"))
 	ENV.STATIC_URL = fmt.Sprintf("/%s/uploads/", ENV.API_PREFIX)
 	ENV.COMPRESS_IMAGES, _ = strconv.Atoi(os.Getenv("COMPRESS_IMAGES"))
