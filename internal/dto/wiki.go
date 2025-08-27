@@ -69,56 +69,48 @@ type Wiki struct {
 	TextRichRu      *string   `json:"text_rich_ru" db:"text_rich_ru"`
 	TextRichTk      *string   `json:"text_rich_tk" db:"text_rich_tk"`
 
-	// File URLs
 	FileUrl1 *string `json:"file_url_1" db:"file_url_1"`
 	FileUrl2 *string `json:"file_url_2" db:"file_url_2"`
 	FileUrl3 *string `json:"file_url_3" db:"file_url_3"`
 	FileUrl4 *string `json:"file_url_4" db:"file_url_4"`
 	FileUrl5 *string `json:"file_url_5" db:"file_url_5"`
 
-	// File Info English
 	FileInfo1En *string `json:"file_info_1_en" db:"file_info_1_en"`
 	FileInfo2En *string `json:"file_info_2_en" db:"file_info_2_en"`
 	FileInfo3En *string `json:"file_info_3_en" db:"file_info_3_en"`
 	FileInfo4En *string `json:"file_info_4_en" db:"file_info_4_en"`
 	FileInfo5En *string `json:"file_info_5_en" db:"file_info_5_en"`
 
-	// File Info Russian
 	FileInfo1Ru *string `json:"file_info_1_ru" db:"file_info_1_ru"`
 	FileInfo2Ru *string `json:"file_info_2_ru" db:"file_info_2_ru"`
 	FileInfo3Ru *string `json:"file_info_3_ru" db:"file_info_3_ru"`
 	FileInfo4Ru *string `json:"file_info_4_ru" db:"file_info_4_ru"`
 	FileInfo5Ru *string `json:"file_info_5_ru" db:"file_info_5_ru"`
 
-	// File Info Turkmen
 	FileInfo1Tk *string `json:"file_info_1_tk" db:"file_info_1_tk"`
 	FileInfo2Tk *string `json:"file_info_2_tk" db:"file_info_2_tk"`
 	FileInfo3Tk *string `json:"file_info_3_tk" db:"file_info_3_tk"`
 	FileInfo4Tk *string `json:"file_info_4_tk" db:"file_info_4_tk"`
 	FileInfo5Tk *string `json:"file_info_5_tk" db:"file_info_5_tk"`
 
-	// Video URLs
 	VideoUrl1 *string `json:"video_url_1" db:"video_url_1"`
 	VideoUrl2 *string `json:"video_url_2" db:"video_url_2"`
 	VideoUrl3 *string `json:"video_url_3" db:"video_url_3"`
 	VideoUrl4 *string `json:"video_url_4" db:"video_url_4"`
 	VideoUrl5 *string `json:"video_url_5" db:"video_url_5"`
 
-	// Video Info English
 	VideoInfo1En *string `json:"video_info_1_en" db:"video_info_1_en"`
 	VideoInfo2En *string `json:"video_info_2_en" db:"video_info_2_en"`
 	VideoInfo3En *string `json:"video_info_3_en" db:"video_info_3_en"`
 	VideoInfo4En *string `json:"video_info_4_en" db:"video_info_4_en"`
 	VideoInfo5En *string `json:"video_info_5_en" db:"video_info_5_en"`
 
-	// Video Info Russian
 	VideoInfo1Ru *string `json:"video_info_1_ru" db:"video_info_1_ru"`
 	VideoInfo2Ru *string `json:"video_info_2_ru" db:"video_info_2_ru"`
 	VideoInfo3Ru *string `json:"video_info_3_ru" db:"video_info_3_ru"`
 	VideoInfo4Ru *string `json:"video_info_4_ru" db:"video_info_4_ru"`
 	VideoInfo5Ru *string `json:"video_info_5_ru" db:"video_info_5_ru"`
 
-	// Video Info Turkmen
 	VideoInfo1Tk *string `json:"video_info_1_tk" db:"video_info_1_tk"`
 	VideoInfo2Tk *string `json:"video_info_2_tk" db:"video_info_2_tk"`
 	VideoInfo3Tk *string `json:"video_info_3_tk" db:"video_info_3_tk"`
