@@ -204,7 +204,6 @@ func ProcessImageFile(processedFile ProcessedFile) (ProcessedFile, error) {
 	err := CompressImageIfNeeded(processedFile.StoragePath)
 	if err != nil {
 		log.Printf("Warning: Failed to compress image: %s, error: %v", processedFile.StoragePath, err)
-		// Continue processing even if compression fails
 	}
 
 	img, err := imaging.Open(processedFile.StoragePath)
@@ -262,7 +261,6 @@ func GenerateStoragePath(baseDir string, categoryFN string, mediaType string, fi
 }
 
 func DetectMimeType(buffer []byte) string {
-	// Using standard library to detect mime type
 	return http.DetectContentType(buffer)
 }
 
@@ -364,7 +362,6 @@ func ProcessAudioFile(processedFile ProcessedFile) (ProcessedFile, error) {
 		return processedFile, fmt.Errorf("failed to create thumbnail directory: %v", err)
 	}
 
-	// Generate waveform image as thumbnail
 	cmd := exec.Command("ffmpeg",
 		"-i", processedFile.StoragePath,
 		"-filter_complex", "showwavespic=s=640x120:colors=#3498db",
@@ -374,12 +371,10 @@ func ProcessAudioFile(processedFile ProcessedFile) (ProcessedFile, error) {
 
 	if output, err := cmd.CombinedOutput(); err != nil {
 		log.Printf("Failed to generate audio waveform thumbnail: %v, output: %s", err, string(output))
-		// Continue even if thumbnail generation fails
 	} else {
 		processedFile.ThumbFn = "thumb_" + strings.TrimSuffix(processedFile.UniqueFileName, filepath.Ext(processedFile.UniqueFileName)) + ".jpg"
 	}
 
-	// Get audio metadata using ffprobe
 	cmd = exec.Command("ffprobe",
 		"-v", "error",
 		"-show_entries", "format=duration",
