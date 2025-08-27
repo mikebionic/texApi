@@ -2,8 +2,6 @@ package fileUtils
 
 import (
 	"fmt"
-	"github.com/disintegration/imaging"
-	"github.com/google/uuid"
 	"io"
 	"log"
 	"math"
@@ -16,6 +14,9 @@ import (
 	"strings"
 	"texApi/config"
 	"time"
+
+	"github.com/disintegration/imaging"
+	"github.com/google/uuid"
 )
 
 type FileValidationResult struct {
@@ -91,7 +92,6 @@ func ValidateSingleFile(fileHeader *multipart.FileHeader, categoryFN string) Fil
 	}
 	defer file.Close()
 
-	// Determine mime type
 	buffer := make([]byte, 512)
 	_, err = file.Read(buffer)
 	if err != nil {
@@ -129,7 +129,6 @@ func ValidateSingleFile(fileHeader *multipart.FileHeader, categoryFN string) Fil
 	return result
 }
 
-// ProcessMediaFiles Main function for saving file
 func ProcessMediaFiles(fileResults []FileValidationResult) ([]ProcessedFile, error) {
 	var processedFiles []ProcessedFile
 	var errorMessages []string
@@ -185,10 +184,8 @@ func CompressImageIfNeeded(imagePath string) error {
 	origWidth := img.Bounds().Dx()
 	origHeight := img.Bounds().Dy()
 
-	// Only compress if image is larger than our target size
 	maxSize := config.ENV.COMPRESS_SIZE
 	if origWidth > maxSize || origHeight > maxSize {
-		// Resize while maintaining aspect ratio
 		img = imaging.Fit(img, maxSize, maxSize, imaging.Lanczos)
 		err = imaging.Save(img, imagePath, imaging.JPEGQuality(config.ENV.COMPRESS_QUALITY))
 		if err != nil {
@@ -204,7 +201,6 @@ func ProcessImageFile(processedFile ProcessedFile) (ProcessedFile, error) {
 		return processedFile, fmt.Errorf("file does not exist: %s", processedFile.StoragePath)
 	}
 
-	// Compress the original image if needed
 	err := CompressImageIfNeeded(processedFile.StoragePath)
 	if err != nil {
 		log.Printf("Warning: Failed to compress image: %s, error: %v", processedFile.StoragePath, err)
@@ -217,7 +213,6 @@ func ProcessImageFile(processedFile ProcessedFile) (ProcessedFile, error) {
 		return processedFile, err
 	}
 
-	// Update dimensions (which may have changed after compression)
 	processedFile.Width = img.Bounds().Dx()
 	processedFile.Height = img.Bounds().Dy()
 
@@ -252,13 +247,11 @@ func GenerateUniqueFileName(originalName string, ext string) string {
 	return fmt.Sprintf("%s_%s%s", strings.TrimSuffix(baseName, ext), uniqueID, ext)
 }
 
-// GenerateStoragePath Creates and validates path
 func GenerateStoragePath(baseDir string, categoryFN string, mediaType string, fileName string) (fullPath, filePath string, err error) {
 	currentDate := time.Now().Format("2006-01-02")
 	filePath = filepath.Join(categoryFN, mediaType, currentDate)
 	dirPath := filepath.Join(baseDir, filePath)
 
-	// Ensure directory exists
 	err = os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
 		log.Printf("Failed to create directory: %s, error: %v", dirPath, err)
