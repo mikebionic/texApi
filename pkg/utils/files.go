@@ -3,9 +3,6 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"github.com/chai2010/webp"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"image"
 	"io"
 	"mime/multipart"
@@ -14,6 +11,10 @@ import (
 	"strings"
 	"texApi/config"
 	"time"
+
+	"github.com/chai2010/webp"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func CreateTodayDir(absPath string) (string, error) {
@@ -32,12 +33,14 @@ const (
 	TypeImage = "image"
 	TypeVideo = "video"
 	TypeDoc   = "document"
+	TypeOther = "other"
 )
 
 type FileConfig struct {
 	ImageExtensions map[string]bool
 	VideoExtensions map[string]bool
 	DocExtensions   map[string]bool
+	OtherExtensions map[string]bool
 	WebPQuality     float32
 	MaxFileSize     int64 // in bytes
 }
@@ -61,8 +64,12 @@ var fileConfig = FileConfig{
 		"svg":  true,
 		"gif":  true,
 	},
-	WebPQuality: 85,               // Good balance between quality and size
-	MaxFileSize: 10 * 1024 * 1024, // 10MB
+	OtherExtensions: map[string]bool{
+		"apk": true,
+		"zip": true,
+	},
+	WebPQuality: 85,
+	MaxFileSize: config.ENV.MAX_FILE_SIZE * 1024 * 1024,
 }
 
 func getFileType(extension string) string {
@@ -76,6 +83,9 @@ func getFileType(extension string) string {
 	}
 	if fileConfig.DocExtensions[ext] {
 		return TypeDoc
+	}
+	if fileConfig.OtherExtensions[ext] {
+		return TypeOther
 	}
 
 	return ""
@@ -167,14 +177,14 @@ func processFile(fileHeader *multipart.FileHeader, targetDir string) (string, er
 		finalFileName = uniqueName + ".webp"
 		outputPath = filepath.Join(targetDir, finalFileName)
 
-		if err := compressImageToWebP(file, outputPath); err != nil {
+		if err = compressImageToWebP(file, outputPath); err != nil {
 			return "", fmt.Errorf("failed to compress image: %w", err)
 		}
 	} else {
 		finalFileName = uniqueName + "." + extension
 		outputPath = filepath.Join(targetDir, finalFileName)
 
-		if err := saveRegularFile(file, outputPath); err != nil {
+		if err = saveRegularFile(file, outputPath); err != nil {
 			return "", fmt.Errorf("failed to save file: %w", err)
 		}
 	}
