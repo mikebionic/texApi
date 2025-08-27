@@ -156,7 +156,6 @@ type GPSLogQuery struct {
 }
 
 type TripQuery struct {
-	// Existing fields
 	DriverID     *int       `form:"driver_id"`
 	VehicleID    *int       `form:"vehicle_id"`
 	FromAddress  *string    `form:"from_address"`
