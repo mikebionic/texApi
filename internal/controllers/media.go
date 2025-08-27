@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"texApi/config"
 	"texApi/internal/services"
 	"texApi/pkg/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Media(router *gin.Engine) {
@@ -12,7 +13,6 @@ func Media(router *gin.Engine) {
 	{
 		group.POST("upload/", middlewares.Guard, services.UploadFile)
 
-		// General media routes
 		group.GET("/:uuid/:filename", services.MediaFileHandler)
 		group.GET("/:uuid/:filename/:thumb", services.MediaFileHandler)
 	}
