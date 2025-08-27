@@ -12,13 +12,13 @@ CREATE TABLE tbl_wiki
     description_tk              TEXT,
     description_type     VARCHAR(50)   NOT NULL DEFAULT 'plain', -- 'plain', 'html', 'info'
 
-    text_md_en                  TEXT,         -- Markdown content in English
-    text_md_ru                  TEXT,         -- Markdown content in Russian
-    text_md_tk                  TEXT,         -- Markdown content in Turkmen
+    text_md_en                  TEXT,
+    text_md_ru                  TEXT,
+    text_md_tk                  TEXT,
 
-    text_rich_en                 TEXT,         -- Rich text/HTML content in English
-    text_rich_ru                 TEXT,         -- Rich text/HTML content in Russian
-    text_rich_tk                 TEXT,         -- Rich text/HTML content in Turkmen
+    text_rich_en                 TEXT,
+    text_rich_ru                 TEXT,
+    text_rich_tk                 TEXT,
 
     file_url_1                  VARCHAR(1000),
     file_url_2                  VARCHAR(1000),
@@ -26,9 +26,9 @@ CREATE TABLE tbl_wiki
     file_url_4                  VARCHAR(1000),
     file_url_5                  VARCHAR(1000),
 
-    file_info_1_en              VARCHAR(500), -- File description in English
-    file_info_1_ru              VARCHAR(500), -- File description in Russian
-    file_info_1_tk              VARCHAR(500), -- File description in Turkmen
+    file_info_1_en              VARCHAR(500),
+    file_info_1_ru              VARCHAR(500),
+    file_info_1_tk              VARCHAR(500),
     file_info_2_en              VARCHAR(500),
     file_info_2_ru              VARCHAR(500),
     file_info_2_tk              VARCHAR(500),
@@ -48,9 +48,9 @@ CREATE TABLE tbl_wiki
     video_url_4                 VARCHAR(1000),
     video_url_5                 VARCHAR(1000),
 
-    video_info_1_en             VARCHAR(500), -- Video description in English
-    video_info_1_ru             VARCHAR(500), -- Video description in Russian
-    video_info_1_tk             VARCHAR(500), -- Video description in Turkmen
+    video_info_1_en             VARCHAR(500),
+    video_info_1_ru             VARCHAR(500),
+    video_info_1_tk             VARCHAR(500),
     video_info_2_en             VARCHAR(500),
     video_info_2_ru             VARCHAR(500),
     video_info_2_tk             VARCHAR(500),
@@ -92,12 +92,8 @@ CREATE TABLE tbl_wiki
     CONSTRAINT valid_version CHECK (version >= 1),
     CONSTRAINT valid_view_count CHECK (view_count >= 0),
     CONSTRAINT valid_read_time CHECK (estimated_read_time >= 0)
---     CONSTRAINT valid_category CHECK (category IN ('docs', 'wiki', 'guides', 'tutorials', 'api', 'faq', 'changelog', 'troubleshooting')),
---     CONSTRAINT valid_content_type CHECK (content_type IN ('article', 'tutorial', 'reference', 'guide', 'faq', 'changelog')),
---     CONSTRAINT valid_difficulty CHECK (difficulty_level IN ('beginner', 'intermediate', 'advanced'))
 );
 
--- Indexes for better performance
 CREATE INDEX idx_wiki_category_active ON tbl_wiki(category, active, deleted);
 CREATE INDEX idx_wiki_subcategory ON tbl_wiki(subcategory);
 CREATE INDEX idx_wiki_content_type ON tbl_wiki(content_type);

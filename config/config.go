@@ -224,6 +224,9 @@ var (
 		"application/json":       false,
 		"text/x-python":          false,
 	}
+	AllowedApkTypes = map[string]bool{
+		"application/vnd.android.package-archive": true, // .apk
+	}
 )
 
 func mergeAllowedTypes() map[string]bool {
@@ -252,5 +255,9 @@ func mergeAllowedTypes() map[string]bool {
 	for k, v := range AllowedCodeTypes {
 		allowedTypes[k] = v
 	}
+	for k, v := range AllowedApkTypes {
+		allowedTypes[k] = v
+	}
+
 	return allowedTypes
 }

@@ -231,24 +231,22 @@ CREATE TABLE tbl_version
     checksum                    VARCHAR(128), -- integrity verification
     changelog                   TEXT,
     release_notes               TEXT,
-    is_critical_update          BOOLEAN       NOT NULL DEFAULT FALSE, -- forces update
-    is_beta                     BOOLEAN       NOT NULL DEFAULT FALSE, -- flag
-    auto_update_enabled         BOOLEAN       NOT NULL DEFAULT TRUE,  -- allow auto-updates
-    rollout_percentage          INT           NOT NULL DEFAULT 100,   -- gradual rollout (0-100)
+    is_critical_update          BOOLEAN       NOT NULL DEFAULT FALSE,
+    is_beta                     BOOLEAN       NOT NULL DEFAULT FALSE,
+    auto_update_enabled         BOOLEAN       NOT NULL DEFAULT TRUE,
+    rollout_percentage          INT           NOT NULL DEFAULT 100,  -- gradual rollout (0-100)
     active_at                   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
-    deprecated_at               TIMESTAMP,    -- Extra, when this version becomes deprecated
-    end_of_life_at              TIMESTAMP,    -- Extra, when this version is no longer supported
+    deprecated_at               TIMESTAMP,    -- Optional, when this version becomes deprecated
+    end_of_life_at              TIMESTAMP,    -- Optional, when this version is no longer supported
     created_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     active                      INT           NOT NULL DEFAULT 1,
     deleted                     INT           NOT NULL DEFAULT 0,
 
-    -- Constraints
     CONSTRAINT unique_version_platform UNIQUE (version_number, platform, deleted),
     CONSTRAINT valid_rollout_percentage CHECK (rollout_percentage >= 0 AND rollout_percentage <= 100)
 );
 
--- Indexes for better performance
 CREATE INDEX idx_version_platform_active ON tbl_version(platform, active, deleted);
 CREATE INDEX idx_version_active_at ON tbl_version(active_at);
 CREATE INDEX idx_version_code ON tbl_version(version_code);

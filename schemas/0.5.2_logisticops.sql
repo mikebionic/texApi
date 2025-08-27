@@ -259,12 +259,10 @@ CREATE TABLE tbl_analytics (
     deleted INT NOT NULL DEFAULT 0
 );
 
--- Index for performance
 CREATE INDEX idx_analytics_created_at ON tbl_analytics(created_at);
 CREATE INDEX idx_analytics_period ON tbl_analytics(period_start, period_end);
 CREATE INDEX idx_analytics_deleted ON tbl_analytics(deleted);
 
--- Analytics configuration table
 CREATE TABLE tbl_analytics_config (
   id SERIAL PRIMARY KEY,
   key VARCHAR(100) NOT NULL UNIQUE,
