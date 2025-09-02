@@ -7,24 +7,60 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
         }
         .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 30px 20px;
             text-align: center;
-        }
-        .otp-code {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .description {
-            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .logo {
-            max-width: 150px;
+            max-width: 120px;
             padding: 10px;
-            margin-bottom: 30px;
-            background-color: dodgerblue;
-            border-radius: 5rem;
+            margin-bottom: 20px;
+            border: 1px solid dodgerblue;
+            border-radius: 3rem;
+            background-color: #f0f8ff;
+        }
+        h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #333333;
+        }
+        .description {
+            font-size: 15px;
+            color: #555555;
+            margin-bottom: 20px;
+        }
+        .otp-code {
+            display: inline-block;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            padding: 12px 24px;
+            border: 2px dashed dodgerblue;
+            border-radius: 8px;
+            background-color: #f9fcff;
+            color: #1a73e8;
+            margin: 20px 0;
+        }
+        p {
+            font-size: 14px;
+            color: #666666;
+        }
+        .footer {
+            font-size: 12px;
+            color: #999999;
+            margin-top: 25px;
+            border-top: 1px solid #eeeeee;
+            padding-top: 15px;
         }
     </style>
 </head>
@@ -35,6 +71,9 @@
     <p class="description">{{ .Description }}</p>
     <div class="otp-code">{{ .OTP }}</div>
     <p>If you haven't made this request, simply ignore this email.</p>
+    <div class="footer">
+        © {{ .Title }} – All rights reserved.
+    </div>
 </div>
 </body>
 </html>
