@@ -1,56 +1,66 @@
 # texApi
 
+A platform designed to coordinate freight transportation.
 Logistics related api ecosystem, written in Golang GIN, Postgres.
 
-### Docker Compose setup
+# 📦 Project Overview
 
-Using docker-compose:
-```sh
-# To rebuild the app container
-docker compose up --build app
+* User authentication & JWT-based sessions
+* Messaging, conversation, call-room handling
+* Offers, logistics, GPS tracking
+* Notifications (SMTP, Firebase)
+* Content & media management
+* Analytics and background schedulers
+* Price quote generation and matching
+* Newsletter management
+* Wiki & news content
+* Organization, driver, company management
+* File handling, image/video processing
+* SQL safety utilities
+* WebSocket real-time services
 
-# Or to rebuild all containers
-docker compose up --build
 
-# With DB initialization
-INIT_DB=true docker compose up --build -d
+### **Key Libraries / Features Detected**
 
-# App-only update
-INIT_DB=false docker compose up --build app -d
-```
+* JWT authentication
+* SQL safety and query helpers
+* SMTP email sending
+* Firebase push notifications
+* WebSocket real-time communication
+* File and media handling utilities
+* Analytics generation scheduler
 
 ---
 
-### Manual setup: 
+# 🧩 Major Modules Overview
 
-Put this repo folder in:
-**~/tex_backend/texApi**
+### **Authentication**
+Handles login, logout, OTP, OAuth, session management, token issuance, user activity tracking.
 
-Run initial configuration:
-```bash
-make init-sys
-```
-After that carefully configure the **systemd/system/texApi.service** file
+### **Messaging + Chat**
+Real-time features implemented via WebSockets and repositories for messages, conversations, reactions, call rooms.
 
-Update the app (need to have github access keys):
-```bash
-bash ~/tex_backend/texApi/scripts/update_tex.sh
-```
+### **Offers & Logistics**
+Cargo, offer, offer-response, pricing, packaging types, GPS logs, analytics, company/driver operations.
 
-Write absolute path of uploads directory to .env, then run:
-```bash
-make upload-dir
-```
+### **Content & Media**
+Upload, validate, process (including WebP compression), serve partial content (video), content management system.
 
-```bash
-make db
-make dev
-```
+---
 
-To build application:
+### Milestones:
++ [ ] passwords to bcrypt
++ [ ] HEADER AppLanguage: (options: ru en tk)
 
-```bash
-make build
-```
+---
 
+# 📚 Documentation
 
+The project includes extensive docs under `/docs/`, such as:
+
+* `analytics.md` — Analytics workflow
+* `call_room_docs.md` — Call room system
+* `firebaseNotification.md`
+* `auth_workflow.md`
+* `Price Quote Docs tbl_price_quote.md`
+* `app_docs.md`
