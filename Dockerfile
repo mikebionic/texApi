@@ -24,6 +24,7 @@ COPY --from=builder /app/.env /usr/local/bin/.env
 COPY --from=builder /app/scripts /usr/local/bin/scripts
 COPY --from=builder /app/schemas /usr/local/bin/schemas
 COPY --from=builder /app/_dump /usr/local/bin/_dump
+COPY --from=builder /app/assets /usr/local/bin/assets
 
 WORKDIR /usr/local/bin/
 
