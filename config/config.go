@@ -237,7 +237,7 @@ func InitConfig() error {
 	if customLogoURL != "" {
 		ENV.APP_LOGO_URL = customLogoURL
 	} else {
-		ENV.APP_LOGO_URL = fmt.Sprintf("%s/%s/assets/logo.svg", ENV.API_SERVER_URL, ENV.API_PREFIX)
+		ENV.APP_LOGO_URL = fmt.Sprintf("%s/%s/assets/logo.png", ENV.API_SERVER_URL, ENV.API_PREFIX)
 	}
 
 	ENV.OTP_SERVICE_ROUTE = getEnv("OTP_SERVICE_ROUTE", "")

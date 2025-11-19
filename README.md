@@ -3,6 +3,8 @@
 A platform designed to coordinate freight transportation.
 Logistics related api ecosystem, written in Golang GIN, Postgres.
 
+![logo.png](assets/logo.png)
+
 # 📦 Project Overview
 
 * User authentication & JWT-based sessions
@@ -19,6 +21,7 @@ Logistics related api ecosystem, written in Golang GIN, Postgres.
 * SQL safety utilities
 * WebSocket real-time services
 
+![screens.webp](docs/img/screens.webp)
 
 ### **Key Libraries / Features Detected**
 
@@ -48,6 +51,8 @@ Upload, validate, process (including WebP compression), serve partial content (v
 
 ---
 
+![info.webp](docs/img/info.webp)
+
 ### Milestones:
 + [ ] passwords to bcrypt
 + [ ] HEADER AppLanguage: (options: ru en tk)
@@ -64,3 +69,7 @@ The project includes extensive docs under `/docs/`, such as:
 * `auth_workflow.md`
 * `Price Quote Docs tbl_price_quote.md`
 * `app_docs.md`
+
+
+![home.webp](docs/img/home.webp)
+
