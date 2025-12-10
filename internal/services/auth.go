@@ -26,7 +26,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func sendNewLoginNotification(userID int, content string, data interface{}) {
@@ -92,7 +91,7 @@ func UserLogin(ctx *gin.Context) {
 		return
 	}
 	if config.ENV.ENCRYPT_PASSWORDS {
-		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		if err = utils.VerifyPasswordFromHash(password, user.Password); err != nil {
 			ctx.JSON(http.StatusUnauthorized, utils.FormatErrorResponse("Login failed, Invalid credentials", err.Error()))
 			return
 		}
@@ -318,6 +317,14 @@ func UpdatePasswordOTP(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Password is required", ""))
 		return
 	}
+	if config.ENV.ENCRYPT_PASSWORDS {
+		hashedPassword, err := utils.HashPassword(password)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error processing password", err.Error()))
+			return
+		}
+		password = hashedPassword
+	}
 
 	_, err = repo.UserUpdate(dto.UserUpdateAuth{Password: &password}, user.ID)
 	if err != nil {
@@ -483,6 +490,15 @@ func UserUpdate(ctx *gin.Context) {
 		return
 	}
 
+	if userData.Password != nil && *userData.Password != "" && config.ENV.ENCRYPT_PASSWORDS {
+		hashedPassword, err := utils.HashPassword(*userData.Password)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error processing password", err.Error()))
+			return
+		}
+		userData.Password = &hashedPassword
+	}
+
 	_, err := repo.UserUpdate(userData, userID)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.FormatErrorResponse("Couldn't update company", err.Error()))
@@ -497,6 +513,7 @@ func UserUpdate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, utils.FormatResponse("Company successfully updated", user))
 }
+
 func OTPLoginRequest(ctx *gin.Context) {
 	credentials := ctx.GetHeader("Credentials")
 	credType := ctx.GetHeader("CredType")
@@ -532,13 +549,27 @@ func OTPLoginRequest(ctx *gin.Context) {
 	if err == nil {
 		userID, err = repo.SaveUserWithOTP(dbUser.ID, dbUser.RoleID, dbUser.Verified, credType, credentials, otp, dbUser.Role)
 	} else {
+
 		newUser := dto.CreateUser{
-			Password: xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), credentials)),
-			Role:     role,
-			RoleID:   roleID,
-			Active:   1,
-			OTP:      &otp,
+			// Password: xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), credentials)),
+			Role:   role,
+			RoleID: roleID,
+			Active: 1,
+			OTP:    &otp,
 		}
+
+		generatedPassword := xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), credentials))
+		if config.ENV.ENCRYPT_PASSWORDS {
+			hashedPassword, err := utils.HashPassword(generatedPassword)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error processing password", err.Error()))
+				return
+			}
+			newUser.Password = hashedPassword
+		} else {
+			newUser.Password = generatedPassword
+		}
+
 		if credType == "email" {
 			newUser.Username = fmt.Sprintf("%s_%s", strings.Split(credentials, "@")[0], utils.GenerateOTP(6))
 			newUser.Email = credentials
@@ -773,12 +804,24 @@ func AuthenticateOAuthUser(ctx *gin.Context, userInfo map[string]interface{}, ro
 	if DbUser.ID == 0 {
 		newUser := dto.CreateUser{
 			Username: fmt.Sprintf("%s%s", strings.Split(authUser.Email, "@")[0], utils.GenerateOTP(6)),
-			Password: xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), authUser.Email)),
-			Email:    authUser.Email,
-			Role:     role,
-			RoleID:   roleID,
-			Active:   1,
-			Meta:     fmt.Sprint(userInfo),
+			// Password: xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), authUser.Email)),
+			Email:  authUser.Email,
+			Role:   role,
+			RoleID: roleID,
+			Active: 1,
+			Meta:   fmt.Sprint(userInfo),
+		}
+
+		generatedPassword := xstrings.Shuffle(fmt.Sprintf("%s%s", utils.GenerateOTP(6), authUser.Email))
+		if config.ENV.ENCRYPT_PASSWORDS {
+			hashedPassword, err := utils.HashPassword(generatedPassword)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, utils.FormatErrorResponse("Error processing password", err.Error()))
+				return
+			}
+			newUser.Password = hashedPassword
+		} else {
+			newUser.Password = generatedPassword
 		}
 
 		userID, err := repo.CreateUser(newUser)
