@@ -10,8 +10,9 @@ type CompanyDetails struct {
 	FollowersCount int            `json:"followers_count"`
 	FollowingCount int            `json:"following_count"`
 	LastActive     time.Time      `json:"last_active"`
-	CreatedAt      time.Time      `json:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CompanyMain struct {

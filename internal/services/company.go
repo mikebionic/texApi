@@ -3,8 +3,6 @@ package services
 import (
 	"context"
 	"fmt"
-	"github.com/georgysavva/scany/v2/pgxscan"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,6 +12,9 @@ import (
 	"texApi/internal/repo"
 	"texApi/pkg/utils"
 	"time"
+
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/gin-gonic/gin"
 )
 
 func GetCompanyList(ctx *gin.Context) {
@@ -180,7 +181,6 @@ func GetCompany(ctx *gin.Context) {
 	}
 	company, err := repo.GetCompanyByID(id)
 	ctx.JSON(http.StatusOK, utils.FormatResponse("Company details", company))
-	return
 }
 
 // // TODO: should they be able to create only one company? check if company of that user exists?

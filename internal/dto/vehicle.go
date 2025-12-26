@@ -80,6 +80,9 @@ type VehicleShort struct {
 	Photo2URL          string `json:"photo2_url"`
 	Photo3URL          string `json:"photo3_url"`
 	ViewCount          int    `json:"view_count"`
+
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 type VehicleBrand struct {
